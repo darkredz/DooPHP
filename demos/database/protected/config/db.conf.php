@@ -26,7 +26,7 @@ $dbmap['Ingredient']['has_many']['Food'] = array('foreign_key'=>'ingredient_id',
 
 
 //$dbconfig[ Environment or connection name] = array(Host, Database, User, Password, DB Driver, Make Persistent Connection?);
-$dbconfig['dev'] = array('localhost', 'foodexample', 'root', 'idunnu', 'mysql',true);
-$dbconfig['prod'] = array('localhost', 'foodexample', 'root', 'idunnu', 'mysql',true);
+$dbconfig['dev'] = array('localhost', 'foodexample', 'root', '1234', 'mysql',true);
+$dbconfig['prod'] = array('localhost', 'foodexample', 'root', '1234', 'mysql',true);
 
 ?>

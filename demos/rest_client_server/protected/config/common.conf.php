@@ -17,7 +17,11 @@ $config['BASE_PATH'] = str_replace('demos\rest_client_server', 'dooframework', s
 $config['APP_MODE'] = 'dev';    //for production mode use 'prod'
 
 //----------------- optional, if not defined, default settings are optimized for production mode ----------------
-$config['SUBFOLDER'] = '/demos/rest_client_server/';
+$config['SUBFOLDER'] = str_replace($_SERVER['DOCUMENT_ROOT'], '', str_replace('\\','/',$config['SITE_PATH']));
+if(strpos($config['SUBFOLDER'], '/')!==0){
+	$config['SUBFOLDER'] = '/'.$config['SUBFOLDER'];
+}
+
 $config['APP_URL'] = 'http://'.$_SERVER['HTTP_HOST'].$config['SUBFOLDER'];
 //$config['AUTOROUTE'] = TRUE;
 $config['DEBUG_ENABLED'] = TRUE;
