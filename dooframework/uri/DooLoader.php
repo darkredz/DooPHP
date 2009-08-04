@@ -83,15 +83,15 @@ class DooLoader {
             $filename = $rename;
         }
 
-		header('Content-Description: File Transfer');
-		header('Content-Type: application/octet-stream');
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/octet-stream');
         header("Content-Disposition: attachment; filename=\"$filename\"");
-		header('Expires: 0');
-		header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-		header('Pragma: public');
-		header('Content-Length: ' . filesize($file));
-		ob_clean();
-		flush();
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize($file));
+        ob_clean();
+        flush();
 
         if($isLarge)
             $this->readfile_chunked($file);
@@ -106,27 +106,27 @@ class DooLoader {
      * @return mixed
      */
     private function readfile_chunked($filename, $retbytes = TRUE) {
-	    $buffer = '';
-	    $cnt =0;
-	    // $handle = fopen($filename, 'rb');
-	    $handle = fopen($filename, 'rb');
-	    if ($handle === false) {
-	      return false;
-	    }
-	    while (!feof($handle)) {
-	      $buffer = fread($handle, CHUNK_SIZE);
-	      echo $buffer;
-	      ob_flush();
-	      flush();
-	      if ($retbytes) {
-	        $cnt += strlen($buffer);
-	      }
-	    }
-	    $status = fclose($handle);
-	    if ($retbytes && $status) {
-	      return $cnt; // return num. bytes delivered like readfile() does.
-	    }
-	    return $status;
-	  }
+        $buffer = '';
+        $cnt =0;
+        // $handle = fopen($filename, 'rb');
+        $handle = fopen($filename, 'rb');
+        if ($handle === false) {
+            return false;
+        }
+        while (!feof($handle)) {
+            $buffer = fread($handle, CHUNK_SIZE);
+            echo $buffer;
+            ob_flush();
+            flush();
+            if ($retbytes) {
+                $cnt += strlen($buffer);
+            }
+        }
+        $status = fclose($handle);
+        if ($retbytes && $status) {
+            return $cnt; // return num. bytes delivered like readfile() does.
+        }
+        return $status;
+    }
 }
 ?>
