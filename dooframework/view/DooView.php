@@ -149,6 +149,17 @@ class DooView {
         //convert variable in loop {{user' value}}  {{user' value' value}}
         $str = preg_replace_callback('/{{([^ \t\r\n\(\)\.}\']+)([^\t\r\n\(\)}{]+)}}/', array( &$this, 'convertVarLoop'), $str);
 
+
+        //convert else
+        $str = str_replace('<!-- else -->', '<?php else; ?>', $str);
+
+        //convert end if
+        $str = str_replace('<!-- endif -->', '<?php endif; ?>', $str);
+
+        //convert if and else if condition <!-- if expression --> <!-- elseif expression -->  only functions in template_tags are allowed
+        $str = preg_replace_callback('/<!-- (if|elseif) ([^\t\r\n}]+) -->/', array( &$this, 'convertCond'), $str);
+
+
         //convert include to php include and parse & compile the file, if include file not exist Echo error and exit application
         // <?php echo $data['file']; chars allowed for the grouping
         $str = preg_replace_callback('/<!-- include [\'\"]{1}([^\t\r\n\"]+).*[\'\"]{1} -->/', array( &$this, 'convertInclude'), $str);
@@ -172,6 +183,32 @@ class DooView {
         $fh = fopen($cfilename, 'w+');
         fwrite($fh, $str);
         fclose($fh);
+    }
+
+    private function checkCondFunc($matches){
+        //print_r( $matches );
+        if(!in_array(strtolower($matches[1]), $this->tags))
+            return 'function_deny('. $matches[2] .')';
+        return $matches[1].'('. $matches[2] .')';
+    }
+
+    private function convertCond($matches){
+        //echo '<h1>'.str_replace('>', '&gt;', str_replace('<', '&lt;', $matches[2])).'</h1>';
+        $stmt = str_replace('<?php echo ', '', $matches[2]);
+        $stmt = str_replace('; ?>', '', $stmt);
+        //echo '<h1>'.$stmt.'</h1>';
+
+        //prevent malicious HTML designers to use function with spaces
+        //eg. unlink        ( 'allmyfiles.file'  ), php allows this to happen!!
+        $stmt = preg_replace_callback('/([a-z0-9\-_]+)[ ]*\([ ]*([^ \t\r\n}]+)\)/i', array( &$this, 'checkCondFunc'), $stmt);
+
+        //echo '<h1>'.$stmt.'</h1>';
+        switch($matches[1]){
+            case 'if':
+                return '<?php if( '.$stmt.' ): ?>';
+            case 'elseif':
+                return '<?php elseif( '.$stmt.' ): ?>';
+        }
     }
 
     private function convertLoop($matches){

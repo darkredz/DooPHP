@@ -1,7 +1,7 @@
 <?php
 
 //register functions to be used with your template files
-$template_tags = array('upper', 'tofloat', 'sample_with_args', 'debug', 'url');
+$template_tags = array('upper', 'tofloat', 'sample_with_args', 'debug', 'url', 'url2', 'function_deny', 'isset', 'empty');
 
 // the 1st argument must be the variable passed in from template, the other args should NOT be variables
 function upper($str){
@@ -22,6 +22,12 @@ function debug($var){
         print_r($var);
         echo '</pre>';
     }
+}
+
+//This will be called when a function NOT Registered is used in IF or ElseIF statment
+function function_deny($var=null){
+   echo '<span style="color:#ff0000;">Function denied in IF or ElseIF statement!</span>';
+   exit;
 }
 
 //Build URL based on route id
