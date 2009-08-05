@@ -24,6 +24,7 @@ function debug($var){
     }
 }
 
+//Build URL based on route id
 function url($addRootUrl, $id, $param=null){
     Doo::loadHelper('DooUrlBuilder');
     // param pass in as string with format
@@ -40,6 +41,26 @@ function url($addRootUrl, $id, $param=null){
     }
 
     return DooUrlBuilder::url($id, null, $addRootUrl);
+}
+
+
+//Build URL based on controller and method name
+function url2($addRootUrl, $controller, $method, $param=null){
+    Doo::loadHelper('DooUrlBuilder');
+    // param pass in as string with format
+    // 'param1=>this_is_my_value, param2=>something_here'
+
+    if($param!=null){
+        $param = explode(', ', $param);
+        $param2 = null;
+        foreach($param as $p){
+            $splited = explode('=>', $p);
+            $param2[$splited[0]] = $splited[1];
+        }
+        return DooUrlBuilder::url2($controller, $method, $param2, $addRootUrl);
+    }
+
+    return DooUrlBuilder::url2($controller, $method, null, $addRootUrl);
 }
 
 ?>
