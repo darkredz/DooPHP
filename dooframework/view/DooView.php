@@ -151,7 +151,7 @@ class DooView {
 
 
         //convert else
-        $str = str_replace('<!-- else -->', '<?php else; ?>', $str);
+        $str = str_replace('<!-- else -->', '<?php else: ?>', $str);
 
         //convert end if
         $str = str_replace('<!-- endif -->', '<?php endif; ?>', $str);
