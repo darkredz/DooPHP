@@ -92,10 +92,10 @@ class Doo{
             if($createObj)
                 $obj=array();
 
-            for($i=0;$i<sizeof($class_name);$i++){
-                require_once($path . "$class_name.php");
+            foreach ($class_name as $one) {
+            	require_once($path . "$one.php");
                 if($createObj)
-                    $obj[] = new $class_name;
+                    $obj[] = new $one;
             }
 
             if($createObj)
