@@ -12,7 +12,7 @@
 /**
  * DooModelGen serves as a Model class file generator for rapid development
  *
- * <p>If you have your database configurations setup, create an object of DooModelGen and
+ * <p>If you have your database configurations setup, call DooModelGen::gen_mysql() and
  * it will generate the Model files for all the tables in that database</p>
  *
  * @author Leng Sheng Hong <darkredz@gmail.com>
