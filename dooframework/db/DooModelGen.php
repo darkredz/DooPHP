@@ -24,7 +24,7 @@ class DooModelGen{
     /**
      * Generates Model class files from a MySQL database
      */
-    function static gen_mysql(){
+    public static function gen_mysql(){
         $dbconf = Doo::db()->getDefaultDbConfig();
         $dbname = $dbconf[1];
 
