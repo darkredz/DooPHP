@@ -10,10 +10,9 @@ class MainController extends DooController{
 		echo '<h1>It Works!</h1>';
     }
 
-    public function gen_models(){
+    public function gen_model(){
         Doo::loadCore('db/DooModelGen');
-        $gen = new DooModelGen;
-        $gen->gen_mysql();
+        DooModelGen::gen_mysql();
     }
 
 }

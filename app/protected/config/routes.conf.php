@@ -13,7 +13,7 @@
 $route['*']['/'] = array('MainController', 'index');
 
 //generate Models automatically
-//$route['*']['/gen_model'] = array('MainController', 'gen_models', 'authName'=>'Model Generator', 'auth'=>array('admin'=>'1234'), 'authFail'=>'Unauthorized!');
+$route['*']['/gen_model'] = array('MainController', 'gen_model', 'authName'=>'Model Generator', 'auth'=>array('admin'=>'1234'), 'authFail'=>'Unauthorized!');
 
 
 ?>
