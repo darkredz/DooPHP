@@ -27,6 +27,7 @@ class Doo{
     private static $_conf;
     private static $_logger;
     private static $_db;
+	private static $_cache;
 
 	/**
 	 * @return DooConfig configuration settings defined in <i>common.conf.php</i>, auto create if the singleton has not been created yet.
@@ -75,6 +76,15 @@ class Doo{
         return self::$_logger;
 	}
 
+	public static function cache() {
+		if(self::$_cache === null) {
+			self::loadCore('cache/DooCache');
+			self::loadCore('cache/DooFileCache');
+			self::$_cache = DooFileCache::cache();
+		}
+		return self::$_cache;
+	}
+	
 	/**
      * Imports the definition of class(es) and tries to create an object/a list of objects of the class.
      * @param string|array $class_name Name(s) of the class to be imported

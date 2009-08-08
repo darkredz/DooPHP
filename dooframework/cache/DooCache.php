@@ -1,6 +1,6 @@
 <?php
 /**
- * DooRestClient class file.
+ * DooCache class file.
  *
  * @author David Shieh <mykingheaven@gmail.com>
  * @link http://www.doophp.com/
@@ -9,6 +9,7 @@
  */
 
 /**
+ * 
  * A abstract class for all cache classes.
  * This class defines all usable parameters and methods.
  * All cache classes must inherit this class to support uniform methods.
@@ -17,32 +18,39 @@
  *
  */
 abstract class DooCache {
-	private $_id;
-	
 	/**
 	 * Set datas to cache
 	 * @param $name
 	 * @return true or false
 	 */
-	public function setCache($name) {}
+	public function set($id, $value, $duration=0) {}
 	
 	/**
 	 * Get datas from cache
 	 * @param $name
 	 * @return $data or false
 	 */
-	public function getCache($name) {}
+	public function get($id) {}
 	
 	/**
 	 * Clear datas in cache
 	 * @param $name
 	 * @return true or false
 	 */
-	public function flushCache($name) {}
+	public function flush($id) {}
 	
 	/**
 	 * Clear all datas in all caches
 	 * @return true or false
 	 */
-	public function flushAllCache() {}
+	public function flushAll() {}
+	
+	/**
+	 * 
+	 * @param $id
+	 * @return unknown_type
+	 */
+	protected function generateKey($id) {
+		return $id !== null ? md5($id) : false;
+	}
 }
