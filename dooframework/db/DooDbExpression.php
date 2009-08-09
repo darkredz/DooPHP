@@ -15,7 +15,7 @@
  * attribute values of type DooDbExpression will be directly put into the corresponding SQL statement without escaping.
  * A typical usage is that an attribute is set with 'NOW()' expression so that saving the record would fill the corresponding column with the current DB server timestamp.
  * <code>
- * $this->load->classes('DooDbExpression');
+ * Doo::loadCore('db/DooDbExpression');
  * $usr = new User;
  * $usr->create_date = new DooDbExpression('NOW()');
  * //$usr->create_date = 'NOW()';  will insert the date as a string 'NOW()' as it is escaped.
