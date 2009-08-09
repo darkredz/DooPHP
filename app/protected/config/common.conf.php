@@ -18,11 +18,16 @@ $config['BASE_PATH'] = str_replace('app', 'dooframework', str_replace('app', 'do
 $config['APP_MODE'] = 'dev';    //for production mode use 'prod'
 
 //----------------- optional, if not defined, default settings are optimized for production mode ----------------
-$config['SUBFOLDER'] = '/app/';
+//if your root directory is /var/www/ and you place this in a subfolder eg. 'app', define SUBFOLDER = '/app/'
+
+$config['SUBFOLDER'] = str_replace($_SERVER['DOCUMENT_ROOT'], '', str_replace('\\','/',$config['SITE_PATH']));
+if(strpos($config['SUBFOLDER'], '/')!==0){
+	$config['SUBFOLDER'] = '/'.$config['SUBFOLDER'];
+}
+
 $config['APP_URL'] = 'http://'.$_SERVER['HTTP_HOST'].$config['SUBFOLDER'];
 $config['AUTOROUTE'] = TRUE;
 $config['DEBUG_ENABLED'] = TRUE;
-
 
 /**
  * Path to store logs/profiles when using with the logger tool.
