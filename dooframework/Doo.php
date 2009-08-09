@@ -76,6 +76,9 @@ class Doo{
         return self::$_logger;
 	}
 
+	/**
+	 * @return DooFileCache file based caching tool, singleton, auto create if the singleton has not been created yet.
+	 */
 	public static function cache() {
 		if(self::$_cache === null) {
 			self::loadCore('cache/DooCache');

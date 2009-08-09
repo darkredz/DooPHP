@@ -25,6 +25,11 @@ $config['DEBUG_ENABLED'] = TRUE;
 
 
 /**
+ * Path to store logs/profiles when using with the logger tool.
+ */
+//$config['LOG_PATH'] = '/var/logs/';
+
+/**
  * defined either Document or Route to be loaded/executed when requested page is not found
  * A 404 route must be one of the routes defined in routes.conf.php (if autoroute on, make sure the controller and method exist)
  * Error document must be more than 512 bytes as IE sees it as a normal 404 sent if < 512b

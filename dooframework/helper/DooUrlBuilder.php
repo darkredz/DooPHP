@@ -14,7 +14,7 @@
  * @author Leng Sheng Hong <darkredz@gmail.com>
  * @version $Id: DooUrlBuilder.php 1000 2009-08-4 11:17:22
  * @package doo.helper
- * @since 1.0
+ * @since 1.1
  */
 class DooUrlBuilder {
 
