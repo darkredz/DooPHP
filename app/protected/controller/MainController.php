@@ -20,15 +20,18 @@ class MainController extends DooController{
 	
     public function debug(){
 		Doo::loadCore('app/DooSiteMagic');
-		DooSiteMagic::showDebug();
+		DooSiteMagic::showDebug($this->params['filename']);
     }
 	
 	public function gen_sitemap_controller(){
-		$this->gen_sitemap();
-		$this->gen_site();
+		//This will replace the routes.conf.php file
+		Doo::loadCore('app/DooSiteMagic');
+		DooSiteMagic::buildSitemap(true);		
+		DooSiteMagic::buildSite();
 	}
 	
 	public function gen_sitemap(){
+		//This will write a new file,  routes2.conf.php file
 		Doo::loadCore('app/DooSiteMagic');
 		DooSiteMagic::buildSitemap();		
 	}

@@ -23,9 +23,9 @@
  */
 class DooSiteMagic{
 
-    /**
-     * Display some info as a welcome page for DooPHP
-     */
+	/**
+	 * Display some info as a welcome page for DooPHP
+	 */
 	public static function displayHome(){
 		echo '<div style="font-family:\'Courier New\', Courier, monospace;"><h1>It Works!</h1>';
 		echo '<h3>What now?</h3><p><a href="./tools/sitemap.html">Generate Sitemap</a> | <a href="./index.php/gen_site">Generate Controllers</a> | <a href="./index.php/gen_models">Generate Models</a> | <a href="./tools/logviewer.html">View Logs</a> | <a href="./index.php/allurl">View All URLs</a></p>';
@@ -38,18 +38,18 @@ class DooSiteMagic{
 			  <li>Start coding & have fun !</li></ol></div>';	
 	}
 	
-    /**
-     * Display logs/profiles message from the XML log files.
-     */
-	public static function showDebug(){
+	/**
+	 * Display logs/profiles message from the XML log files.
+	 */
+	public static function showDebug($filename){
 		if(isset(Doo::conf()->LOG_PATH)){
 			header('Content-Type: text/xml');
 			header('Expires: 0');
 			header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
 			header('Pragma: public');
 			echo '<xml>';
-			if(isset($this->params['filename']))
-				include Doo::conf()->LOG_PATH . $this->params['filename'] .'.xml';
+			if(isset($filename))
+				include Doo::conf()->LOG_PATH . $filename .'.xml';
 			else
 				include Doo::conf()->LOG_PATH . 'log.xml';
 			echo '</xml>';
@@ -57,9 +57,9 @@ class DooSiteMagic{
 		}
 	}
 	
-    /**
-     * Show all URLs available in application based on the route definition
-     */
+	/**
+	 * Show all URLs available in application based on the route definition
+	 */
 	public static function showAllUrl(){
         $data = array();
         $n = 1;
@@ -76,27 +76,29 @@ class DooSiteMagic{
 	
 	/**
 	 * Write the generated routes into routes.conf.php
+	 * @param bool $replace To replace the existing routes.conf.php
 	 */
-	public static function buildSitemap(){
+	public static function buildSitemap($replace=false){
 		if(!isset($_POST['routes']) || empty($_POST['routes'])){
 			echo 'result=false';
-			exit;
-		}
-		$handle = fopen(Doo::conf()->SITE_PATH.'protected/config/routes2.conf.php', 'w+');
-		$rs = fwrite($handle, $_POST['routes']);
-		fclose($handle);
-		if($rs===False){
-			echo 'result=false';
 		}else{
-			echo 'result=true';
+			$replacename = ($replace)?'routes':'routes2';
+			$handle = fopen(Doo::conf()->SITE_PATH.'protected/config/'.$replacename.'.conf.php', 'w+');
+			$rs = fwrite($handle, "<?php\n\n".$_POST['routes']."\n\n?>");
+			fclose($handle);
+			if($rs===False){
+				echo 'result=false';
+			}else{
+				echo 'result=true';
+			}
 		}
 	}
 	
-    /**
-     * Generates Controller class files from routes definition
-     */
+	/**
+	 * Generates Controller class files from routes definition
+	 */
 	public static function buildSite(){
-		$route = Doo::app()->route;
+		include Doo::conf()->SITE_PATH . 'protected/config/routes.conf.php';
 		$controllers = array();
 		foreach($route as $req=>$r){
             foreach($r as $rname=>$value){

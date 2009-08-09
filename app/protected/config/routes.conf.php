@@ -16,6 +16,9 @@
  
 $route['*']['/'] = array('MainController', 'index');
 
+//view the logs and profiles XML, filename = db.profile, log, trace.log, profile
+$route['*']['/debug/:filename'] = array('MainController', 'debug', 'authName'=>'DooPHP Admin', 'auth'=>$admin, 'authFail'=>'Unauthorized!');
+
 //show all urls in app
 $route['*']['/allurl'] = array('MainController', 'allurl', 'authName'=>'DooPHP Admin', 'auth'=>$admin, 'authFail'=>'Unauthorized!');
 
