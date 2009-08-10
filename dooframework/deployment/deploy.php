@@ -37,7 +37,16 @@ class Doo{
         }
         return self::$_logger;
 	}
-
+	
+	public static function cache() {
+		if(self::$_cache === null) {
+			self::loadCore('cache/DooCache');
+			self::loadCore('cache/DooFileCache');
+			self::$_cache = DooFileCache::cache();
+		}
+		return self::$_cache;
+	}
+	
 	protected static function load($class_name, $path, $createObj=FALSE){
         if(is_string($class_name)){
     		require_once($path . "$class_name.php");
@@ -76,7 +85,27 @@ class Doo{
 	public static function loadCore($class_name){
 		require_once(self::conf()->BASE_PATH ."$class_name.php");
 	}
-
+	public static function autoload($classname){
+		$class['DooSiteMagic'] = 'app/DooSiteMagic';
+		$class['DooWebApp'] = 'app/DooWebApp';
+		$class['DooConfig'] = 'app/DooConfig';
+		$class['DooDigestAuth'] = 'auth/DooDigestAuth';
+		$class['DooCache'] = 'cache/DooCache';
+		$class['DooFileCache'] = 'cache/DooFileCache';
+		$class['DooController'] = 'controller/DooController';
+		$class['DooDbExpression'] = 'db/DooDbExpression';
+		$class['DooModelGen'] = 'db/DooModelGen';
+		$class['DooSqlMagic'] = 'db/DooSqlMagic';
+		$class['DooRestClient'] = 'helper/DooRestClient';
+		$class['DooUrlBuilder'] = 'helper/DooUrlBuilder';
+		$class['DooLog'] = 'helper/DooLog';
+		$class['DooLoader'] = 'uri/DooLoader';
+		$class['DooUriRouter'] = 'uri/DooUriRouter';
+		$class['DooView'] = 'view/DooView';
+		
+		if(isset($class[$classname]))
+			self::loadCore($class[$classname]);
+	}
     public static function benchmark($html=false){
         if(!isset(self::conf()->START_TIME)){
             return 0;

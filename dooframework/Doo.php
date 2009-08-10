@@ -162,6 +162,31 @@ class Doo{
 	public static function loadCore($class_name){
 		require_once(self::conf()->BASE_PATH ."$class_name.php");
 	}
+	
+	/**
+	 * Provides auto loading feature. To be used with the Magic method __autoload
+	 */
+	public static function autoload($classname){
+		$class['DooSiteMagic'] = 'app/DooSiteMagic';
+		$class['DooWebApp'] = 'app/DooWebApp';
+		$class['DooConfig'] = 'app/DooConfig';
+		$class['DooDigestAuth'] = 'auth/DooDigestAuth';
+		$class['DooCache'] = 'cache/DooCache';
+		$class['DooFileCache'] = 'cache/DooFileCache';
+		$class['DooController'] = 'controller/DooController';
+		$class['DooDbExpression'] = 'db/DooDbExpression';
+		$class['DooModelGen'] = 'db/DooModelGen';
+		$class['DooSqlMagic'] = 'db/DooSqlMagic';
+		$class['DooRestClient'] = 'helper/DooRestClient';
+		$class['DooUrlBuilder'] = 'helper/DooUrlBuilder';
+		$class['DooLog'] = 'helper/DooLog';
+		$class['DooLoader'] = 'uri/DooLoader';
+		$class['DooUriRouter'] = 'uri/DooUriRouter';
+		$class['DooView'] = 'view/DooView';
+		
+		if(isset($class[$classname]))
+			self::loadCore($class[$classname]);
+	}
 
     /**
      * Simple benchmarking. To used this, set <code>$config['START_TIME'] = microtime(true);</code> in <i>common.conf.php</i> .
@@ -179,11 +204,11 @@ class Doo{
     }
 
 	public static function powerby(){
-		return 'Powered by <a href="http://www.doophp.com/">Doo PHP Framework</a>.';
+		return 'Powered by <a href="http://www.doophp.com/">DooPHP Framework</a>.';
 	}
 
 	public static function version(){
-		return '1.0';
+		return '1.1';
 	}
 }
 
