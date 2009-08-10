@@ -72,8 +72,12 @@ class DooFileCache extends DooCache {
 			$duration = 31536000;
 		$duration = $duration + time();
 		if (file_put_contents($this->generateKey($id), serialize($value), LOCK_EX)) {
-			@chmod($this->generateKey($id),0777);
-			return @touch($this->generateKey($id),$duration);
+			try {
+				chmod($this->generateKey($id),0777);
+				return touch($this->generateKey($id),$duration);
+			} catch (Exception $e) {
+				echo $e;
+			}
 		}
 		else
 			return false;
@@ -86,8 +90,12 @@ class DooFileCache extends DooCache {
 	 */
 	public function flush($id) {
 		if ($id !== null) {
-			@unlink($this->generateKey($id));
-			return true;
+			try {
+				unlink($this->generateKey($id));
+				return true;
+			} catch (Exception $e) {
+				echo $e;
+			}
 		}
 		return false;
 	}
@@ -97,7 +105,11 @@ class DooFileCache extends DooCache {
 		
 		while(($file = readdir($handle)) !== false) {
 			if (is_file($file))
-				@unlink($file);
+				try {
+					unlink($file);
+				} catch (Exception $e) {
+					echo $e;
+				}
 		}
 		return true;
 	}
