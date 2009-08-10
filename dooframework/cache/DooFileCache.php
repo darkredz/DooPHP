@@ -18,12 +18,26 @@ class DooFileCache extends DooCache {
 	
 	private static $_cache;
 	
+	private $_directory = false;
+
 	/**
 	 * Chdir to cache directory
 	 * @return unknown_type
 	 */
 	protected function __construct() {
-		@chdir(Doo::conf()->SITE_PATH . 'protected/cache');
+		// If user set a path for cache, save it
+		if (isset(Doo::conf()->CACHE_PATH)) {
+			$this->_directory = Doo::conf()->CACHE_PATH;
+		}
+		// If user set a path, change the current directory to user's
+		if ($this->_directory !== false) {
+			if (is_dir(Doo::conf()->SITE_PATH . 'protected/cache/' . $this->_directory))
+				chdir(Doo::conf()->SITE_PATH . 'protected/cache/' . $this->_directory);
+			else {
+				mkdir(Doo::conf()->SITE_PATH . 'protected/cache/' . $this->_directory);
+				chdir(Doo::conf()->SITE_PATH . 'protected/cache/' . $this->_directory);
+			}
+		}
 	}
 	
 	/**
