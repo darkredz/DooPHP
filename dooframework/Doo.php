@@ -185,6 +185,7 @@ class Doo{
 	
 	/**
 	 * Provides auto loading feature. To be used with the Magic method __autoload
+	 * @param string $classname Class name to be loaded.
 	 */
 	public static function autoload($classname){
 		$class['DooSiteMagic'] = 'app/DooSiteMagic';
