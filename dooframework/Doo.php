@@ -77,8 +77,8 @@ class Doo{
 	}
 
 	/**
-	 * @param string $cacheType Cache type, file, apc, memcache. Default is file based cache.
-	 * @return DooCache file/apc/memcache caching tool, singleton, auto create if the singleton has not been created yet.
+	 * @param string $cacheType Cache type: file, apc, memcache, front. Default is file based cache.
+	 * @return mixed file/apc/memcache & frontend caching tool, singleton, auto create if the singleton has not been created yet.
 	 */
 	public static function cache($cacheType='file') {
 		if($cacheType=='file'){
@@ -89,6 +89,14 @@ class Doo{
 			self::loadCore('cache/DooFileCache');
 			self::$_cache['file'] = DooFileCache::cache();
 			return self::$_cache['file'];
+		}
+		else if($cacheType=='front'){
+			if(isset(self::$_cache['front']))
+				return self::$_cache['front'];
+				
+			self::loadCore('cache/DooFrontCache');
+			self::$_cache['front'] = new DooFrontCache;
+			return self::$_cache['front'];			
 		}
 		else if($cacheType=='apc'){
 			if(isset(self::$_cache['apc']))
@@ -101,7 +109,7 @@ class Doo{
 		}
 		//settings for cache done in common.conf.php
 		/*
-		 * $config['CACHE_PATH'] = '/var/cache/';   //This is for file based cache only.
+		 * $config['CACHE_PATH'] = '/var/cache/';   //This is for file based cache only. absolute path
 		 * $config['APCCACHE'] = array('settings'=>'some values');   //This is for APC cache
 		 * $config['MEMCACHE'] = array('settings'=>'some values');   //This is for fMemcache.
 		 * use in code. Doo::cache()->set()    Doo::cache('apc')->set()     Doo::cache('memcache')->set()

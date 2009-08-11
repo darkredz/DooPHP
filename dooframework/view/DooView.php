@@ -45,7 +45,12 @@
  * //Or you can use a variable in the include tag too. say, $data['file']='header'
  * <!-- include "{{file}}" -->
  * </code>
- *
+ * <p>Partial caching in view:</p>
+ * <code>
+ * <!-- cache('mydata', 60) --> 
+ * <ul>{{userList}}</ul>
+ * <!-- endcache -->
+ * </code>
  * <p>DooView can be called from the controller: </p>
  * <code>
  * class SampleController extends DooController{
@@ -155,10 +160,16 @@ class DooView {
 
         //convert end if
         $str = str_replace('<!-- endif -->', '<?php endif; ?>', $str);
-
+		
         //convert if and else if condition <!-- if expression --> <!-- elseif expression -->  only functions in template_tags are allowed
         $str = preg_replace_callback('/<!-- (if|elseif) ([^\t\r\n}]+) -->/', array( &$this, 'convertCond'), $str);
 
+
+        //convert end cache <!-- endcache -->
+        $str = str_replace('<!-- endcache -->', "\n<?php Doo::cache('front')->end(); ?>\n<?php endif; ?>", $str);
+
+		//convert cache <!-- cache('partial_id', 60) -->
+        $str = preg_replace_callback('/<!-- cache\(([^\t\r\n}\)]+)\) -->/', array( &$this, 'convertCache'), $str);
 
         //convert include to php include and parse & compile the file, if include file not exist Echo error and exit application
         // <?php echo $data['file']; chars allowed for the grouping
@@ -183,6 +194,16 @@ class DooView {
         $fh = fopen($cfilename, 'w+');
         fwrite($fh, $str);
         fclose($fh);
+    }
+
+    private function convertCache($matches){
+		$data = explode(',', $matches[1]);
+		if(sizeof($data)==2){
+			$data[1] = intval($data[1]);
+			return "<?php if (!Doo::cache('front')->getPart({$data[0]}, {$data[1]})): ?>\n<?php Doo::cache('front')->start({$data[0]}); ?>";
+		}else{
+			return "<?php if (!Doo::cache('front')->getPart({$data[0]})): ?>\n<?php Doo::cache('front')->start({$data[0]}); ?>";
+		}
     }
 
     private function checkCondFunc($matches){
