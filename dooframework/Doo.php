@@ -85,7 +85,6 @@ class Doo{
 			if(isset(self::$_cache['file']))
 				return self::$_cache['file'];
 				
-			self::loadCore('cache/DooCache');
 			self::loadCore('cache/DooFileCache');
 			self::$_cache['file'] = DooFileCache::cache();
 			return self::$_cache['file'];
@@ -98,7 +97,7 @@ class Doo{
 			self::$_cache['front'] = new DooFrontCache;
 			return self::$_cache['front'];			
 		}
-		else if($cacheType=='apc'){
+		/*else if($cacheType=='apc'){
 			if(isset(self::$_cache['apc']))
 				return self::$_cache['apc'];
 				
@@ -106,10 +105,10 @@ class Doo{
 			self::loadCore('cache/DooApcCache');
 			self::$_cache['apc'] = DooApcCache::cache();
 			return self::$_cache['apc'];
-		}
+		}*/
 		//settings for cache done in common.conf.php
 		/*
-		 * $config['CACHE_PATH'] = '/var/cache/';   //This is for file based cache only. absolute path
+		 * $config['CACHE_PATH'] = '/var/cache/';   //This is for file based cache only. absolute/full path, default SITE_PATH/protected/cache/
 		 * $config['APCCACHE'] = array('settings'=>'some values');   //This is for APC cache
 		 * $config['MEMCACHE'] = array('settings'=>'some values');   //This is for fMemcache.
 		 * use in code. Doo::cache()->set()    Doo::cache('apc')->set()     Doo::cache('memcache')->set()
@@ -202,6 +201,7 @@ class Doo{
 		$class['DooDigestAuth'] = 'auth/DooDigestAuth';
 		$class['DooCache'] = 'cache/DooCache';
 		$class['DooFileCache'] = 'cache/DooFileCache';
+		$class['DooFrontCache'] = 'cache/DooFrontCache';		
 		$class['DooController'] = 'controller/DooController';
 		$class['DooDbExpression'] = 'db/DooDbExpression';
 		$class['DooModelGen'] = 'db/DooModelGen';
