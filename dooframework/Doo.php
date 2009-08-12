@@ -208,6 +208,7 @@ class Doo{
 		$class['DooSqlMagic'] = 'db/DooSqlMagic';
 		$class['DooRestClient'] = 'helper/DooRestClient';
 		$class['DooUrlBuilder'] = 'helper/DooUrlBuilder';
+		$class['DooTextHelper'] = 'helper/DooTextHelper';
 		$class['DooLog'] = 'helper/DooLog';
 		$class['DooLoader'] = 'uri/DooLoader';
 		$class['DooUriRouter'] = 'uri/DooUriRouter';
