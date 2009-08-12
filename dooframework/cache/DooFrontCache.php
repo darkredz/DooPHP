@@ -70,18 +70,12 @@ class DooFrontCache{
 	 * @param int $secondsCache Duration till the cache expired 
 	 */
 	public function get($secondsCache=60){
-		if($id==''){
-			$this->_cachefile = str_replace('/','-',$_SERVER['REQUEST_URI']).'.html';
-		}else{
-			$this->_cachefile  = $id.'.html';
-		}
-		
-		$this->_cachefile  = $this->_directory.$this->_cachefile;
+		$this->_cachefile = $this->_directory.str_replace('/','-',$_SERVER['REQUEST_URI']).'.html';
 		
 		// If the cache has not expired, include it.
 		if (file_exists($this->_cachefile) && time() - $secondsCache < filemtime($this->_cachefile)) {
 			include $this->_cachefile;
-			echo "<h1> Cached copy, generated ".date('H:i', filemtime($this->_cachefile ))." </h1>\n";
+			//echo "<h1> Cached copy, generated ".date('H:i', filemtime($this->_cachefile ))." </h1>\n";
 			exit;
 		}
 	}
