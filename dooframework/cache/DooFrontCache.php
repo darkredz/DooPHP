@@ -70,7 +70,13 @@ class DooFrontCache{
 	 * @param int $secondsCache Duration till the cache expired 
 	 */
 	public function get($secondsCache=60){
-		$this->_cachefile = $this->_directory.str_replace('/','-',$_SERVER['REQUEST_URI']).'.html';
+		$uri = $_SERVER['REQUEST_URI'];
+		
+		if($uri[strlen($uri)-1]=='/'){
+			$uri = substr($uri,0,strlen($uri)-1);
+		}
+		
+		$this->_cachefile = $this->_directory.str_replace('/','-',$uri).'.html';
 		
 		// If the cache has not expired, include it.
 		if (file_exists($this->_cachefile) && time() - $secondsCache < filemtime($this->_cachefile)) {
@@ -86,7 +92,7 @@ class DooFrontCache{
 	 * @param int $secondsCache Duration till the cache expired 
 	 */
 	public function getPart($id, $secondsCache=60){
-		$this->_cachefile  = $this->_directory.$id.'.html';
+		$this->_cachefile  = $this->_directory.'parts/'.$id.'.html';
 		
 		// If the cache has not expired, include it.
 		if (file_exists($this->_cachefile) && time() - $secondsCache < filemtime($this->_cachefile)) {
@@ -130,6 +136,134 @@ class DooFrontCache{
 		}
 		return false;
 	}
+	
+	/**
+	 * Flush full page cache file(s) based on URL.
+	 * 
+	 * You can flush a page cache by passing a url as defined in the routes.
+	 * <code>Doo::cache('front')->flush('/blog');</code>
+	 *
+	 * To delete all cache in a certain URL recursively, for example:
+	 * <code>
+	 * // URLs in blog: /blog, /blog/article/:pname, /blog/archive/:year/:month
+	 * // This will delete all cache starts with /blog
+	 * Doo::cache('front')->flush('/blog', true);
+	 * </code>
+	 *
+	 * @param string $url URL of the page cached to be deleted.
+	 * @return int Number of cache file(s) deleted.
+	 */
+	public function flush($url, $recursive=false){
+		$deleteNum=0;
+		$subfolder = Doo::conf()->SUBFOLDER;
+		//delete index.php without /
+		if($url=='/'){
+			$f1 = $this->_directory.str_replace('/','-',$subfolder).'index.php.html';
+			$f2 = $this->_directory.str_replace('/','-',substr($subfolder,0,strlen($subfolder)-1)).'.html';
+			if(file_exists($f1)){
+				unlink( $f1 );
+				$deleteNum++;
+			}
+			if(file_exists($f2)){
+				unlink( $f2 );
+				$deleteNum++;
+			}
+			return $deleteNum;
+		}
+		
+		$oriUrl = $url;
+		if(strpos($url,'/')===0)
+			$oriUrl = $url = substr($url,1, strlen($url));
+			
+		$fname = $this->_directory.str_replace('/','-',$subfolder.$url).'.html';
+		$fname2 = $this->_directory.str_replace('/','-',$subfolder.'index.php/'.$url).'.html';
+				
+		//delete cached written without index.php
+		if(file_exists($fname)){
+			unlink( $fname );
+			$deleteNum++;
+		}
+			
+		//delete cached written with index.php
+		if(file_exists($fname2)){
+			unlink( $fname2 );	
+			$deleteNum++;
+		}
+					
+		if($recursive){
+			$oriUrl1 = str_replace('/','-',$subfolder.$oriUrl);
+			$oriUrl2 = str_replace('/','-',$subfolder.'index.php/'.$oriUrl);
+			//echo '<br><h1>'.$oriUrl1.'</h1><br>';
+			//echo '<br><h1>'.$oriUrl2.'</h1><br>';
+			
+			$handle = opendir($this->_directory);
+			while(($file = readdir($handle)) !== false) {
+				if (is_file($this->_directory.$file) && (strpos($file, $oriUrl1)===0 || strpos($file, $oriUrl2)===0) ){
+					unlink( $this->_directory.$file );
+					$deleteNum++;
+				}
+			}		
+		}
+		return $deleteNum;
+	}
+	
+	/**
+	 * Flush partial page cache files based on ID.
+	 * @param string|array $id ID name of the partial cache, you can specify an array of names
+	 * @return int Number of cache file(s) deleted.
+	 */
+	public function flushPart($id){
+		$deleteNum=0;
+		if(is_string($id)){
+			if(file_exists($this->_directory.'parts/'.$id.'.html')){
+				unlink($this->_directory.'parts/'.$id.'.html');
+				$deleteNum++;
+			}
+		}else{
+			foreach($id as $f){
+				if(file_exists($this->_directory.'parts/'.$f.'.html')){
+					unlink($this->_directory.'parts/'.$f.'.html');
+					$deleteNum++;
+				}
+			}
+		}
+		return $deleteNum;
+	}
+	
+	/**
+	 * Flush all frontend cache files.
+	 */
+	public function flushAll(){
+		$this->flushAllFull();
+		$this->flushAllParts();
+	}
+	
+	/**
+	 * Flush all full page cache files.
+	 */
+	public function flushAllFull(){
+		$handle = opendir($this->_directory);
+		while(($file = readdir($handle)) !== false) {
+			$file = $this->_directory.$file;
+			if (is_file($file)){
+				unlink( $file );
+			}
+		}
+	}
+	
+	/**
+	 * Flush all partial page cache files.
+	 */
+	public function flushAllParts(){
+		$handle = opendir($this->_directory.'parts/');
+		while(($file = readdir($handle)) !== false) {
+			$file = $this->_directory.'parts/'.$file;
+			if (is_file($file)){
+				unlink( $file );
+			}
+		}	
+	}
+	
 }
 
 ?>
