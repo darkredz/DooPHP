@@ -106,9 +106,14 @@ class DooSqlMagic {
      */
     public function connect(){
         if($this->dbconfig==NULL)return;
-        $this->pdo = new PDO("{$this->dbconfig[4]}:host={$this->dbconfig[0]};dbname={$this->dbconfig[1]}", $this->dbconfig[2], $this->dbconfig[3],array(PDO::ATTR_PERSISTENT => $this->dbconfig[5]));
-        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $this->connected = true;
+		
+		try{
+			$this->pdo = new PDO("{$this->dbconfig[4]}:host={$this->dbconfig[0]};dbname={$this->dbconfig[1]}", $this->dbconfig[2], $this->dbconfig[3],array(PDO::ATTR_PERSISTENT => $this->dbconfig[5]));
+			$this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$this->connected = true;
+		}catch(PDOException $e){
+			throw new SqlMagicException('Failed to open the DB connection', SqlMagicException::DBConnectionError);
+		}
     }
 
     /**
@@ -118,9 +123,13 @@ class DooSqlMagic {
     public function reconnect($db_config_name){
         //$host='localhost', $db='', $user='', $password='', $driver='mysql', $persist=true
         $dbconfig = $this->dbconfig_list[$db_config_name];
-        $this->pdo = new PDO("{$dbconfig[4]}:host={$dbconfig[0]};dbname={$dbconfig[1]}", $dbconfig[2], $dbconfig[3],array(PDO::ATTR_PERSISTENT => $dbconfig[5]));
-        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $this->connected = true;
+		try{
+			$this->pdo = new PDO("{$dbconfig[4]}:host={$dbconfig[0]};dbname={$dbconfig[1]}", $dbconfig[2], $dbconfig[3],array(PDO::ATTR_PERSISTENT => $dbconfig[5]));
+			$this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$this->connected = true;
+		}catch(PDOException $e){
+			throw new SqlMagicException('Failed to open the DB connection', SqlMagicException::DBConnectionError);
+		}
     }
 
     /**
@@ -1255,6 +1264,7 @@ class SqlMagicException extends Exception {
   const UnexpectedClass   = 0;
   const RelationNotFound = 1;
   const DBConfigNotFound = 2;
+  const DBConnectionError = 3;
 }
 
 ?>
