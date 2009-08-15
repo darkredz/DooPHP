@@ -28,7 +28,7 @@ class DooSiteMagic{
 	 */
 	public static function displayHome(){
 		echo '<div style="font-family:\'Courier New\', Courier, monospace;"><h1>It Works!</h1>';
-		echo '<h3>What now?</h3><p><a href="./tools/sitemap.html">Generate Sitemap</a> | <a href="./index.php/gen_site">Generate Controllers</a> | <a href="./index.php/gen_models">Generate Models</a> | <a href="./tools/logviewer.html">View Logs</a> | <a href="./index.php/allurl">View All URLs</a></p>';
+		echo '<h3>What now?</h3><p><a href="./tools/sitemap.html">Generate Sitemap</a> | <a href="./index.php/gen_site">Generate Controllers</a> | <a href="./index.php/gen_model">Generate Models</a> | <a href="./tools/logviewer.html">View Logs</a> | <a href="./index.php/allurl">View All URLs</a></p>';
 		echo '<br/><strong>Suggested workflow:</strong><ol>
 			  <li>Plan your website and draft a sitemap</li>
 			  <li>Convert the sitemap into routes.conf.php</li>
