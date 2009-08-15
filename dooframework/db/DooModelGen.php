@@ -23,8 +23,9 @@
 class DooModelGen{
     /**
      * Generates Model class files from a MySQL database
+	 * @param bool $comments Generate comments along with the Model class
      */
-    public static function gen_mysql(){
+    public static function gen_mysql($comments=true){
         $dbconf = Doo::db()->getDefaultDbConfig();
         $dbname = $dbconf[1];
 
@@ -37,7 +38,7 @@ class DooModelGen{
 
            $smt2 = Doo::db()->query("DESC `$tblname`");
            $fields = $smt2->fetchAll();
-
+		   
            $classname = '';
            $temptbl = $tblname;
            for($i=0;$i<strlen($temptbl);$i++){
@@ -56,10 +57,25 @@ class DooModelGen{
 
            $filestr = "<?php\nclass $classname{\n";
            $pkey = '';
+           $ftype = '';
            $fieldnames = array();
 
            foreach($fields as $f){
-                $filestr .= "    public \${$f['Field']};\n";
+				$fstring='';
+				if($comments && isset($f['Type']) && !empty($f['Type'])){
+					preg_match('/([^\(]+)[\(]?([\d]*)?[\)]?(.+)?/', $f['Type'], $ftype);
+					$length = '';
+					$more = '';
+					
+					if(isset($ftype[2]) && !empty($ftype[2]))
+						$length = " Max length is $ftype[2].";
+					if(isset($ftype[3]) && !empty($ftype[3]))
+						$more = " $ftype[3].";
+					
+					$fstring = "\n    /**\n     * @var {$ftype[1]}$length$more\n     */\n";
+				}
+				
+                $filestr .= "$fstring    public \${$f['Field']};\n";
                 $fieldnames[] = $f['Field'];
                 if($f['Key']=='PRI'){
                     $pkey = $f['Field'];
@@ -71,6 +87,7 @@ class DooModelGen{
            $filestr .= "    public \$_primarykey = '$pkey';\n";
            $filestr .= "    public \$_fields = array('$fieldnames');\n";
            $filestr .= "}\n?>";
+
            $handle = fopen(Doo::conf()->SITE_PATH . "/protected/model/$classname.php", 'w+');
            fwrite($handle, $filestr);
            fclose($handle);
