@@ -12,7 +12,6 @@ include $config['BASE_PATH'].'app/DooConfig.php';
 /*function __autoload($classname){
 	Doo::autoload($classname);
 }*/
-
 Doo::conf()->set($config);
 
 # database usage

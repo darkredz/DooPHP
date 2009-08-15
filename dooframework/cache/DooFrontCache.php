@@ -40,6 +40,22 @@
  * <!-- endcache -->
  * </code>
  *
+ * Using getOnly or getExcept for full page cache:
+ * <code>
+ * //Use it in index.php
+ * $check = Doo::cache('front')->getOnly('/blog', 3600, true);
+ * 
+ * //Start recording and cache the page.
+ * if($check)
+ *     Doo::cache('front')->start();
+ * 
+ * Doo::app()->run();
+ * 
+ * if($check)
+ *     Doo::cache('front')->end();
+ * </code>
+ * The example above caches all pages under /blog URL.
+ *
  * @author Leng Sheng Hong <darkredz@gmail.com>
  * @version $Id: DooFrontCache.php 1000 2009-08-11 18:28:42
  * @package doo.cache
@@ -61,9 +77,195 @@ class DooFrontCache{
 		}
 	}
 	
+	/**
+	 * Set the cache storage path
+	 * @param string $path
+	 */
 	public function setPath($path){
 		$this->_directory = $path;
 	}
+	
+	/**
+	 * Retrieve the full page cache based on one/array of URLs.
+	 * 
+	 * You can retrieve a page cache by passing a url as defined in the routes. 
+	 * Pass in an array of URLs if you need to output the cache only in those URLs
+	 * <code>Doo::cache('front')->getOnly('/blog', 3600);
+	 * Doo::cache('front')->getOnly(array('/allurl','/gen_site', '/blog'), 3600);
+	 * </code>
+	 *
+	 * To output cache in a certain URL(s) recursively, just pass in a True:
+	 * <code>
+	 * // URLs in blog: /blog, /blog/article/:pname, /blog/archive/:year/:month
+	 * // This will output all cache starts with /blog
+	 * Doo::cache('front')->getOnly('/blog', 3600, true);
+	 * </code>
+	 *
+	 * If you need to output a list of cache based on the URLs recursively, just pass in an array:
+	 * <code>
+	 * // This will output all cache starts with URLs in the Array
+	 * // Only /blog & /gen_site will be check recursively.
+	 * Doo::cache('front')->getOnly(array('/allurl','/gen_site', '/blog'), 3600, array('/blog', '/gen_site'));
+	 * </code>
+	 *
+	 * @param string $url URL to be output if cache exists/not expired.
+	 * @param int $secondsCache Duration till the cache expired 
+	 * @param bool|array $recursive Check a cache recursively based on the URL(s)
+	 * @param bool Return true if the Request URI is in the list
+	 */
+	public function getOnly($url, $secondsCache=60, $recursive=false){
+		$uri = $_SERVER['REQUEST_URI'];
+		$subfolder = Doo::conf()->SUBFOLDER;
+		$index = '';
+		$isMatched = false;
+		
+		if($uri[strlen($uri)-1]=='/'){
+			$uri = substr($uri,0,strlen($uri)-1);
+		}
+		
+		if(strpos($uri, $subfolder.'index.php')===0){
+			$index = 'index.php/';
+		}
+		
+		if(is_string($url)){			
+			$url = str_replace('//','/',$subfolder.$index.$url);
+
+			if($url==$uri || ($recursive && strpos($uri, $url)===0)){
+				$isMatched = true;
+				$url = str_replace('/','-',$url).'.html';
+				$this->_cachefile = $this->_directory.str_replace('/','-',$uri).'.html';
+				
+				// If the cache has not expired, include it.
+				if (file_exists($this->_cachefile) && time() - $secondsCache < filemtime($this->_cachefile)) {
+					echo "<h1> Cached copy, generated ".date('H:i', filemtime($this->_cachefile ))." </h1>\n";
+					include $this->_cachefile;
+					exit;
+				}
+			}
+		}
+		else{
+			$uri = str_replace($subfolder.$index, '/',$uri);
+			$recursiveCheck = false;
+			
+			if($recursive){
+				foreach($recursive as $r){
+					if(strpos($uri, $r)===0){
+						$recursiveCheck = true;
+						break;
+					}
+				}
+			}
+				
+			if(in_array($uri, $url)===true || $recursiveCheck===true){
+				if(strpos($uri,'/')===0)
+					$uri = substr($uri,1);
+					
+				$isMatched = true;
+				$this->_cachefile = $this->_directory.str_replace('/','-',$subfolder.$index.$uri).'.html';
+				
+				// If the cache has not expired, include it.
+				if (file_exists($this->_cachefile) && time() - $secondsCache < filemtime($this->_cachefile)) {
+					echo "<h1> Cached copy, generated ".date('H:i', filemtime($this->_cachefile ))." </h1>\n";
+					include $this->_cachefile;
+					exit;
+				}
+			}
+		}
+		
+		return $isMatched;
+	}
+	
+	/**
+	 * Retrieve the full page caches which are not in the exception list (one/array of URLs).
+	 * 
+	 * You can retrieve a page cache by passing a url as defined in the routes. 
+	 * Pass in an array of URLs if you need to output the cache NOT in those URLs
+	 * <code>// All the URLs not found in the list will be retrieve
+	 * Doo::cache('front')->getExcept('/blog', 3600);
+	 * Doo::cache('front')->getExcept(array('/allurl','/gen_site', '/blog'), 3600);
+	 * </code>
+	 *
+	 * To output cache NOT in a certain URL(s) recursively, just pass in a True:
+	 * <code>
+	 * // URLs in blog: /blog, /blog/article/:pname, /blog/archive/:year/:month
+	 * // This will output all caches NOT start with /blog
+	 * Doo::cache('front')->getExcept('/blog', 3600, true);
+	 * </code>
+	 *
+	 * If you need to output a list of cache NOT in the URLs recursively, just pass in an array:
+	 * <code>
+	 * // This will output all cache NOT in URLs
+	 * // Only /blog & /gen_site will be check recursively.
+	 * Doo::cache('front')->getExcept(array('/allurl','/gen_site', '/blog'), 3600, array('/blog', '/gen_site'));
+	 * </code>
+	 *
+	 * @param string $url URL to be output if cache exists/not expired.
+	 * @param int $secondsCache Duration till the cache expired 
+	 * @param bool|array $recursive Check a cache recursively based on the URL(s)
+	 * @param bool Return true if the Request URI is NOT in the list
+	 */
+	public function getExcept($url, $secondsCache=60, $recursive=false){
+		$uri = $_SERVER['REQUEST_URI'];
+		$subfolder = Doo::conf()->SUBFOLDER;
+		$index = '';
+		$isMatched = false;
+		
+		if($uri[strlen($uri)-1]=='/'){
+			$uri = substr($uri,0,strlen($uri)-1);
+		}
+		
+		if(strpos($uri, $subfolder.'index.php')===0){
+			$index = 'index.php/';
+		}
+		
+		if(is_string($url)){			
+			$url = str_replace('//','/',$subfolder.$index.$url);
+
+			if($url!=$uri){
+				if($recursive && strpos($uri, $url)===0)
+					return;
+
+				$isMatched = true;
+				$url = str_replace('/','-',$url).'.html';
+				$this->_cachefile = $this->_directory.str_replace('/','-',$uri).'.html';
+				
+				// If the cache has not expired, include it.
+				if (file_exists($this->_cachefile) && time() - $secondsCache < filemtime($this->_cachefile)) {
+					include $this->_cachefile;
+					exit;
+				}
+			}
+		}
+		else{
+			$uri = str_replace($subfolder.$index, '/',$uri);
+			$recursiveCheck = false;
+			
+			if($recursive){
+				foreach($recursive as $r){
+					if(strpos($uri, $r)===0){
+						$recursiveCheck = true;
+						break;
+					}
+				}
+			}
+				
+			if(in_array($uri, $url)!==true && $recursiveCheck!==true){
+				if(strpos($uri,'/')===0)
+					$uri = substr($uri,1);
+					
+				$isMatched = true;
+				$this->_cachefile = $this->_directory.str_replace('/','-',$subfolder.$index.$uri).'.html';
+				
+				// If the cache has not expired, include it.
+				if (file_exists($this->_cachefile) && time() - $secondsCache < filemtime($this->_cachefile)) {
+					include $this->_cachefile;
+					exit;
+				}
+			}
+		}
+		
+		return $isMatched;
+	}	
 	
 	/**
 	 * Retrieve the full page cache.
@@ -90,6 +292,7 @@ class DooFrontCache{
 	 * Retrieve the partial page cache.
 	 * @param string $id ID of the partial cache.
 	 * @param int $secondsCache Duration till the cache expired 
+	 * @return bool If the cache is included return True
 	 */
 	public function getPart($id, $secondsCache=60){
 		$this->_cachefile  = $this->_directory.'parts/'.$id.'.html';
