@@ -82,6 +82,8 @@ class DooSiteMagic{
 		if(!isset($_POST['routes']) || empty($_POST['routes'])){
 			echo 'result=false';
 		}else{
+			if(get_magic_quotes_gpc())
+				$_POST['routes']=str_replace("\\",'',$_POST['routes']);
 			$replacename = ($replace)?'routes':'routes2';
 			$handle = fopen(Doo::conf()->SITE_PATH.'protected/config/'.$replacename.'.conf.php', 'w+');
 			$rs = fwrite($handle, "<?php\n\n".$_POST['routes']."\n\n?>");
