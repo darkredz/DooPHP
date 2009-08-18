@@ -110,7 +110,10 @@ class DooUriRouter{
             Doo::loadCore('auth/DooDigestAuth');
             DooDigestAuth::http_auth($route['authName'],$route['auth'], $route['authFail'], $route['authFailURL']);
         }
-        
+		
+        if(isset($route['className']))
+			return array($route[0],$route[1],$params,$route['className']);
+		
         //return Controller class, method, parameters of the route
         return array($route[0],$route[1],$params);
     }

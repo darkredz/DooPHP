@@ -54,7 +54,12 @@ class DooWebApp{
                 $clsname = explode('/', $routeRs[0]);
                 $routeRs[0] = $clsname[ sizeof($clsname)-1 ];
             }
-            $controller = new $routeRs[0];
+			
+			//if defined class name, use the class name to create the Controller object
+			if(sizeof($routeRs)===4)
+				$controller = new $routeRs[3];			
+			else
+				$controller = new $routeRs[0];
             $controller->params = $routeRs[2];
             
             if(isset($controller->params['__extension'])){
