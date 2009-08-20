@@ -91,6 +91,12 @@ class DooConfig{
     var $ERROR_404_ROUTE;
 
     /**
+     * Path where the cache files are stored. If not defined, caches are stored in SITE_PATH/protected/cache/
+     * @var string
+     */
+    var $CACHE_PATH;
+
+    /**
      * Set the configurations. SITE_PATH, BASE_PATH and APP_URL is required
      * @param array $confArr associative array of the configs.
      */
