@@ -66,7 +66,7 @@ class DooSqlMagic {
     protected $dbconfig_list;
     protected $pdo;
     
-    private $sql_list;
+    protected $sql_list;
 
     const JOIN_LEFT = 'LEFT';
     const JOIN_RIGHT = 'RIGHT';
@@ -1207,7 +1207,7 @@ class DooSqlMagic {
         return array($rtype, $n);
     }
 
-    private function auto_load($class_name){
+    protected function auto_load($class_name){
         if($this->autoload){
             if($this->check_model_exist){
                 if(file_exists(DOO_MODEL_PATH . "$class_name.php")){
@@ -1222,7 +1222,7 @@ class DooSqlMagic {
     }
 
 
-    private static function add_where_not_null(&$where, $relatedKey, $modelKey){
+    protected static function add_where_not_null(&$where, $relatedKey, $modelKey){
         if(empty($where)){
             $where = "WHERE $relatedKey IS NOT NULL AND $modelKey IS NOT NULL";
         }else{
@@ -1230,7 +1230,7 @@ class DooSqlMagic {
         }
     }
 
-    private static function add_where_is_null(&$where, $relatedKey, $modelKey){
+    protected static function add_where_is_null(&$where, $relatedKey, $modelKey){
         if(empty($where)){
             $where = "WHERE $relatedKey IS NULL OR $modelKey IS NULL";
         }else{
