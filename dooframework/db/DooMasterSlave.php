@@ -20,7 +20,7 @@
  * <p>To use DB replication, you would have to setup the slave servers in <strong>db.conf.php</strong></p>
  * 
  * <code>
- * //This will server as the Master
+ * //This will serve as the Master
  * $dbconfig['dev'] = array('localhost', 'db', 'root', '1234', 'mysql',true);
  *
  * //slave with the same info as master
