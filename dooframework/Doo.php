@@ -209,6 +209,7 @@ class Doo{
 		$class['DooRestClient'] = 'helper/DooRestClient';
 		$class['DooUrlBuilder'] = 'helper/DooUrlBuilder';
 		$class['DooTextHelper'] = 'helper/DooTextHelper';
+		$class['DooGdImage'] = 'helper/DooGdImage';
 		$class['DooLog'] = 'helper/DooLog';
 		$class['DooLoader'] = 'uri/DooLoader';
 		$class['DooUriRouter'] = 'uri/DooUriRouter';
