@@ -11,10 +11,16 @@
  * DELETE 	Delete
  *
  * Use lowercase for Request Method
+ *
+ * If you have your controller file name different from its class name, eg. home.php HomeController
+ * $route['*']['/'] = array('HomeController', 'index', 'className'=>'HomeController');
  */
- $admin = array('admin'=>'1234');
+$admin = array('admin'=>'1234');
  
 $route['*']['/'] = array('MainController', 'index');
+
+
+//---------- Delete if not needed ------------
 
 //view the logs and profiles XML, filename = db.profile, log, trace.log, profile
 $route['*']['/debug/:filename'] = array('MainController', 'debug', 'authName'=>'DooPHP Admin', 'auth'=>$admin, 'authFail'=>'Unauthorized!');

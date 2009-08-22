@@ -1,7 +1,7 @@
 DOOPHP Web Framework
 =============================
 
-Thank you for using DooPHP - a high-performance MVC based PHP framework.
+Thank you for using DooPHP - a high performance MVC based PHP framework.
 
 
 INSTALLATION
@@ -17,6 +17,7 @@ You shall see the following files and directories:
       app/        			base of a project
       LICENSE.txt			license of DooPHP
       README.txt			this file
+      CHANGELOG.txt			changes made in this version
 
 
 If you placed it elsewhere, please change the app or demos configurations in protected/config/common.conf.php

@@ -29,10 +29,12 @@ $config['APP_URL'] = 'http://'.$_SERVER['HTTP_HOST'].$config['SUBFOLDER'];
 $config['AUTOROUTE'] = TRUE;
 $config['DEBUG_ENABLED'] = TRUE;
 
+
 /**
  * Path to store logs/profiles when using with the logger tool. This is needed for writing log files and using the log viewer tool
  */
 //$config['LOG_PATH'] = '/var/logs/';
+
 
 /**
  * defined either Document or Route to be loaded/executed when requested page is not found
@@ -42,6 +44,17 @@ $config['DEBUG_ENABLED'] = TRUE;
 //$config['ERROR_404_DOCUMENT'] = 'error.php';
 //$config['ERROR_404_ROUTE'] = '/error';
 
+
+/**
+ * Settings for memcache server connections, you don't have to set if using localhost only.
+ * host, port, persistent, weight
+ * $config['MEMCACHE'] = array(
+ *                       array('192.168.1.31', '11211', true, 40),
+ *                       array('192.168.1.23', '11211', true, 80)
+ *                     );
+ */
+ 
+ 
 /**
  * you can include self defined config, retrieved via Doo::conf()->variable
  * Use lower case for you own settings for future Compability with DooPHP

@@ -15,7 +15,9 @@
  * All cache classes must inherit this class to support uniform methods.
  * 
  * @author David Shieh <mykingheaven@gmail.com>
- *
+ * @version $Id: DooCache.php 1000 2009-08-22 18:38:42
+ * @package doo.cache
+ * @since 1.1
  */
 abstract class DooCache {
 	/**

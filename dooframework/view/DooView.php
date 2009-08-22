@@ -45,7 +45,29 @@
  * //Or you can use a variable in the include tag too. say, $data['file']='header'
  * <!-- include "{{file}}" -->
  * </code>
- * <p>Partial caching in view:</p>
+ *
+ * <p>Since 1.1, If statement supported. Function used in IF can be controlled.</p>
+ * <code>
+ * <!-- if -->
+ * <!-- elseif -->
+ * <!-- else -->
+ * <!-- endif-->
+ *
+ * //Examples
+ * <!-- if {{MyVar}}==100 -->
+ *
+ * //With function
+ * <!-- if {{checkVar(MyVar)}} -->
+ *
+ * //&& || and other operators
+ * <!-- if {{isGender(gender, 'female')}}==true && {{age}}>=14 -->
+ * <!-- if {{isAdmin(user)}}==true && ({{age}}>=14 || {{age}}<54)-->
+ *
+ * //Write in one line
+ * <!-- if {{isAdmin(username)}} --><h2>Success!</h2><!-- endif -->
+ * </code>
+ *
+ * <p>Since 1.1, Partial caching in view:</p>
  * <code>
  * <!-- cache('mydata', 60) --> 
  * <ul>{{userList}}</ul>

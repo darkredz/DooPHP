@@ -9,7 +9,7 @@
 	  <div class="content">
 	  	<h1>Welcome to Template Engine Demo</h1>
 		<p class="normal">Here you can learn about how to do the view part in MVC with DooPHP using its template engine.</p>
-		<p class="normal">IF statement is not supported in the template as Logics should be done in the Controller. The View part should only display/list out data. You should use variable names to include template files in this case where the logic is handled in Controller</p>
+		<p class="normal">IF statement is SUPPORTED now. You can use partial caching mechanism with the tempalte engine too!</p>
         <p class="normal">View the <a class="file" href="<?php echo $data['baseurl']; ?>index.php/template.html">template source</a> (html).</p>
 		<p class="boldy"><a name="template" id="template"></a>Test drive Template Engine</p>
 
@@ -23,7 +23,13 @@
     Username: <?php echo $data['username']; ?> <br/>
 
     Username upper case: <?php echo upper($data['username']); ?>
-
+	
+	<?php if( upper($data['username'])=='ADMIN' ): ?>
+		<h3>Hi admin! Please administer.</h3>
+	<?php else: ?>
+		<h3>Hi <?php echo $data['username']; ?>! welcome back.</h3>
+	<?php endif; ?>
+	
     <hr/>
 
     <p>Using a function in <em>template_tags.php</em> to print_r. You control what you want to be available in the template.
@@ -73,6 +79,9 @@
     <h2>User's messages list:</h2>
     <p>Nested loop example</p>
     <ul>
+	
+	<?php if (!Doo::cache('front')->getPart('messages', 3600)): ?>
+<?php Doo::cache('front')->start('messages'); ?>
     <?php foreach($data['usermsg'] as $k1=>$v1): ?>
         <strong><?php echo $k1; ?> :</strong> <br/>
         <?php foreach($v1 as $k2=>$v2): ?>
@@ -83,6 +92,9 @@
         <?php endforeach; ?>
         <br/>
     <?php endforeach; ?>
+    
+<?php Doo::cache('front')->end(); ?>
+<?php endif; ?>
     </ul>
 
     <hr/>

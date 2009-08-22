@@ -4,6 +4,9 @@ class Doo{
     private static $_conf;
     private static $_logger;
     private static $_db;
+    private static $_useDbReplicate;
+    private static $_cache;
+
     public static function conf(){
         if(self::$_conf===NULL){
             self::$_conf = new DooConfig;
@@ -18,10 +21,19 @@ class Doo{
         return self::$_app;
     }
 
+    public static function useDbReplicate(){
+        self::$_useDbReplicate = true;
+    }
+
     public static function db(){
         if(self::$_db===NULL){
-            self::loadCore('db/DooSqlMagic');
-            self::$_db = new DooSqlMagic;
+            if(self::$_useDbReplicate===NULL){
+                self::loadCore('db/DooSqlMagic');
+                self::$_db = new DooSqlMagic;
+            }else{
+                self::loadCore('db/DooMasterSlave');
+                self::$_db = new DooMasterSlave;
+            }
         }
 
         if(!self::$_db->connected)
@@ -30,24 +42,66 @@ class Doo{
         return self::$_db;
     }
 
-	public static function logger(){
+    public static function logger(){
         if(self::$_logger===NULL){
             self::loadCore('logging/DooLog');
             self::$_logger = new DooLog(self::conf()->DEBUG_ENABLED);
         }
         return self::$_logger;
-	}
-	
-	public static function cache() {
-		if(self::$_cache === null) {
-			self::loadCore('cache/DooCache');
-			self::loadCore('cache/DooFileCache');
-			self::$_cache = DooFileCache::cache();
-		}
-		return self::$_cache;
-	}
-	
-	protected static function load($class_name, $path, $createObj=FALSE){
+    }
+
+    public static function cache($cacheType='file') {
+        if($cacheType=='file'){
+            if(isset(self::$_cache['file']))
+                return self::$_cache['file'];
+
+            self::loadCore('cache/DooFileCache');
+            self::$_cache['file'] = DooFileCache::cache();
+            return self::$_cache['file'];
+        }
+        else if($cacheType=='front'){
+            if(isset(self::$_cache['front']))
+                return self::$_cache['front'];
+
+            self::loadCore('cache/DooFrontCache');
+            self::$_cache['front'] = new DooFrontCache;
+            return self::$_cache['front'];
+        }
+        else if($cacheType=='apc'){
+            if(isset(self::$_cache['apc']))
+                return self::$_cache['apc'];
+
+            self::loadCore('cache/DooApcCache');
+            self::$_cache['apc'] = new DooApcCache;
+            return self::$_cache['apc'];
+        }
+        else if($cacheType=='xcache'){
+            if(isset(self::$_cache['xcache']))
+                return self::$_cache['xcache'];
+
+            self::loadCore('cache/DooXCache');
+            self::$_cache['xcache'] = new DooXCache;
+            return self::$_cache['xcache'];
+        }
+        else if($cacheType=='eaccelerator'){
+            if(isset(self::$_cache['eaccelerator']))
+                return self::$_cache['eaccelerator'];
+
+            self::loadCore('cache/DooEAcceleratorCache');
+            self::$_cache['eaccelerator'] = new DooEAcceleratorCache;
+            return self::$_cache['eaccelerator'];
+        }
+        else if($cacheType=='memcache'){
+            if(isset(self::$_cache['memcache']))
+                return self::$_cache['memcache'];
+
+            self::loadCore('cache/DooMemCache');
+            self::$_cache['memcache'] = new DooMemCache(Doo::conf()->MEMCACHE);
+            return self::$_cache['memcache'];
+        }
+    }
+
+    protected static function load($class_name, $path, $createObj=FALSE){
         if(is_string($class_name)){
     		require_once($path . "$class_name.php");
             if($createObj)
@@ -56,56 +110,68 @@ class Doo{
             if($createObj)
                 $obj=array();
 
-            for($i=0;$i<sizeof($class_name);$i++){
-                require_once($path . "$class_name.php");
+            foreach ($class_name as $one) {
+            	require_once($path . "$one.php");
                 if($createObj)
-                    $obj[] = new $class_name;
+                    $obj[] = new $one;
             }
 
             if($createObj)
                 return $obj;
         }
-	}
+    }
 
-	public static function loadClass($class_name, $createObj=FALSE){
+    public static function loadClass($class_name, $createObj=FALSE){
         return self::load($class_name, self::conf()->SITE_PATH ."protected/class/", $createObj);
-	}
+    }
 
     public static function loadController($class_name){
-		require_once(self::conf()->SITE_PATH ."protected/controller/$class_name.php");
-	}
+        require_once(self::conf()->SITE_PATH ."protected/controller/$class_name.php");
+    }
 
-	public static function loadModel($class_name, $createObj=FALSE){
-		return self::load($class_name, self::conf()->SITE_PATH ."protected/model/", $createObj);
-	}
+    public static function loadModel($class_name, $createObj=FALSE){
+        return self::load($class_name, self::conf()->SITE_PATH ."protected/model/", $createObj);
+    }
 
-	public static function loadHelper($class_name, $createObj=FALSE){
+    public static function loadHelper($class_name, $createObj=FALSE){
         return self::load($class_name, self::conf()->BASE_PATH ."helper/", $createObj);
-	}
-	public static function loadCore($class_name){
-		require_once(self::conf()->BASE_PATH ."$class_name.php");
-	}
-	public static function autoload($classname){
-		$class['DooSiteMagic'] = 'app/DooSiteMagic';
-		$class['DooWebApp'] = 'app/DooWebApp';
-		$class['DooConfig'] = 'app/DooConfig';
-		$class['DooDigestAuth'] = 'auth/DooDigestAuth';
-		$class['DooCache'] = 'cache/DooCache';
-		$class['DooFileCache'] = 'cache/DooFileCache';
-		$class['DooController'] = 'controller/DooController';
-		$class['DooDbExpression'] = 'db/DooDbExpression';
-		$class['DooModelGen'] = 'db/DooModelGen';
-		$class['DooSqlMagic'] = 'db/DooSqlMagic';
-		$class['DooRestClient'] = 'helper/DooRestClient';
-		$class['DooUrlBuilder'] = 'helper/DooUrlBuilder';
-		$class['DooLog'] = 'helper/DooLog';
-		$class['DooLoader'] = 'uri/DooLoader';
-		$class['DooUriRouter'] = 'uri/DooUriRouter';
-		$class['DooView'] = 'view/DooView';
-		
-		if(isset($class[$classname]))
-			self::loadCore($class[$classname]);
-	}
+    }
+
+    public static function loadCore($class_name){
+        require_once(self::conf()->BASE_PATH ."$class_name.php");
+    }
+
+    public static function autoload($classname){
+        $class['DooSiteMagic'] = 'app/DooSiteMagic';
+        $class['DooWebApp'] = 'app/DooWebApp';
+        $class['DooConfig'] = 'app/DooConfig';
+        $class['DooDigestAuth'] = 'auth/DooDigestAuth';
+        $class['DooCache'] = 'cache/DooCache';
+        $class['DooFileCache'] = 'cache/DooFileCache';
+        $class['DooFrontCache'] = 'cache/DooFrontCache';
+        $class['DooApcCache'] = 'cache/DooApcCache';
+        $class['DooMemCache'] = 'cache/DooMemCache';
+        $class['DooXCache'] = 'cache/DooXCache';
+        $class['DooEAcceleratorCache'] = 'cache/DooEAcceleratorCache';
+        $class['DooController'] = 'controller/DooController';
+        $class['DooDbExpression'] = 'db/DooDbExpression';
+        $class['DooModelGen'] = 'db/DooModelGen';
+        $class['DooSqlMagic'] = 'db/DooSqlMagic';
+        $class['DooMasterSlave'] = 'db/DooMasterSlave';
+        $class['DooRestClient'] = 'helper/DooRestClient';
+        $class['DooUrlBuilder'] = 'helper/DooUrlBuilder';
+        $class['DooTextHelper'] = 'helper/DooTextHelper';
+        $class['DooTextHelper'] = 'helper/DooPager';
+        $class['DooGdImage'] = 'helper/DooGdImage';
+        $class['DooLog'] = 'helper/DooLog';
+        $class['DooLoader'] = 'uri/DooLoader';
+        $class['DooUriRouter'] = 'uri/DooUriRouter';
+        $class['DooView'] = 'view/DooView';
+
+        if(isset($class[$classname]))
+            self::loadCore($class[$classname]);
+    }
+
     public static function benchmark($html=false){
         if(!isset(self::conf()->START_TIME)){
             return 0;
@@ -116,15 +182,14 @@ class Doo{
         return $duration;
     }
 
-	public static function powerby(){
-		return 'Powered by <a href="http://www.doophp.com/">Doo PHP Framework</a>.';
-	}
+    public static function powerby(){
+        return 'Powered by <a href="http://www.doophp.com/">DooPHP Framework</a>.';
+    }
 
-	public static function version(){
-		return '1.0';
-	}
+    public static function version(){
+        return '1.1';
+    }
 }
-
 class DooConfig{
     var $SITE_PATH;
     var $BASE_PATH;
@@ -136,6 +201,9 @@ class DooConfig{
     var $DEBUG_ENABLED;
     var $ERROR_404_DOCUMENT;
     var $ERROR_404_ROUTE;
+    var $CACHE_PATH;
+    var $MEMCACHE;
+    
     public function set($confArr){
         foreach($confArr as $k=>$v){
             $this->{$k} = $v;
@@ -157,21 +225,23 @@ class DooWebApp{
     public function run(){
         $this->throwHeader( $this->route_to() );
     }
-
     private function route_to(){
         $router = new DooUriRouter;
         $routeRs = $router->execute($this->route,Doo::conf()->SUBFOLDER);
 
         if($routeRs[0]!=NULL && $routeRs[1]!=NULL){
-            require_once(Doo::conf()->BASE_PATH ."controller/DooController.php");
             require_once(Doo::conf()->SITE_PATH ."protected/controller/{$routeRs[0]}.php");
             if(strpos($routeRs[0], '/')!==FALSE){
                 $clsname = explode('/', $routeRs[0]);
                 $routeRs[0] = $clsname[ sizeof($clsname)-1 ];
             }
-            $controller = new $routeRs[0];
+
+			if(sizeof($routeRs)===4)
+				$controller = new $routeRs[3];
+			else
+				$controller = new $routeRs[0];
             $controller->params = $routeRs[2];
-            
+
             if(isset($controller->params['__extension'])){
                 $controller->extension = $controller->params['__extension'];
                 unset($controller->params['__extension']);
@@ -180,13 +250,12 @@ class DooWebApp{
                 $controller->init_put_vars();
             return $controller->$routeRs[1]();
         }
-         else if(Doo::conf()->AUTOROUTE){
-            
+        else if(Doo::conf()->AUTOROUTE){
+
             list($controller_name, $method_name, $params )= $router->auto_connect(Doo::conf()->SUBFOLDER);
             $controller_file = Doo::conf()->SITE_PATH ."protected/controller/{$controller_name}.php";
 
             if(file_exists($controller_file)){
-                require_once(Doo::conf()->BASE_PATH ."controller/DooController.php");
                 require_once($controller_file);
                 $controller = new $controller_name;
 
@@ -195,7 +264,7 @@ class DooWebApp{
 
                 if($params!=NULL)
                     $controller->params = $params;
-                
+
                 if($_SERVER['REQUEST_METHOD']==='PUT')
                     $controller->init_put_vars();
 
@@ -212,7 +281,6 @@ class DooWebApp{
             $this->throwHeader(404);
         }
     }
-
     public function reroute($routeuri, $is404=FALSE){
         if(Doo::conf()->SUBFOLDER!='/')
             $_SERVER['REQUEST_URI'] = substr(Doo::conf()->SUBFOLDER, 0, strlen(Doo::conf()->SUBFOLDER)-1) . $routeuri;
@@ -223,7 +291,6 @@ class DooWebApp{
             header('HTTP/1.1 404 Not Found');
         $this->route_to();
     }
-
     public function throwHeader($code){
         if(headers_sent()){
             return;
@@ -265,10 +332,9 @@ class DooWebApp{
             }
         }
     }
+
 }
-
 class DooUriRouter{
-
     public function execute($routeArr,$subfolder='/'){
         list($route, $params) = $this->connect($routeArr,$subfolder);
 
@@ -285,10 +351,12 @@ class DooUriRouter{
             Doo::loadCore('auth/DooDigestAuth');
             DooDigestAuth::http_auth($route['authName'],$route['auth'], $route['authFail'], $route['authFailURL']);
         }
-        
+
+        if(isset($route['className']))
+			return array($route[0],$route[1],$params,$route['className']);
+
         return array($route[0],$route[1],$params);
     }
-
     public static function redirect($location, $exit=true, $code=302, $headerBefore=NULL, $headerAfter=NULL){
         if($headerBefore!=NULL){
             for($i=0;$i<sizeof($headerBefore);$i++){
@@ -324,15 +392,17 @@ class DooUriRouter{
                 $uri = str_replace('/index.php','', $uri);
             elseif(strpos($uri, $subfolder.'index.php')===0)
                 $uri = str_replace($subfolder.'index.php','', $uri);
+
         }
 
         if($pos = strpos($uri, '/?')){
             $uri = substr($uri,0,$pos);
         }
-        
+
         if($uri!='/'){
             $this->strip_slash($uri);
         }
+
         if(isset($route[$type]))
             $uris_data = $route[$type];
         else
@@ -365,6 +435,7 @@ class DooUriRouter{
                 if($uri_parts[0]!==$uparts[0])
                     continue;
 
+
                 if(isset($udata['extension'])){
                     $lpindex = sizeof($uri_parts)-1;
                     $lastpart = $uri_parts[$lpindex];
@@ -379,7 +450,7 @@ class DooUriRouter{
                         }
                         $lastpart = explode($ext, $lastpart);
                     }
-                    
+
                     $lplength = sizeof($lastpart);
                     if($lplength<2)
                         continue;
@@ -393,10 +464,12 @@ class DooUriRouter{
 
                 $static_part = explode('/:', $ukey,2);
                 $static_part = $static_part[0];
+
                 if(substr($uri,0,strlen($static_part))!==$static_part)
                     continue;
 
                 $param = $this->parse_params($uri_parts, $uparts);
+
                 if(isset($udata['match'])){
                     foreach($udata['match'] as $var_name=>$pattern){
                         if( preg_match($pattern, $param[$var_name])==0 ){
@@ -412,6 +485,7 @@ class DooUriRouter{
 
         }
     }
+
     public function auto_connect($subfolder='/'){
         $uri = $_SERVER['REQUEST_URI'];
 
@@ -464,7 +538,6 @@ class DooUriRouter{
         }
         return $params;
     }
-    
     protected function strip_slash(&$str){
         if($str[strlen($str)-1]==='/'){
             $str = substr($str,0,-1);
@@ -472,6 +545,149 @@ class DooUriRouter{
         }else{
             return;
         }
+    }
+
+}
+class DooController {
+    public $params;
+    public $puts;
+    public $extension;
+    public $autoroute = TRUE;
+
+    protected $_load;
+    protected $_view;
+
+    public function init_put_vars(){
+        parse_str(file_get_contents('php://input'), $this->puts);
+    }
+
+    public function load(){
+        if($this->_load==NULL){
+            Doo::loadCore('uri/DooLoader');
+            $this->_load = new DooLoader;
+        }
+
+        return $this->_load;
+    }
+
+    public function db(){
+        return Doo::db();
+    }
+
+    public function cache($cacheType='file'){
+        return Doo::cache($cacheType);
+    }
+
+    public function view(){
+        if($this->_view==NULL){
+            Doo::loadCore('view/DooView');
+            $this->_view = new DooView;
+        }
+
+        return $this->_view;
+    }
+
+    public function render($file, $data=NULL, $process=NULL, $forceCompile=false){
+            $this->view()->render($file, $data, $process, $forceCompile);
+    }
+    public function language($countryCode=FALSE){
+        $langcode = (!empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : '';
+        $langcode = (!empty($langcode)) ? explode(';', $langcode) : $langcode;
+        $langcode = (!empty($langcode[0])) ? explode(',', $langcode[0]) : $langcode;
+        if(!$countryCode)
+            $langcode = (!empty($langcode[0])) ? explode('-', $langcode[0]) : $langcode;
+        return $langcode[0];
+    }
+    public function accept_type(){
+        $type = array(
+            '*/*'=>'*',
+            'html'=>'text/html,application/xhtml+xml',
+            'xml'=>'application/xml,text/xml,application/x-xml',
+            'json'=>'application/json,text/x-json,application/jsonrequest,text/json',
+            'js'=>'text/javascript,application/javascript,application/x-javascript',
+            'css'=>'text/css',
+            'rss'=>'application/rss+xml',
+            'yaml'=>'application/x-yaml,text/yaml',
+            'atom'=>'application/atom+xml',
+            'pdf'=>'application/pdf',
+            'text'=>'text/plain',
+            'png'=>'image/png',
+            'jpg'=>'image/jpg,image/jpeg,image/pjpeg',
+            'gif'=>'image/gif',
+            'form'=>'multipart/form-data',
+            'url-form'=>'application/x-www-form-urlencoded',
+            'csv'=>'text/csv'
+        );
+
+        $matches = array();
+
+        foreach($type as $k=>$v){
+            if(strpos($v,',')!==FALSE){
+                $tv = explode(',', $v);
+                foreach($tv as $k2=>$v2){
+                    if (stristr($_SERVER["HTTP_ACCEPT"], $v2)){
+                        if(isset($matches[$k]))
+                            $matches[$k] = $matches[$k]+1;
+                        else
+                            $matches[$k]=1;
+                    }
+                }
+            }else{
+                if (stristr($_SERVER["HTTP_ACCEPT"], $v)){
+                    if(isset($matches[$k]))
+                        $matches[$k] = $matches[$k]+1;
+                    else
+                        $matches[$k]=1;
+                }
+            }
+        }
+
+        if(sizeof($matches)<1)
+            return NULL;
+
+        arsort($matches);
+
+        foreach ($matches as $k=>$v){
+            return ($k==='*/*')?'html':$k;
+        }
+    }
+
+    public function setContentType($type, $charset='utf-8'){
+        if(headers_sent())return;
+
+        $extensions = array('html'=>'text/html',
+                            'xml'=>'application/xml',
+                            'json'=>'application/json',
+                            'js'=>'application/javascript',
+                            'css'=>'text/css',
+                            'rss'=>'application/rss+xml',
+                            'yaml'=>'text/yaml',
+                            'atom'=>'application/atom+xml',
+                            'pdf'=>'application/pdf',
+                            'text'=>'text/plain',
+                            'png'=>'image/png',
+                            'jpg'=>'image/jpeg',
+                            'gif'=>'image/gif',
+                            'csv'=>'text/csv'
+						);
+        if(isset($extensions[$type]))
+            header("Content-Type: {$extensions[$type]}; charset=$charset");
+    }
+
+    public function is_SSL(){
+        if(!isset($_SERVER['HTTPS']))
+            return FALSE;
+
+        if($_SERVER['HTTPS'] === 1) {
+            return TRUE;
+        }
+        elseif ($_SERVER['HTTPS'] === 'on') {
+            return TRUE;
+        }
+        elseif ($_SERVER['SERVER_PORT'] == 443){
+            return TRUE;
+        }
+        return FALSE;
     }
 
 }

@@ -97,6 +97,19 @@ class DooConfig{
     var $CACHE_PATH;
 
     /**
+     * Settings for Memcache servers, defined in arrays: array(host, port, persistent, weight)
+     * <code>
+     * // host, port, persistent, weight
+     * $config['MEMCACHE'] = array(
+     *                       array('192.168.1.31', '11211', true, 40),
+     *                       array('192.168.1.23', '11211', true, 80)
+     *                     );
+     * </code>
+     * @var array
+     */
+    var $MEMCACHE;
+
+    /**
      * Set the configurations. SITE_PATH, BASE_PATH and APP_URL is required
      * @param array $confArr associative array of the configs.
      */

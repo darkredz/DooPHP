@@ -12,37 +12,34 @@
  * This class is for file cache using.
  * 
  * @author David Shieh <mykingheaven@gmail.com>
+ * @version $Id: DooFileCache.php 1000 2009-08-22 18:38:42
+ * @package doo.cache
+ * @since 1.1
  *
  */
+
+Doo::loadCore('cache/DooCache');
+
 class DooFileCache extends DooCache {
 	
 	private static $_cache;
 	
-	private $_directory = false;
+	private $_directory;
 
-	/**
-	 * Chdir to cache directory
-	 * @return unknown_type
-	 */
-	protected function __construct() {
-		// If user set a path for cache, save it
-		if (isset(Doo::conf()->CACHE_PATH)) {
-			$this->_directory = Doo::conf()->CACHE_PATH;
-		}
-		// If user set a path, change the current directory to user's
-		if ($this->_directory !== false) {
-			if (is_dir(Doo::conf()->SITE_PATH . 'protected/cache/' . $this->_directory))
-				chdir(Doo::conf()->SITE_PATH . 'protected/cache/' . $this->_directory);
-			else {
-				mkdir(Doo::conf()->SITE_PATH . 'protected/cache/' . $this->_directory);
-				chdir(Doo::conf()->SITE_PATH . 'protected/cache/' . $this->_directory);
-			}
+	public function __construct($path='') {
+		if ( $path=='' ) {
+			if(isset(Doo::conf()->CACHE_PATH))
+				$this->_directory = Doo::conf()->CACHE_PATH;
+			else
+				$this->_directory = Doo::conf()->SITE_PATH . 'protected/cache/';
+		}else{
+			$this->_directory = $path;
 		}
 	}
 	
 	/**
 	 * Get the cache instance
-	 * @return unknown_type
+	 * @return DooFileCache
 	 */
 	static function cache() {
 		if (self::$_cache == null) {
@@ -72,45 +69,38 @@ class DooFileCache extends DooCache {
 			$duration = 31536000;
 		$duration = $duration + time();
 		if (file_put_contents($this->generateKey($id), serialize($value), LOCK_EX)) {
-			try {
-				chmod($this->generateKey($id),0777);
-				return touch($this->generateKey($id),$duration);
-			} catch (Exception $e) {
-				echo $e;
-			}
+			chmod($this->generateKey($id),0777);
+			return touch($this->generateKey($id),$duration);
 		}
 		else
 			return false;
 	}
 	
 	/**
-	 * Delete a cache file by $id
-	 * @param $id
-	 * @return unknown_type
+	 * Delete a cache file by Id
+	 * @param $id Id of the cache
+	 * @return mixed
 	 */
 	public function flush($id) {
 		if ($id !== null) {
-			try {
-				unlink($this->generateKey($id));
-				return true;
-			} catch (Exception $e) {
-				echo $e;
-			}
+			unlink($this->generateKey($id));
+			return true;
 		}
 		return false;
 	}
-	
+
+        /**
+         * Deletes all data cache files
+         * @return bool
+         */
 	public function flushAll() {
-		$handle = opendir(Doo::conf()->SITE_PATH . 'protected/cache');
+		$handle = opendir($this->_directory);
 		
 		while(($file = readdir($handle)) !== false) {
 			if (is_file($file))
-				try {
-					unlink($file);
-				} catch (Exception $e) {
-					echo $e;
-				}
+                            unlink($file);
 		}
 		return true;
 	}
 }
+?>

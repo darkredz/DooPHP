@@ -17,13 +17,21 @@
  * @since 1.0
  */
 class DooLoader {
-    
+
     /**
      * short hand of Doo::loadCore()
      * @param string $class_name
      */
     public function core($class_name){
         Doo::loadCore($class_name);
+    }
+
+    /**
+     * short hand of Doo::autoload()
+     * @param string $class_name
+     */
+    public function autoload($class_name){
+        Doo::autoload($class_name);
     }
 
     /**

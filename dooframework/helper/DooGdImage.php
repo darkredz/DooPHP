@@ -22,61 +22,61 @@ class DooGdImage {
      * Path to store the uploaded image files
      * @var string
      */
-    var $uploadPath;
+    public $uploadPath;
 
     /**
      * Path to store the resized/processed image files(thumbnails/watermarks)
      * @var string
      */
-    var $processPath;
+    public $processPath;
 
     /**
      * Suffix name for the generated thumbnail image files, eg. 203992029_thumb.jpg
      * @var string
      */
-    var $thumbSuffix = '_thumb';
+    public $thumbSuffix = '_thumb';
 
     /**
      * Suffix name for the generated watermarked image files, eg. 203992029_water.jpg
      * @var string
      */
-    var $waterSuffix = '_water';
+    public $waterSuffix = '_water';
 
     /**
      * Suffix name for the cropped image files, eg. 203992029_crop.jpg
      * @var string
      */
-    var $cropSuffix = '_crop';
+    public $cropSuffix = '_crop';
 
     /**
      * Determine whether to save the processed images
      * @var bool
      */
-    var $saveFile = true;
+    public $saveFile = true;
 
     /**
      * The file name of the TTF font to be used with watermarks.
      * @var string
      */
-    var $ttfFont;
+    public $ttfFont;
 
     /**
      * Generated image type. gif, png, jpg
      * @var string
      */
-    var $generatedType = 'jpg';
+    public $generatedType = 'jpg';
 
     /**
      * Generated image quality. For png & jpg only
      * @var string
      */
-    var $generatedQuality = 100;
+    public $generatedQuality = 100;
 
     /**
      * Determine whether to use time as file name for the uploaded images.
      * @var bool
      */
-    var $timeAsName = true;
+    public $timeAsName = true;
 
     /**
      * Construtor for DooGdImage

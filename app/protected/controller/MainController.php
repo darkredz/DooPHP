@@ -13,7 +13,7 @@ class MainController extends DooController{
 		DooSiteMagic::displayHome();	
     }
 	
-	public function allurl(){
+	public function allurl(){	
 		Doo::loadCore('app/DooSiteMagic');
 		DooSiteMagic::showAllUrl();	
 	}

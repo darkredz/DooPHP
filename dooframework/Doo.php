@@ -90,8 +90,8 @@ class Doo{
     }
 
     /**
-     * @param string $cacheType Cache type: file, apc, memcache, front. Default is file based cache.
-     * @return mixed file/apc/memcache & frontend caching tool, singleton, auto create if the singleton has not been created yet.
+     * @param string $cacheType Cache type: file, front, apc, memcache, xcache, eaccelerator. Default is file based cache.
+     * @return DooFileCache|DooFrontCache|DooApcCache|DooMemCache|DooXCache|DooEAcceleratorCache file/apc/memcache/xcache/eaccelerator & frontend caching tool, singleton, auto create if the singleton has not been created yet.
      */
     public static function cache($cacheType='file') {
         if($cacheType=='file'){
@@ -110,22 +110,38 @@ class Doo{
             self::$_cache['front'] = new DooFrontCache;
             return self::$_cache['front'];
         }
-        /*else if($cacheType=='apc'){
-                if(isset(self::$_cache['apc']))
-                        return self::$_cache['apc'];
-
-                self::loadCore('cache/DooCache');
-                self::loadCore('cache/DooApcCache');
-                self::$_cache['apc'] = DooApcCache::cache();
+        else if($cacheType=='apc'){
+            if(isset(self::$_cache['apc']))
                 return self::$_cache['apc'];
-        }*/
-        //settings for cache done in common.conf.php
-        /*
-         * $config['CACHE_PATH'] = '/var/cache/';   //This is for file based cache only. absolute/full path, default SITE_PATH/protected/cache/
-         * $config['APCCACHE'] = array('settings'=>'some values');   //This is for APC cache
-         * $config['MEMCACHE'] = array('settings'=>'some values');   //This is for fMemcache.
-         * use in code. Doo::cache()->set()    Doo::cache('apc')->set()     Doo::cache('memcache')->set()
-         */
+
+            self::loadCore('cache/DooApcCache');
+            self::$_cache['apc'] = new DooApcCache;
+            return self::$_cache['apc'];
+        }
+        else if($cacheType=='xcache'){
+            if(isset(self::$_cache['xcache']))
+                return self::$_cache['xcache'];
+
+            self::loadCore('cache/DooXCache');
+            self::$_cache['xcache'] = new DooXCache;
+            return self::$_cache['xcache'];
+        }
+        else if($cacheType=='eaccelerator'){
+            if(isset(self::$_cache['eaccelerator']))
+                return self::$_cache['eaccelerator'];
+
+            self::loadCore('cache/DooEAcceleratorCache');
+            self::$_cache['eaccelerator'] = new DooEAcceleratorCache;
+            return self::$_cache['eaccelerator'];
+        }
+        else if($cacheType=='memcache'){
+            if(isset(self::$_cache['memcache']))
+                return self::$_cache['memcache'];
+
+            self::loadCore('cache/DooMemCache');
+            self::$_cache['memcache'] = new DooMemCache(Doo::conf()->MEMCACHE);
+            return self::$_cache['memcache'];
+        }
     }
 	
     /**
@@ -154,7 +170,7 @@ class Doo{
             if($createObj)
                 return $obj;
         }
-	}
+    }
 
     /**
      * Imports the definition of User defined class(es). Class file is located at <b>SITE_PATH/protected/class/</b>
@@ -215,6 +231,10 @@ class Doo{
         $class['DooCache'] = 'cache/DooCache';
         $class['DooFileCache'] = 'cache/DooFileCache';
         $class['DooFrontCache'] = 'cache/DooFrontCache';
+        $class['DooApcCache'] = 'cache/DooApcCache';
+        $class['DooMemCache'] = 'cache/DooMemCache';
+        $class['DooXCache'] = 'cache/DooXCache';
+        $class['DooEAcceleratorCache'] = 'cache/DooEAcceleratorCache';
         $class['DooController'] = 'controller/DooController';
         $class['DooDbExpression'] = 'db/DooDbExpression';
         $class['DooModelGen'] = 'db/DooModelGen';
@@ -223,6 +243,7 @@ class Doo{
         $class['DooRestClient'] = 'helper/DooRestClient';
         $class['DooUrlBuilder'] = 'helper/DooUrlBuilder';
         $class['DooTextHelper'] = 'helper/DooTextHelper';
+        $class['DooTextHelper'] = 'helper/DooPager';
         $class['DooGdImage'] = 'helper/DooGdImage';
         $class['DooLog'] = 'helper/DooLog';
         $class['DooLoader'] = 'uri/DooLoader';

@@ -33,11 +33,17 @@ class MainController extends DooController{
                                 'totalTeen'=>array('male'=>40, 'female'=>100),                        
                         );
 
-        $data['usermsg'] = array(
+		if(Doo::cache('front')->testPart('messages', 3600)==false){
+			echo 'Regenerated because cache has expired!';
+			$data['usermsg'] = array(
                             'leng' =>array('Please callback, thanks.','$1000 cash to earn','Supernova photos','Weather today is very hot!'),
-                            'john' =>array('Hi google','I am so happy now!','cool day huh?')
+                            'john' =>array('Hi google','I am so happy now!','cool day huh?'),
+                            'john2' =>array('Hi google','I am so happy now!','cool day huh?'),
+                            'john3' =>array('Hi google','I am so happy now!','cool day huh?'),
+                            'john4' =>array('Hi google','I am so happy now!','cool day huh?'),
+                            'john5' =>array('Hi google','I am so happy now!','cool day huh?'),
                         );
-
+		}
         $data['msgdetails'] = array(
                                 array('subject'=>'Cool stuff on my doormat', 'date'=>'2009-09-13', 'attachment'=>array('pdf'=>'benchmark.pdf', 'doc'=>'readme.doc')),
                                 array('subject'=>'Message 2 here hi!', 'date'=>'2029-12-03', 'attachment'=>array('pdf'=>null, 'doc'=>null))

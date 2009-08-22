@@ -36,6 +36,7 @@
  * is_SSL()
  * view()
  * db()
+ * cache()
  * </code>
  *
  * You still have a lot of freedom to name your methods and properties other than the 12 names mentioned.
@@ -50,7 +51,7 @@ class DooController {
      * Associative array of the parameter list found matched in a URI route.
      * @var array
      */
-	public $params;
+    public $params;
 
     /**
      * Associative array of the PUT values sent by client.
@@ -80,10 +81,10 @@ class DooController {
         parse_str(file_get_contents('php://input'), $this->puts);
     }
 
-	/**
+    /**
      * The loader singleton, auto create if the singleton has not been created yet.
-	 * @return DooLoader
-	 */
+     * @return DooLoader
+     */
     public function load(){
         if($this->_load==NULL){
             Doo::loadCore('uri/DooLoader');
@@ -93,18 +94,26 @@ class DooController {
         return $this->_load;
     }
 
-	/**
+    /**
      * Returns the database singleton, shorthand to Doo::db()
-	 * @return DooSqlMagic
-	 */
+     * @return DooSqlMagic
+     */
     public function db(){
         return Doo::db();
     }
 
-	/**
+    /**
+     * Returns the cache singleton, shorthand to Doo::cache()
+     * @return DooFileCache|DooFrontCache|DooApcCache|DooMemCache|DooXCache|DooEAcceleratorCache
+     */
+    public function cache($cacheType='file'){
+        return Doo::cache($cacheType);
+    }
+
+    /**
      * The view singleton, auto create if the singleton has not been created yet.
-	 * @return DooView
-	 */
+     * @return DooView
+     */
     public function view(){
         if($this->_view==NULL){
             Doo::loadCore('view/DooView');
@@ -114,8 +123,9 @@ class DooController {
         return $this->_view;
     }
 	
-	/**
+    /**
      * Short hand for $this->view()->render() Renders the view file.
+     *
      * @param string $file Template file name (without extension name)
      * @param array $data Associative array of the data to be used in the Template file. eg. <b>$data['username']</b>, you should use <b>{{username}}</b> in the template.
      * @param bool $process If TRUE, checks the template's last modified time against the compiled version. Regenerates if template is newer.
@@ -127,6 +137,7 @@ class DooController {
 
     /**
      * Get the client accept language from the header
+     *
      * @param bool $countryCode to return the language code along with country code
      * @return string The language code. eg. <b>en</b> or <b>en-US</b>
      */
@@ -141,6 +152,7 @@ class DooController {
 
     /**
      * Get the client specified accept type from the header sent
+     * 
      * <p>Instead of appending a extension name like '.json' to a URL,
      * clients can use 'Accept: application/json' for RESTful APIs.</p>
      * @return string Client accept type

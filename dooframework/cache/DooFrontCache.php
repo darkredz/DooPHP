@@ -113,7 +113,7 @@ class DooFrontCache{
 	 * @param bool|array $recursive Check a cache recursively based on the URL(s)
 	 * @param bool Return true if the Request URI is in the list
 	 */
-	public function getOnly($url, $secondsCache=60, $recursive=false){
+	public function getOnly($url, $secondsCache=3600, $recursive=false){
 		$uri = $_SERVER['REQUEST_URI'];
 		$subfolder = Doo::conf()->SUBFOLDER;
 		$index = '';
@@ -204,7 +204,7 @@ class DooFrontCache{
 	 * @param bool|array $recursive Check a cache recursively based on the URL(s)
 	 * @param bool Return true if the Request URI is NOT in the list
 	 */
-	public function getExcept($url, $secondsCache=60, $recursive=false){
+	public function getExcept($url, $secondsCache=3600, $recursive=false){
 		$uri = $_SERVER['REQUEST_URI'];
 		$subfolder = Doo::conf()->SUBFOLDER;
 		$index = '';
@@ -271,7 +271,7 @@ class DooFrontCache{
 	 * Retrieve the full page cache.
 	 * @param int $secondsCache Duration till the cache expired 
 	 */
-	public function get($secondsCache=60){
+	public function get($secondsCache=3600){
 		$uri = $_SERVER['REQUEST_URI'];
 		
 		if($uri[strlen($uri)-1]=='/'){
@@ -294,7 +294,7 @@ class DooFrontCache{
 	 * @param int $secondsCache Duration till the cache expired 
 	 * @return bool If the cache is included return True
 	 */
-	public function getPart($id, $secondsCache=60){
+	public function getPart($id, $secondsCache=3600){
 		$this->_cachefile  = $this->_directory.'parts/'.$id.'.html';
 		
 		// If the cache has not expired, include it.
@@ -311,7 +311,7 @@ class DooFrontCache{
 	 */
 	public function start($id=''){
 		if($id!=''){
-			$this->_cachefile  = $this->_directory.$id.'.html';
+			$this->_cachefile  = $this->_directory.'parts/'.$id.'.html';
 		}
 		ob_start(); 
 	}
@@ -332,9 +332,9 @@ class DooFrontCache{
 	 * @param int $secondsCache Duration till the cache expired 
 	 * @return bool Returns true if the cache exists and is not yet expire.
 	 */
-	public function testPart($id, $secondsCache=60){
+	public function testPart($id, $secondsCache=3600){
 		if($id!=''){
-			$this->_cachefile  = $this->_directory.$id.'.html';
+			$this->_cachefile  = $this->_directory.'parts/'.$id.'.html';
 			return (file_exists($this->_cachefile) && time() - $secondsCache < filemtime($this->_cachefile));
 		}
 		return false;
