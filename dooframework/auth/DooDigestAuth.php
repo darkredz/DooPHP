@@ -36,7 +36,7 @@ class DooDigestAuth{
      * @param array $users An assoc array of username and password: array('uname1'=>'pwd1', 'uname2'=>'pwd2')
      * @param string $fail_msg Message to be displayed if the User cancel the login
      * @param string $fail_url URL to be redirect if the User cancel the login
-     * @return <type>
+     * @return string The username if login success.
      */
     public static function http_auth($realm, $users, $fail_msg=NULL, $fail_url=NULL){
         $realm = "Restricted area - $realm";

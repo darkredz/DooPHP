@@ -37,9 +37,11 @@
  * view()
  * db()
  * cache()
+ * acl()
+ * beforeRun()
  * </code>
  *
- * You still have a lot of freedom to name your methods and properties other than the 12 names mentioned.
+ * You still have a lot of freedom to name your methods and properties other than the 16 names mentioned.
  *
  * @author Leng Sheng Hong <darkredz@gmail.com>
  * @version $Id: DooController.php 1000 2009-07-7 18:27:22
@@ -101,6 +103,19 @@ class DooController {
     public function db(){
         return Doo::db();
     }
+
+    /**
+     * Returns the Acl singleton, shorthand to Doo::acl()
+     * @return DooAcl
+     */
+    public function acl(){
+        return Doo::acl();
+    }
+
+    /**
+     * This will be called before the actual action is executed
+     */
+    public function beforeRun($resource, $action){}	
 
     /**
      * Returns the cache singleton, shorthand to Doo::cache()

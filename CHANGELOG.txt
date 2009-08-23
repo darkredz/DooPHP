@@ -1,0 +1,42 @@
+
+DooPHP Framework Change Log
+===========================
+
+Version 1.1 August 24, 2009
+---------------------------
+- New: Added new ACL demo application.
+- New: Added new If and Cache examples in template_engine demo app.
+- New: Added acl() in DooController
+- New: Added beforeRun() in DooController
+- New: Added Doo::acl() for accessing the application ACL object
+- New: Added DooAcl for Access Control List authentication in the application.
+- New: Added DooPager helper class to generate pagination widget and its components.
+- New: Added DooApcCache for APC data cache support.
+- New: Added DooMemCache for MemCache data cache support.
+- New: Added DooXCache for XCache data cache support.
+- New: Added DooEacceleratorCache for Eaccelerator data cache support.
+- New: Added DooMasterSlave for Database replication support in the ORM tools.
+- New: Added DooGdImage helper class for image manipulation with the GD library.
+- New: Added Doo::cache method for accessing different types of cache mechanism
+- New: Added MEMCACHE in DooConfig for Memcache settings
+- New: Added CACHE_PATH in DooConfig to set the path to store cache files.
+- New: Added className in routes for better conventional modular directory structure support.
+- New: Added gen_model in routes for better conventional modular directory structure support.
+- New: Added DooFrontCache for frontend caching which supports full page cache and partial page cache mechanism
+- New: Added partial cache tags in the template engine DooView
+- New: Added DooTextHelper class for text/string manipulation.
+- New: Added DooUrlBuilder class for generating URLs based on route ID or controller & method name.
+- New: Added DooSiteMagic to generate application classes.
+- New: Added autoload() in DooLoader
+- New: Added Auto loading support added.
+- New: Added File based data caching mechanism.
+- New: Added Log/Profile viewer tool.
+- New: Added Sitemap generator tool to generate routes and controller files.
+- New: Added IF statement support for template engine DooView where functions used in IF can be controlled in template_tags.php
+- New: Enhancement for model generator which generates field's details from MySQL database
+- New: Added for gen_pgsql in DooModelGen to generate model files from PostgreSQL database
+
+- Chg: Modified deploy.php for v1.1
+- Chg: Changed DooSiteMagic, Doo, DooWebApp, DooController private properties to protected for better extendability
+- Chg: Changed DooSiteMagic PDO connection will throw custom Exception SqlMagicException when error occures
+- Chg: Changed DooSiteMagic private properties to protected

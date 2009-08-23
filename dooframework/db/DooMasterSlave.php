@@ -15,9 +15,9 @@
  * <p>This class handles Master-Slave connections. It automatically handle CRUD operations with appropriate slave/master DB server.
  * You can handle thee connections manually by using useConnection, connectMaster, and connectSlave.</p>
  *
- * <p>DooMasterSlave <strong>DOES NOT</strong> send SELECT statement to a random slave. Instead, it is based on calculation with both access time and Slave nodes.</p>
+ * <p>DooMasterSlave <b>DOES NOT</b> send SELECT statement to a random slave. Instead, it is based on calculation with both access time and Slave nodes.</p>
  *
- * <p>To use DB replication, you would have to setup the slave servers in <strong>db.conf.php</strong></p>
+ * <p>To use DB replication, you would have to setup the slave servers in <b>db.conf.php</b></p>
  * 
  * <code>
  * //This will serve as the Master
@@ -36,7 +36,7 @@
  *                   );
  * </code>
  *
- * <p>In the bootstrap index.php you would need to call the <strong>useDbReplicate</strong> method.</p>
+ * <p>In the bootstrap index.php you would need to call the <b>useDbReplicate</b> method.</p>
  * <code>
  * Doo::useDbReplicate();
  * Doo::db()->setMap($dbmap);

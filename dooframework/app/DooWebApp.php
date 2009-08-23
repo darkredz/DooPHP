@@ -40,7 +40,7 @@ class DooWebApp{
      * It can be used with or without the <i>index.php</i> in the URI
      * @return mixed HTTP status code such as 404 or URL for redirection
      */
-    private function route_to(){
+    public function route_to(){
         Doo::loadCore('uri/DooUriRouter');
         $router = new DooUriRouter;
         $routeRs = $router->execute($this->route,Doo::conf()->SUBFOLDER);
@@ -56,7 +56,8 @@ class DooWebApp{
             }
 			
 			//if defined class name, use the class name to create the Controller object
-			if(sizeof($routeRs)===4)
+			$clsnameDefined = (sizeof($routeRs)===4);
+			if($clsnameDefined)
 				$controller = new $routeRs[3];			
 			else
 				$controller = new $routeRs[0];
@@ -68,6 +69,18 @@ class DooWebApp{
             }
             if($_SERVER['REQUEST_METHOD']==='PUT')
                 $controller->init_put_vars();
+				
+			//before run, normally used for ACL auth
+			if($clsnameDefined){
+				if($rs = $controller->beforeRun($routeRs[3], $routeRs[1])){
+					return $rs;
+				}
+			}else{
+				if($rs = $controller->beforeRun($routeRs[0], $routeRs[1])){
+					return $rs;
+				}			
+			}
+			
             return $controller->$routeRs[1]();
         }
         //if auto route is on, then auto search Controller->method if route not defined by user

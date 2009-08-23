@@ -23,12 +23,13 @@
  * @since 1.0
  */
 class Doo{
-    private static $_app;
-    private static $_conf;
-    private static $_logger;
-    private static $_db;
-    private static $_useDbReplicate;
-    private static $_cache;
+    protected static $_app;
+    protected static $_conf;
+    protected static $_logger;
+    protected static $_db;
+    protected static $_useDbReplicate;
+    protected static $_cache;
+    protected static $_acl;
 
     /**
      * @return DooConfig configuration settings defined in <i>common.conf.php</i>, auto create if the singleton has not been created yet.
@@ -49,6 +50,17 @@ class Doo{
             self::$_app = new DooWebApp;
         }
         return self::$_app;
+    }
+	
+    /**
+     * @return DooAcl the application ACL singleton, auto create if the singleton has not been created yet.
+     */
+    public static function acl(){
+        if(self::$_acl===NULL){
+            self::loadCore('auth/DooAcl');
+            self::$_acl = new DooAcl;
+        }
+        return self::$_acl;
     }
 
     /**
@@ -228,6 +240,7 @@ class Doo{
         $class['DooWebApp'] = 'app/DooWebApp';
         $class['DooConfig'] = 'app/DooConfig';
         $class['DooDigestAuth'] = 'auth/DooDigestAuth';
+        $class['DooAcl'] = 'auth/DooAcl';
         $class['DooCache'] = 'cache/DooCache';
         $class['DooFileCache'] = 'cache/DooFileCache';
         $class['DooFrontCache'] = 'cache/DooFrontCache';
@@ -243,7 +256,7 @@ class Doo{
         $class['DooRestClient'] = 'helper/DooRestClient';
         $class['DooUrlBuilder'] = 'helper/DooUrlBuilder';
         $class['DooTextHelper'] = 'helper/DooTextHelper';
-        $class['DooTextHelper'] = 'helper/DooPager';
+        $class['DooPager'] = 'helper/DooPager';
         $class['DooGdImage'] = 'helper/DooGdImage';
         $class['DooLog'] = 'helper/DooLog';
         $class['DooLoader'] = 'uri/DooLoader';
