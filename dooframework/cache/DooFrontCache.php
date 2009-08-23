@@ -137,7 +137,7 @@ class DooFrontCache{
 				
 				// If the cache has not expired, include it.
 				if (file_exists($this->_cachefile) && time() - $secondsCache < filemtime($this->_cachefile)) {
-					echo "<h1> Cached copy, generated ".date('H:i', filemtime($this->_cachefile ))." </h1>\n";
+					//echo "<h1> Cached copy, generated ".date('H:i', filemtime($this->_cachefile ))." </h1>\n";
 					include $this->_cachefile;
 					exit;
 				}
@@ -165,7 +165,7 @@ class DooFrontCache{
 				
 				// If the cache has not expired, include it.
 				if (file_exists($this->_cachefile) && time() - $secondsCache < filemtime($this->_cachefile)) {
-					echo "<h1> Cached copy, generated ".date('H:i', filemtime($this->_cachefile ))." </h1>\n";
+					//echo "<h1> Cached copy, generated ".date('H:i', filemtime($this->_cachefile ))." </h1>\n";
 					include $this->_cachefile;
 					exit;
 				}
