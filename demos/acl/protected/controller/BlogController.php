@@ -10,7 +10,7 @@ class BlogController extends DooController {
 		
 		//check against the ACL rules
 		if($rs = $this->acl()->process($role, $resource, $action )){
-			echo $role .' is not allowed for '. $resource . ' '. $action;
+			//echo $role .' is not allowed for '. $resource . ' '. $action;
 			return $rs;
 		}
 	}
