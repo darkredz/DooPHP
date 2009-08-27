@@ -28,38 +28,38 @@ class DooConfig{
      * Path to the location of your project directory.eg. /var/www/myproject/
      * @var string
      */
-    var $SITE_PATH;
+    public $SITE_PATH;
 
     /**
      * Path to the location of Doo framework directory. eg. /var/lib/dooframework/
      * @var string 
      */
-    var $BASE_PATH;
+    public $BASE_PATH;
 
     /**
      * Path to store the log files.
      * Recommended to put outside the web root directory where others cannot access through the web .eg. /var/mylogs/
      * @var string
      */
-    var $LOG_PATH;
+    public $LOG_PATH;
 
     /**
      * URL of your app. eg. http://localhost/doophp/
      * @var string 
      */
-    var $APP_URL;
+    public $APP_URL;
 
     /**
      * Please define SUBFOLDER if your app is not in the root directory of the domain. eg. http://localhost/doophp , you should set '/doophp/'
      * @var string 
      */
-    var $SUBFOLDER;
+    public $SUBFOLDER;
 
     /**
      * Application mode(<b>dev</b>, <b>prod</b>). In dev mode, view templates are always checked and compiled
      * @var string 
      */
-    var $APP_MODE;
+    public $APP_MODE;
 
     /**
      * Enable/disable Auto routing.
@@ -68,33 +68,33 @@ class DooConfig{
      * just by setting <code>public $autoroute = false;</code> in the Controller class.</p>
      * @var bool 
      */
-    var $AUTOROUTE;
+    public $AUTOROUTE;
 
     /**
      * Enable/disable debug mode. If debug mode is on, debug trace will be logged.
      * Debug tool can be viewed if <code>Doo::logger()->showDebugger()</code> is called
      * @var bool 
      */
-    var $DEBUG_ENABLED;
+    public $DEBUG_ENABLED;
 
     /**
      * If defined, the document specified will be included when a 404 header is sent (route not found).
      * @var string 
      */
-    var $ERROR_404_DOCUMENT;
+    public $ERROR_404_DOCUMENT;
 
     /**
      * If defined, the route specified will be executed when a 404 header is sent (route not found).
      * If ERROR_404_DOCUMENT is defined, then the document would be loaded instead.
      * @var string
      */
-    var $ERROR_404_ROUTE;
+    public $ERROR_404_ROUTE;
 
     /**
      * Path where the cache files are stored. If not defined, caches are stored in SITE_PATH/protected/cache/
      * @var string
      */
-    var $CACHE_PATH;
+    public $CACHE_PATH;
 
     /**
      * Settings for Memcache servers, defined in arrays: array(host, port, persistent, weight)
@@ -107,7 +107,7 @@ class DooConfig{
      * </code>
      * @var array
      */
-    var $MEMCACHE;
+    public $MEMCACHE;
 
     /**
      * Set the configurations. SITE_PATH, BASE_PATH and APP_URL is required
@@ -127,6 +127,25 @@ class DooConfig{
         if($this->DEBUG_ENABLED==NULL)
            $this->DEBUG_ENABLED=FALSE;
 
+    }
+
+    /**
+     * Add data to be retrieved later on. Served as a dummy storage.
+     *
+     * Example usage:
+     * <code>
+     * //Store
+     * Doo::conf()->add('latestItem', $item);
+     *
+     * //Retrieve
+     * echo Doo::conf()->latestItem;
+     * </code>
+     *
+     * @param mixed $key Key o
+     * @param  $value
+     */
+    public function add($key, $value){
+        $this->{$key} = $value;
     }
 }
 ?>
