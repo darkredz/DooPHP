@@ -94,6 +94,18 @@ class DooView {
     protected $tags;
 
     /**
+     * Includes the native PHP template file to be output.
+     * 
+     * @param string $file PHP template file name without extension .php
+     * @param array $data Associative array of the data to be used in the template view.
+     */
+    public function renderc($file, $data=NULL){
+        //includes user defined template tags for template use
+        include Doo::conf()->SITE_PATH . 'protected/plugin/template_tags.php';
+        include Doo::conf()->SITE_PATH . "protected/viewc/$file.php";
+    }
+
+    /**
      * Renders the view file, generates compiled version of the view template if necessary
      * @param string $file Template file name (without extension name)
      * @param array $data Associative array of the data to be used in the Template file. eg. <b>$data['username']</b>, you should use <b>{{username}}</b> in the template.
