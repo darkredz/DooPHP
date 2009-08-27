@@ -10,7 +10,7 @@
 
 
 /**
- * DooEAcceleratorCache provides caching methods utilizing the APC extension.
+ * DooEAcceleratorCache provides caching methods utilizing the EAccelerator extension.
  *
  * @author Leng Sheng Hong <darkredz@gmail.com>
  * @version $Id: DooEAcceleratorCache.php 1000 2009-08-22 19:36:10
