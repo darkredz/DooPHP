@@ -119,5 +119,34 @@ class DooFileCache {
         return true;
     }
 
+    /**
+     * Deletes all data cache in a folder
+     * @param string $folder
+     */
+	public function flushAllIn($folder){
+        $cfile = $this->_directory.$folder.'/';
+        if(file_exists($cfile)){
+            $handle = opendir($cfile);
+            while(($file = readdir($handle)) !== false) {
+                $file = $cfile.$file;
+                if (is_file($file)){
+                    unlink( $file );
+                }
+            }
+        }
+    }
+
+    /**
+     * Deletes a data cache in a folder identified by an ID
+     * @param string $folder
+     * @param string $id
+     */
+	public function flushIn($folder, $id){
+        $cfile = $this->_directory.$folder.'/'.$id;
+        if(file_exists($cfile)){
+            unlink( $file );
+        }
+    }
+
 }
 ?>
