@@ -2,27 +2,23 @@
 /**
  * DooFileCache class file.
  *
- * @author David Shieh <mykingheaven@gmail.com>
+ * @author Leng Sheng Hong <darkredz@gmail.com>
  * @link http://www.doophp.com/
  * @copyright Copyright &copy; 2009 Leng Sheng Hong
  * @license http://www.doophp.com/license
  */
 
+
 /**
- * This class is for file cache using.
- * 
- * @author David Shieh <mykingheaven@gmail.com>
- * @version $Id: DooFileCache.php 1000 2009-08-22 18:38:42
+ * DooFileCache provides file based caching methods.
+ *
+ * @author Leng Sheng Hong <darkredz@gmail.com>
+ * @version $Id: DooFileCache.php 1000 2009-08-27 19:36:10
  * @package doo.cache
  * @since 1.1
- *
  */
 
-Doo::loadCore('cache/DooCache');
-
-class DooFileCache extends DooCache {
-    
-    private static $_cache;
+class DooFileCache {
     
     private $_directory;
 
@@ -38,44 +34,64 @@ class DooFileCache extends DooCache {
     }
     
     /**
-     * Get the cache instance
-     * @return DooFileCache
+     * Retrieves a value from cache with an Id.
+     * 
+     * @param string $id A unique key identifying the cache
+     * @param int $expire Duration to determine if the cache is expired.
+     * @return mixed The value stored in cache. Return false if no cache found or already expired.
      */
-    static function cache() {
-        if (self::$_cache == null) {
-            self::$_cache = new DooFileCache();
-        }
-        return self::$_cache;
+    public function get($id, $expire=0) {
+        $cfile = $this->_directory . md5($id);
+
+        if (file_exists($cfile) && ($expire==0 || time() - $expire < filemtime($cfile)))
+            return unserialize(file_get_contents($cfile));
     }
-    
+
+
     /**
-     * Get value from file by $id
-     * @see dooframework/cache/DooCache#get($id)
+     * Retrieves a value from cache with an Id from different directories
+     *
+     * @param string $folder Directory name for the cache files stored
+     * @param string $id A unique key identifying the cache
+     * @param int $expire Duration to determine if the cache is expired.
+     * @return mixed The value stored in cache. Return false if no cache found or already expired.
      */
-    public function get($id) {
-        $cfile = $this->_directory . $this->generateKey($id);
-        if (file_exists($cfile))
+    public function getIn($folder, $id, $expire=0) {
+        $cfile = $this->_directory . $folder .'/'. md5($id);
+
+        if (file_exists($cfile) && ($expire==0 || time() - $expire < filemtime($cfile)))
             return unserialize(file_get_contents($cfile));
     }
     
-    /**
-     * Set value into file by $id
-     * If $duration = 0, set it to a year
-     * @see dooframework/cache/DooCache#set($id, $value, $duration)
-     */
-    public function set($id, $value, $duration = 0) {
-        if ($duration < 0)
-            $duration = 31536000;
-        $duration = $duration + time();
-        $cfile = $this->_directory.$this->generateKey($id);
-        if (file_put_contents($cfile , serialize($value), LOCK_EX)) {
-            chmod($cfile, 0777);
-            return touch($cfile, $duration);
-        }
-        else
-            return false;
+     /**
+      * Adds a cache with an unique Id.
+      *
+      * @param string $id Unique Id of the cache
+      * @param mixed $value Cache data value to be stored.
+      * @return bool
+      */
+    public function set($id, $value) {
+        return file_put_contents($this->_directory . md5($id) , serialize($value), LOCK_EX);
     }
-    
+
+    /**
+     * Store cache in different directories
+     *
+     * @param string $folder Directory name for the cache files to be created and stored
+     * @param string $id Unique Id of the cache
+     * @param mixed $value Cache data value to be stored.
+     * @return bool
+     */
+    public function setIn($folder, $id, $value) {        
+        $cfile = $this->_directory.$folder.'/';
+
+        if(!file_exists($cfile))
+            mkdir($cfile);
+
+        $cfile .= md5($id);
+        return file_put_contents($cfile, serialize($value), LOCK_EX);
+    }
+
     /**
      * Delete a cache file by Id
      * @param $id Id of the cache
@@ -83,7 +99,7 @@ class DooFileCache extends DooCache {
      */
     public function flush($id) {
         if ($id !== null) {
-            unlink($this->generateKey($id));
+            unlink(md5($id));
             return true;
         }
         return false;
@@ -102,5 +118,6 @@ class DooFileCache extends DooCache {
         }
         return true;
     }
+
 }
 ?>

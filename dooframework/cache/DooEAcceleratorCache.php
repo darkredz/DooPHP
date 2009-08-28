@@ -18,9 +18,7 @@
  * @since 1.1
  */
 
-Doo::loadCore('cache/DooCache');
-
-class DooEAcceleratorCache extends DooCache{
+class DooEAcceleratorCache{
 
     /**
      * Adds a cache with an unique Id.
@@ -30,14 +28,14 @@ class DooEAcceleratorCache extends DooCache{
      * @param int $expire Seconds to expired
      * @return bool True if success
      */
-    function set($id, $data, $expire=3600){
+    public function set($id, $data, $expire=0){
         return eaccelerator_put($id, $data, $expire);
     }
 
     /**
      * Retrieves a value from cache with an Id.
      *
-     * @param string A unique key identifying the cache
+     * @param string $id A unique key identifying the cache
      * @return mixed The value stored in cache. Return false if no cache found or already expired.
      */
     public function get($id){

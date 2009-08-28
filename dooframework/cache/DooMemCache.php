@@ -42,7 +42,7 @@ class DooMemCache extends DooCache{
      */
     protected $_config;
 
-    function  __construct($conf=Null) {
+    public function  __construct($conf=Null) {
         $this->_memcache = new Memcache();
         $this->_config = $conf;
 
@@ -66,7 +66,7 @@ class DooMemCache extends DooCache{
      * @param int $compressed To store the data in Zlib compressed format
      * @return bool True if success
      */
-    public function set($id, $data, $expire=3600, $compressed=false){
+    public function set($id, $data, $expire=0, $compressed=false){
         if($compressed)
             return $this->_memcache->set($id, $data, MEMCACHE_COMPRESSED, $expire);
         else
@@ -76,7 +76,7 @@ class DooMemCache extends DooCache{
     /**
      * Retrieves a value from cache with an Id.
      *
-     * @param string A unique key identifying the cache
+     * @param string $id A unique key identifying the cache
      * @return mixed The value stored in cache. Return false if no cache found or already expired.
      */
     public function get($id){
