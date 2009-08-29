@@ -174,6 +174,9 @@ class DooUriRouter{
                 return array($route['post']['/'], null);
             if(isset($route['put']['/']))
                 return array($route['put']['/'], null);            
+            if(isset($route['delete']['/']))
+                return array($route['delete']['/'], null);    
+            return;
         }
         
         #echo 'type = ' . $type . '<br/>';
