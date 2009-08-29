@@ -51,7 +51,7 @@
  * <!-- if -->
  * <!-- elseif -->
  * <!-- else -->
- * <!-- endif-->
+ * <!-- endif -->
  *
  * //Examples
  * <!-- if {{MyVar}}==100 -->
@@ -61,7 +61,7 @@
  *
  * //&& || and other operators
  * <!-- if {{isGender(gender, 'female')}}==true && {{age}}>=14 -->
- * <!-- if {{isAdmin(user)}}==true && ({{age}}>=14 || {{age}}<54)-->
+ * <!-- if {{isAdmin(user)}}==true && ({{age}}>=14 || {{age}}<54) -->
  *
  * //Write in one line
  * <!-- if {{isAdmin(username)}} --><h2>Success!</h2><!-- endif -->
@@ -269,7 +269,25 @@ class DooView {
     private function convertLoop($matches){
         $looplevel = sizeof(explode('\' ', $matches[0]));
         if(strpos($matches[0], "' ")!==FALSE){
-            $loopname = ($looplevel<2)? '$data[\''.$matches[1].'\']' : '$v'. ($looplevel-1);
+            $strValue = str_repeat("' value", $looplevel-1);
+            $loopStr = "<!-- loop {$matches[1]}$strValue.";
+            if( strpos($matches[0], $loopStr)===0){
+                $loopStr = substr($matches[0], strlen($loopStr));
+                $loopStr = str_replace(' -->', '', $loopStr);
+                $param = explode('.', $loopStr);
+                $varBck ='';
+                foreach($param as $pa){
+                    if(strpos($pa, '@')===0){
+                        $varBck .= '->' . substr($pa, 1);
+                    }else{
+                        $varBck .= "['$pa']";
+                    }
+                }
+                $thislvl = $looplevel-1;
+                $loopname = "\$v$thislvl$varBck";
+            }else{
+                $loopname = ($looplevel<2)? '$data[\''.$matches[1].'\']' : '$v'. ($looplevel-1);
+            }
         }
         else if(strpos($matches[1], '.@')!==FALSE){
             $varname = str_replace('.@', '->', $matches[1]);
