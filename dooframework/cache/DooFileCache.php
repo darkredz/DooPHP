@@ -98,8 +98,9 @@ class DooFileCache {
      * @return mixed
      */
     public function flush($id) {
-        if ($id !== null) {
-            unlink(md5($id));
+        $cfile = $this->_directory.md5($id);
+        if (file_exists($cfile)) {
+            unlink($cfile);
             return true;
         }
         return false;
@@ -114,7 +115,7 @@ class DooFileCache {
         
         while(($file = readdir($handle)) !== false) {
             if (is_file($file))
-                            unlink($file);
+                unlink($file);
         }
         return true;
     }
@@ -141,7 +142,7 @@ class DooFileCache {
      * @param string $folder
      * @param string $id
      */
-	public function flushIn($folder, $id){
+    public function flushIn($folder, $id){
         $cfile = $this->_directory.$folder.'/'.$id;
         if(file_exists($cfile)){
             unlink( $file );
