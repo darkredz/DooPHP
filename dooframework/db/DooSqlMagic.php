@@ -511,7 +511,13 @@ class DooSqlMagic {
             }else{
                 $sqladd['include'] = ' JOIN ' . $sqladd['include'];
             }
-            $sqladd['include'] .= " ON {$tmodel->_table}.$tmodel_fk = {$model->_table}.{$model->_primarykey} ";
+            if($rtype=='belongs_to'){
+                list($trtype, $tfkey ) = self::relationType($this->map, $tmodel_class, $class_name);
+                //echo '<h1>TMODEL '.$tfkey['foreign_key'].'</h1>';
+                $sqladd['include'] .= " ON {$tmodel->_table}.$tmodel_fk = {$model->_table}.{$tfkey['foreign_key']} ";
+            }else{
+                $sqladd['include'] .= " ON {$tmodel->_table}.$tmodel_fk = {$model->_table}.{$model->_primarykey} ";
+            }
             #print_r($sqladd['where']);
             if(isset($opt['includeWhere'])){
                 if($sqladd['where']==''){
