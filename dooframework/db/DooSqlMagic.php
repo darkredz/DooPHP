@@ -646,10 +646,14 @@ class DooSqlMagic {
 
                             if(isset($tmodel_class) && !isset($record->{$tmodel_class}) ){
                                 if($tmodel_rtype=='has_many'){
+                                    #echo 'Has Many 3rd';
                                     if(!isset($tmodelArray)){
                                         $tmodelArray = array();
                                         #echo '+++++ Create new 3rd Model Array';
                                     }
+                                    $newtmodel = new $tmodel_class;
+                                }else{
+                                    #echo 'Has One 3rd';
                                     $newtmodel = new $tmodel_class;
                                 }
                             }
@@ -697,9 +701,13 @@ class DooSqlMagic {
 
                             //add in the 3rd Model to the 3rdModel key if created
                             if(isset($newtmodel)){
-                                $tmodelArray[]= $newtmodel;
-                                #echo '----Added 3rd Model<br/>';
-                                $record->{$tmodel_class} = $tmodelArray;
+                                if($tmodel_rtype=='has_many'){
+                                    $tmodelArray[]= $newtmodel;
+                                    #echo '----Added 3rd Model<br/>';
+                                    $record->{$tmodel_class} = $tmodelArray;
+                                }else{
+                                    $record->{$tmodel_class} = $newtmodel;
+                                }
                             }
                             $arr[] = $record;
                         }
@@ -844,6 +852,7 @@ class DooSqlMagic {
     /**
      * Adds a new record with a list of keys & values (assoc array) (Prepares and execute the INSERT statements)
      * @param string|object $model The model object to be insert.
+     * @param array Array of data (keys and values) to be insert
      * @return int The inserted record's Id
      */
     public function insert_attributes($model, $data){
