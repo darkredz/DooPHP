@@ -163,6 +163,14 @@ class DooUriRouter{
      */
     private function connect($route,$subfolder){
         $type = strtolower($_SERVER['REQUEST_METHOD']);
+
+        //support ?p=123 GET variable on root
+        if(strpos($_SERVER['REQUEST_URI'], $subfolder.'?')===0 || strpos($_SERVER['REQUEST_URI'], $subfolder.'index.php?')===0){
+            print_r($route['*']['/']);
+            return array($route['*']['/'], null);
+            //echo '<br>skip and return $route[\'*\'][\'/\']';
+        }
+        
         #echo 'type = ' . $type . '<br/>';
         #echo 'request URI = ' . $_SERVER['REQUEST_URI'] . '<br/>';
         #echo 'requested file = ' . $_SERVER['SCRIPT_NAME'] . '<br/>';
