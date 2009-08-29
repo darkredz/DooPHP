@@ -43,15 +43,6 @@ class DooApcCache{
     }
 
     /**
-     * Retrieves multiple cached data from a list of Ids
-     * @param array List of Ids
-     * @return array List of cached values
-     */
-    public function getValues($ids){
-        return array_combine($ids,apc_fetch($ids));
-    }
-
-    /**
      * Deletes an APC data cache with an identifying Id
      *
      * @param string $id Id of the cache

@@ -102,8 +102,8 @@ class Doo{
     }
 
     /**
-     * @param string $cacheType Cache type: file, front, apc, memcache, xcache, eaccelerator. Default is file based cache.
-     * @return DooFileCache|DooFrontCache|DooApcCache|DooMemCache|DooXCache|DooEAcceleratorCache file/apc/memcache/xcache/eaccelerator & frontend caching tool, singleton, auto create if the singleton has not been created yet.
+     * @param string $cacheType Cache type: file, php, front, apc, memcache, xcache, eaccelerator. Default is file based cache.
+     * @return DooFileCache|DooPhpCache|DooFrontCache|DooApcCache|DooMemCache|DooXCache|DooEAcceleratorCache file/php/apc/memcache/xcache/eaccelerator & frontend caching tool, singleton, auto create if the singleton has not been created yet.
      */
     public static function cache($cacheType='file') {
         if($cacheType=='file'){
@@ -111,8 +111,16 @@ class Doo{
                 return self::$_cache['file'];
 
             self::loadCore('cache/DooFileCache');
-            self::$_cache['file'] = DooFileCache::cache();
+            self::$_cache['file'] = new DooFileCache;
             return self::$_cache['file'];
+        }
+        else if($cacheType=='php'){
+            if(isset(self::$_cache['php']))
+                return self::$_cache['php'];
+
+            self::loadCore('cache/DooPhpCache');
+            self::$_cache['php'] = new DooPhpCache;
+            return self::$_cache['php'];
         }
         else if($cacheType=='front'){
             if(isset(self::$_cache['front']))
@@ -241,8 +249,8 @@ class Doo{
         $class['DooConfig'] = 'app/DooConfig';
         $class['DooDigestAuth'] = 'auth/DooDigestAuth';
         $class['DooAcl'] = 'auth/DooAcl';
-        $class['DooCache'] = 'cache/DooCache';
         $class['DooFileCache'] = 'cache/DooFileCache';
+        $class['DooPhpCache'] = 'cache/DooPhpCache';
         $class['DooFrontCache'] = 'cache/DooFrontCache';
         $class['DooApcCache'] = 'cache/DooApcCache';
         $class['DooMemCache'] = 'cache/DooMemCache';
@@ -252,6 +260,8 @@ class Doo{
         $class['DooDbExpression'] = 'db/DooDbExpression';
         $class['DooModelGen'] = 'db/DooModelGen';
         $class['DooSqlMagic'] = 'db/DooSqlMagic';
+        $class['DooModel'] = 'db/DooModel';
+        $class['DooSmartModel'] = 'db/DooSmartModel';
         $class['DooMasterSlave'] = 'db/DooMasterSlave';
         $class['DooRestClient'] = 'helper/DooRestClient';
         $class['DooUrlBuilder'] = 'helper/DooUrlBuilder';
