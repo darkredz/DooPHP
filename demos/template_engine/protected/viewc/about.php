@@ -77,7 +77,7 @@
 
     <hr/>
     <h2>User's messages list:</h2>
-    <p>Nested loop example</p>
+    <p>Nested loop example</p> 
     <ul>
 	
 	<?php if (!Doo::cache('front')->getPart('messages', 3600)): ?>
@@ -129,6 +129,20 @@
     <?php endforeach; ?>
     </ul>
     <p>winners' value,  loop' value, loop' v, l' v, somename' v are the same</p>
+    <hr/>
+    
+    <h2>Loop Blog post with tags</h2>
+    <?php foreach($data['posts'] as $k1=>$v1): ?>        
+        <p class="normal" style="background-color:#222;padding:20px;">
+        <strong><?php echo $v1->title; ?></strong><br/>
+        <?php echo $v1->content; ?><br/>
+        <?php foreach($v1->Tag as $k2=>$v2): ?>
+            <a href="#" class="file"><?php echo $v2->name; ?></a>, 
+        <?php endforeach; ?>
+        </p>
+    <?php endforeach; ?>
+
+    
        <span class="totop"><a href="#top">BACK TO TOP</a></span>
 	  </div>
 	</body>

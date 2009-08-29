@@ -71,7 +71,25 @@ class MainController extends DooController{
             $obj->Physical->height = rand(150,200);
             $data['winners'][] = $obj;
         }
-
+        
+        //blog post with tags, template engine using loop with assoc array (Tag)
+        Doo::loadModel('Blog');
+        Doo::loadModel('Tag');
+        $data['posts'] = array();
+        for($i=0;$i<3;$i++){
+            $obj = new Blog;
+            $obj->title = 'This is a title '.$i;
+            $obj->content = 'Read this content '.$i;
+            $obj->Tag = array();
+            for($g=0;$g<3;$g++){
+                $tag = new Tag;
+                $tag->name = 'tag' . $g;
+                $obj->Tag[] = $tag;
+            }
+            $data['posts'][] = $obj;
+        }
+        
+        
         $this->view()->render('about', $data);
         
         /* passing a true will enable the engine to process the template and compiled files
