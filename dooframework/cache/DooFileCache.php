@@ -62,7 +62,7 @@ class DooFileCache {
         if (file_exists($cfile) && ($expire==0 || time() - $expire < filemtime($cfile)))
             return unserialize(file_get_contents($cfile));
     }
-    
+  
      /**
       * Adds a cache with an unique Id.
       *
