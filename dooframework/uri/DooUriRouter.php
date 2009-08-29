@@ -166,9 +166,14 @@ class DooUriRouter{
 
         //support ?p=123 GET variable on root
         if(strpos($_SERVER['REQUEST_URI'], $subfolder.'?')===0 || strpos($_SERVER['REQUEST_URI'], $subfolder.'index.php?')===0){
-            //print_r($route['*']['/']);
-            return array($route['*']['/'], null);
-            //echo '<br>skip and return $route[\'*\'][\'/\']';
+            if(isset($route['*']['/']))
+                return array($route['*']['/'], null);
+            if(isset($route['get']['/']))
+                return array($route['get']['/'], null);
+            if(isset($route['post']['/']))
+                return array($route['post']['/'], null);
+            if(isset($route['put']['/']))
+                return array($route['put']['/'], null);            
         }
         
         #echo 'type = ' . $type . '<br/>';
