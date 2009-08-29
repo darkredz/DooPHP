@@ -564,13 +564,15 @@ class DooSqlMagic {
                     {$sqladd['order']} {$sqladd['custom']} {$sqladd['limit']}";
                 break;
             case 'belongs_to':
-                $sql = "SELECT {$sqladd['select']}
+                //for belongs_to Object reverse relate()
+                $sql = "SELECT {$sqladd['select']},  {$relatedmodel->_table}.{$rparams['foreign_key']} AS _{$relatedmodel->_table}__{$rparams['foreign_key']}
                     FROM {$model->_table}
                     {$sqladd['include']}
                     {$sqladd['joinType']} {$relatedmodel->_table}
                     ON {$model->_table}.{$mparams['foreign_key']} = {$relatedmodel->_table}.{$rparams['foreign_key']}
                     {$sqladd['where']}
                     {$sqladd['order']} {$sqladd['custom']} {$sqladd['limit']}";
+
                 break;
             case 'has_many':
                 if($mtype=='has_many'){
