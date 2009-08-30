@@ -129,13 +129,19 @@ class DooSqlMagic {
     public function reconnect($db_config_name){
         //$host='localhost', $db='', $user='', $password='', $driver='mysql', $persist=true
         $dbconfig = $this->dbconfig_list[$db_config_name];
-		try{
-			$this->pdo = new PDO("{$dbconfig[4]}:host={$dbconfig[0]};dbname={$dbconfig[1]}", $dbconfig[2], $dbconfig[3],array(PDO::ATTR_PERSISTENT => $dbconfig[5]));
-			$this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-			$this->connected = true;
-		}catch(PDOException $e){
-			throw new SqlMagicException('Failed to open the DB connection', SqlMagicException::DBConnectionError);
-		}
+        try{
+            $this->pdo = new PDO("{$dbconfig[4]}:host={$dbconfig[0]};dbname={$dbconfig[1]}", $dbconfig[2], $dbconfig[3],array(PDO::ATTR_PERSISTENT => $dbconfig[5]));
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->connected = true;
+            if(isset($this->dbconfig['charset']) && isset($this->dbconfig['collate'])){
+                $this->pdo->exec("SET NAMES '". $this->dbconfig['charset']. "' COLLATE '". $this->dbconfig['collate'] ."'");
+            }
+            else if(isset($this->dbconfig['charset']) ){
+                $this->pdo->exec("SET NAMES '". $this->dbconfig['charset']. "'");
+            }
+        }catch(PDOException $e){
+            throw new SqlMagicException('Failed to open the DB connection', SqlMagicException::DBConnectionError);
+        }
     }
 
     /**
