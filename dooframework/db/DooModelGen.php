@@ -34,7 +34,7 @@ class DooModelGen{
         $smt = Doo::db()->query("SHOW TABLES");
         $tables = $smt->fetchAll();
         foreach( $tables as $tbl ){
-           $tblname = $tbl["Tables_in_$dbname"];
+           $tblname = $tbl['Tables_in_'.strtolower($dbname)];
 
            $smt2 = Doo::db()->query("DESC `$tblname`");
            $fields = $smt2->fetchAll();
