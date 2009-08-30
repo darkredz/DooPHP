@@ -163,21 +163,6 @@ class DooUriRouter{
      */
     private function connect($route,$subfolder){
         $type = strtolower($_SERVER['REQUEST_METHOD']);
-
-        //support ?p=123 GET variable on root
-        if(strpos($_SERVER['REQUEST_URI'], $subfolder.'?')===0 || strpos($_SERVER['REQUEST_URI'], $subfolder.'index.php?')===0){
-            if(isset($route['*']['/']))
-                return array($route['*']['/'], null);
-            if(isset($route['get']['/']))
-                return array($route['get']['/'], null);
-            if(isset($route['post']['/']))
-                return array($route['post']['/'], null);
-            if(isset($route['put']['/']))
-                return array($route['put']['/'], null);            
-            if(isset($route['delete']['/']))
-                return array($route['delete']['/'], null);    
-            return;
-        }
         
         #echo 'type = ' . $type . '<br/>';
         #echo 'request URI = ' . $_SERVER['REQUEST_URI'] . '<br/>';
@@ -202,8 +187,17 @@ class DooUriRouter{
                # || ($requri==str_replace('index.php','',$_SERVER['SCRIPT_NAME'])  && strpos($_SERVER['SCRIPT_NAME'], 'index.php')!==FALSE)
                # || ($requri==$_SERVER['SCRIPT_NAME'] && strpos($_SERVER['SCRIPT_NAME'], 'index.php')!==FALSE)){
                 //echo strpos($_SERVER['SCRIPT_NAME'], 'index.php');
+
                 $uri='/';
         }else{
+            //support ?p=123 GET variable on root
+            if(strpos($_SERVER['REQUEST_URI'], $subfolder.'?')===0 || strpos($_SERVER['REQUEST_URI'], $subfolder.'index.php?')===0){
+                if(isset($route[$type]['/']))
+                    return array($route[$type]['/'], null);
+                if(isset($route['*']['/']))
+                    return array($route['*']['/'], null);
+                return;
+            }
             #echo '<h2>NOt Root</h2>';
             $uri = $requri;
             //strip out the index.php part
