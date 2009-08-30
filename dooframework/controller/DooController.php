@@ -32,6 +32,7 @@
  * language()
  * accept_type()
  * render()
+ * renderc()
  * setContentType()
  * is_SSL()
  * view()
@@ -137,7 +138,7 @@ class DooController {
 
         return $this->_view;
     }
-	
+
     /**
      * Short hand for $this->view()->render() Renders the view file.
      *
@@ -146,9 +147,19 @@ class DooController {
      * @param bool $process If TRUE, checks the template's last modified time against the compiled version. Regenerates if template is newer.
      * @param bool $forceCompile Ignores last modified time checking and force compile the template everytime it is visited.
      */
-	public function render($file, $data=NULL, $process=NULL, $forceCompile=false){
-		$this->view()->render($file, $data, $process, $forceCompile);
-	}
+    public function render($file, $data=NULL, $process=NULL, $forceCompile=false){
+        $this->view()->render($file, $data, $process, $forceCompile);
+    }
+
+    /**
+     * Short hand for $this->view()->renderc() Renders the view file(php) located in viewc.
+     *
+     * @param string $file Template file name (without extension name)
+     * @param array $data Associative array of the data to be used in the php template.
+     */
+    public function renderc($file, $data=NULL){
+        $this->view()->renderc($file, $data);
+    }
 
     /**
      * Get the client accept language from the header
