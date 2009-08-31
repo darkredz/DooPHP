@@ -156,9 +156,14 @@ class DooController {
      *
      * @param string $file Template file name (without extension name)
      * @param array $data Associative array of the data to be used in the php template.
+     * @param bool $enableControllerAccess Enable the view scripts to access the controller property and methods.
      */
-    public function renderc($file, $data=NULL){
-        $this->view()->renderc($file, $data);
+    public function renderc($file, $data=NULL, $enableControllerAccess=False){
+        if($enableControllerAccess===true){
+            $this->view()->renderc($file, $data, $this);
+        }else{
+            $this->view()->renderc($file, $data);
+        }
     }
 
     /**
