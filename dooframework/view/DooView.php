@@ -123,6 +123,12 @@ class DooView {
             call_user_func_array(array(&$this->controller, $name), $arguments);
         }
     }
+
+    public function  __get($name) {
+        if($this->controller!=NULL){
+            return $this->controller->{$name};
+        }
+    }
     
     /**
      * Renders the view file, generates compiled version of the view template if necessary
