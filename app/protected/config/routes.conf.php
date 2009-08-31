@@ -14,11 +14,14 @@
  *
  * If you have your controller file name different from its class name, eg. home.php HomeController
  * $route['*']['/'] = array('HomeController', 'index', 'className'=>'HomeController');
+ * 
+ * If you need to reverse generate URL based on route ID with DooUrlBuilder in template view, please defined the id along with the routes
+ * $route['*']['/'] = array('HomeController', 'index', 'id'=>'home');
  */
 $admin = array('admin'=>'1234');
  
 $route['*']['/'] = array('MainController', 'index');
-
+$route['*']['/error'] = array('ErrorController', 'index');
 
 //---------- Delete if not needed ------------
 

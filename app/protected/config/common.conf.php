@@ -1,6 +1,7 @@
 <?php
 /* 
  * Common configuration that can be used throughout the application
+ * Please refer to DooConfig class in the API doc for a complete list of configurations
  * Access via Singleton, eg. Doo::conf()->BASE_PATH;
  */
 error_reporting(E_ALL | E_STRICT);
@@ -26,7 +27,7 @@ if(strpos($config['SUBFOLDER'], '/')!==0){
 }
 
 $config['APP_URL'] = 'http://'.$_SERVER['HTTP_HOST'].$config['SUBFOLDER'];
-$config['AUTOROUTE'] = TRUE;
+//$config['AUTOROUTE'] = TRUE;
 $config['DEBUG_ENABLED'] = TRUE;
 
 
@@ -42,7 +43,7 @@ $config['DEBUG_ENABLED'] = TRUE;
  * Error document must be more than 512 bytes as IE sees it as a normal 404 sent if < 512b
  */
 //$config['ERROR_404_DOCUMENT'] = 'error.php';
-//$config['ERROR_404_ROUTE'] = '/error';
+$config['ERROR_404_ROUTE'] = '/error';
 
 
 /**
