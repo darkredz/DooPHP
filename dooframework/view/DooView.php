@@ -92,19 +92,38 @@
  */
 class DooView {
     protected $tags;
+    public $controller;
+    public $data;
 
     /**
      * Includes the native PHP template file to be output.
      * 
      * @param string $file PHP template file name without extension .php
      * @param array $data Associative array of the data to be used in the template view.
+     * @param object $controller The controller object, pass this in so that in views you can access the controller.
      */
-    public function renderc($file, $data=NULL){
+    public function renderc($file, $data=NULL, $controller=NULL){
+        $this->data = $data;
+        $this->controller = $controller;
         //includes user defined template tags for template use
         include Doo::conf()->SITE_PATH . 'protected/plugin/template_tags.php';
         include Doo::conf()->SITE_PATH . "protected/viewc/$file.php";
     }
 
+    /**
+     * Include template view files
+     * @param string $file File name without extension (.php)
+     */
+    public function inc($file){
+        include Doo::conf()->SITE_PATH . "protected/viewc/$file.php";
+    }
+
+    public function  __call($name,  $arguments) {
+        if($this->controller!=NULL){
+            call_user_func_array(array(&$this->controller, $name), $arguments);
+        }
+    }
+    
     /**
      * Renders the view file, generates compiled version of the view template if necessary
      * @param string $file Template file name (without extension name)
