@@ -27,6 +27,11 @@ class DooModelGen{
      */
     public static function gen_mysql($comments=true){
         $dbconf = Doo::db()->getDefaultDbConfig();
+        if(!isset($dbconf) || empty($dbconf)){
+            echo "<html><head><title>DooPHP Model Generator - DB: Error</title></head><body bgcolor=\"#2e3436\"><span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Please setup the DB first in index.php and db.conf.php</span></span>";
+            exit;
+        }
+
         $dbname = $dbconf[1];
 
         echo "<html><head><title>DooPHP Model Generator - DB: $dbname</title></head><body bgcolor=\"#2e3436\">";
@@ -34,8 +39,9 @@ class DooModelGen{
         $smt = Doo::db()->query("SHOW TABLES");
         $tables = $smt->fetchAll();
         foreach( $tables as $tbl ){
-           $tblname = $tbl['Tables_in_'.strtolower($dbname)];
-
+            if(strncmp(PHP_OS,'WIN',3)===0){
+                $tblname = $tbl['Tables_in_'.strtolower($dbname)];
+            }
            $smt2 = Doo::db()->query("DESC `$tblname`");
            $fields = $smt2->fetchAll();
 		   
