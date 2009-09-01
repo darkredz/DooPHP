@@ -2,7 +2,7 @@
 DooPHP Framework Change Log
 ===========================
 
-Version 1.2 August 28, 2009
+Version 1.2 Septemper 01, 2009
 ---------------------------
 - New: Better support for native PHP view templates in DooView.
 - New: Added code generation for Models' data validation rules
