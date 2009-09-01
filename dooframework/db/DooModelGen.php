@@ -55,7 +55,6 @@ class DooModelGen{
         $tables = $smt->fetchAll();
         foreach( $tables as $tbl ){
             if(stristr($_SERVER['SERVER_SOFTWARE'], 'Win32')){
-                echo 'Is stupid windows!';
                 $tblname = $tbl['Tables_in_'.strtolower($dbname)];
             }else{
                 $tblname = $tbl['Tables_in_'.$dbname];
