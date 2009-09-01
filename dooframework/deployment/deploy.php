@@ -17,7 +17,6 @@ class Doo{
 
     public static function app(){
         if(self::$_app===NULL){
-            self::loadCore('app/DooWebApp');
             self::$_app = new DooWebApp;
         }
         return self::$_app;
