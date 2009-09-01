@@ -85,6 +85,31 @@
  * }
  * </code>
  *
+ * <p>You can use <b>native PHP</b> as view templates in DooPHP. Use DooView::renderc() instead of render.</p>
+ * <p>In your Controller:</p>
+ * <code>
+ * $data['phone'] = 012432456;
+ * $this->view()->abc = 'ABCDE';
+ *
+ * //pass in true to enable access to controller if you need it.
+ * $this->renderc('example', $data, true);
+ * </code>
+ *
+ * <p>In your view scrips located in <b>SITE_PATH/protected/viewc/</b></p>
+ * <code>
+ * echo $this->data['phone'];     //012432456
+ * echo $this->abc;             //ABC
+ *
+ * //call controller methods if enabled.
+ * $this->thisIsFromController();
+ * echo $this->thisIsControllerProperty;
+ * </code>
+ *
+ * <p>To include a template script in viewc folder</p>
+ * <code>
+ * $this->inc('this_is_another_view_php');
+ * </code>
+ * 
  * @author Leng Sheng Hong <darkredz@gmail.com>
  * @version $Id: DooView.php 1000 2009-07-7 18:27:22
  * @package doo.view
