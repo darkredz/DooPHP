@@ -33,6 +33,26 @@ class DooTextHelper {
     }
 
     /**
+     * Removing repeated words from text.
+     * @param string $str Original text to be processed.
+     * @return string
+     */
+    public static function removeRepeatWords($str){
+        return preg_replace("/s(w+s)1/i", "$1", $str);
+    }
+
+
+    /**
+     * Removing repeated punctuation from text.
+     * @param string $str Original text to be processed.
+     * @return string
+     */
+    public static function removeRepeatPunc($str){
+        return preg_replace("/.+/i", ".", $text);
+    }
+
+
+    /**
      * Convert all URLs in the text into hyperlinks.
      *
      * All URLs are converted. http://domain.com, www.domain.com, email@address.com
