@@ -35,7 +35,7 @@ class DooApcCache{
     /**
      * Retrieves a value from cache with an Id.
      *
-     * @param string $id A unique key identifying the cache
+     * @param string|array $id A unique key identifying the cache or a list of keys.
      * @return mixed The value stored in cache. Return false if no cache found or already expired.
      */
     public function get($id){
