@@ -21,11 +21,26 @@
  * @since 1.0
  */
 class DooModelGen{
+
+
+    public static function exportRules($ruleArr) {
+        $rule = preg_replace("/'?\d+'?\s+=>\s+/", '', var_export($ruleArr, true));
+        $rule = str_replace("\n      ", ' ', $rule);
+        $rule = str_replace(",\n    )", ' )', $rule);
+        $rule = str_replace("array (", 'array(', $rule);
+        $rule = str_replace("    array(", '                        array(', $rule);
+        $rule = str_replace("=> \n  array(", '=> array(', $rule);
+        $rule = str_replace("  '", "                '", $rule);
+        $rule = str_replace("  ),", "                ),\n", $rule);
+        $rule = str_replace(",\n\n)", "\n            );", $rule);
+        return $rule;
+    }
+    
     /**
      * Generates Model class files from a MySQL database
-	 * @param bool $comments Generate comments along with the Model class
+     * @param bool $comments Generate comments along with the Model class
      */
-    public static function gen_mysql($comments=true){
+    public static function gen_mysql($comments=true, $vrules=true){
         $dbconf = Doo::db()->getDefaultDbConfig();
         if(!isset($dbconf) || empty($dbconf)){
             echo "<html><head><title>DooPHP Model Generator - DB: Error</title></head><body bgcolor=\"#2e3436\"><span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Please setup the DB first in index.php and db.conf.php</span></span>";
@@ -44,7 +59,7 @@ class DooModelGen{
             }
            $smt2 = Doo::db()->query("DESC `$tblname`");
            $fields = $smt2->fetchAll();
-		   
+           //print_r($fields);
            $classname = '';
            $temptbl = $tblname;
            for($i=0;$i<strlen($temptbl);$i++){
@@ -66,21 +81,48 @@ class DooModelGen{
            $ftype = '';
            $fieldnames = array();
 
+           Doo::loadHelper('DooValidator');
+
+           $rules = array();
            foreach($fields as $f){
-				$fstring='';
-				if($comments && isset($f['Type']) && !empty($f['Type'])){
-					preg_match('/([^\(]+)[\(]?([\d]*)?[\)]?(.+)?/', $f['Type'], $ftype);
-					$length = '';
-					$more = '';
-					
-					if(isset($ftype[2]) && !empty($ftype[2]))
-						$length = " Max length is $ftype[2].";
-					if(isset($ftype[3]) && !empty($ftype[3]))
-						$more = " $ftype[3].";
-					
-					$fstring = "\n    /**\n     * @var {$ftype[1]}$length$more\n     */\n";
-				}
-				
+                $fstring='';
+                if($comments && isset($f['Type']) && !empty($f['Type'])){
+                    preg_match('/([^\(]+)[\(]?([\d]*)?[\)]?(.+)?/', $f['Type'], $ftype);
+                    $length = '';
+                    $more = '';
+                    
+                    if(isset($ftype[2]) && !empty($ftype[2]))
+                        $length = " Max length is $ftype[2].";
+                    if(isset($ftype[3]) && !empty($ftype[3])){
+                        $more = " $ftype[3].";
+                        $ftype[3] = trim($ftype[3]);
+                    }
+                    
+                    $fstring = "\n    /**\n     * @var {$ftype[1]}$length$more\n     */\n";
+
+                    //-------- generate rules for the setupValidation() in Model ------
+                    if($vrules){
+                        $rule = array();
+                        if($rulename = DooValidator::dbDataTypeToRules(strtolower($ftype[1]))){
+                            $rule = array(array($rulename));
+                        }
+
+                        if(isset($ftype[3]) && $ftype[3]=='unsigned')
+                            $rule[] = array('min',0);
+                        if(ctype_digit($ftype[2])){
+                            if($ftype[1]=='varchar' || $ftype[1]=='char' )
+                                $rule[] = array('maxlength', intval($ftype[2]));
+                            else if($rulename=='integer')
+                                $rule[] = array('max', intval($ftype[2]));
+                        }
+                        if(strtolower($f['Null'])=='no')
+                            $rule[] = array('notnull');
+
+                        if(isset($rule[0]))
+                            $rules[$f['Field']] = $rule;
+                    }
+                }
+                
                 $filestr .= "$fstring    public \${$f['Field']};\n";
                 $fieldnames[] = $f['Field'];
                 if($f['Key']=='PRI'){
@@ -89,22 +131,35 @@ class DooModelGen{
            }
 
            $fieldnames = implode($fieldnames, "','");
-           $filestr .= "    public \$_table = '$tblname';\n";
+           $filestr .= "\n    public \$_table = '$tblname';\n";
            $filestr .= "    public \$_primarykey = '$pkey';\n";
            $filestr .= "    public \$_fields = array('$fieldnames');\n";
+
+           if($vrules && isset($rules) && !empty ($rules)){
+               $filestr .= "\n    public function getVRules() {\n        return ". self::exportRules($rules) ."\n    }\n\n";
+               $filestr .="    public function validate(\$checkMode='all'){
+        //You do not need this if you extend DooModel or DooSmartModel
+        //MODE: all, all_one, skip
+        Doo::loadHelper('DooValidator');
+        \$v = new DooValidator;
+        \$v->checkMode = \$checkMode;
+        return \$v->validate(get_object_vars(\$this), \$this->getVRules());
+    }\n\n";
+           }
            $filestr .= "}\n?>";
 
            $handle = fopen(Doo::conf()->SITE_PATH . "/protected/model/$classname.php", 'w+');
            fwrite($handle, $filestr);
            fclose($handle);
-           echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
+           echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";                        
+           //print_r($rules);
         }
 
         $total = sizeof($tables);
         echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;color:#fff;\">Total $total file(s) generated.</span></body></html>";
     }
-	
-	public static function gen_pgsql(){
+
+    public static function gen_pgsql(){
         $dbconf = Doo::db()->getDefaultDbConfig();
         $dbSchema = $dbconf[6];
         $dbname = $dbconf[1];
@@ -167,7 +222,7 @@ class DooModelGen{
            }
 
            $filestr = "<?php\nclass $classname{\n";
-		   
+           
            $fieldnames = array();
            foreach($fields as $f){
                 $filestr .= "    public \${$f['name']};\n";
