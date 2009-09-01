@@ -81,7 +81,8 @@ class DooModelGen{
            $ftype = '';
            $fieldnames = array();
 
-           Doo::loadHelper('DooValidator');
+           if($vrules)
+               Doo::loadHelper('DooValidator');
 
            $rules = array();
            foreach($fields as $f){
@@ -117,6 +118,8 @@ class DooModelGen{
                         }
                         if(strtolower($f['Null'])=='no')
                             $rule[] = array('notnull');
+                        else
+                            $rule[] = array('optional');
 
                         if(isset($rule[0]))
                             $rules[$f['Field']] = $rule;
