@@ -10,7 +10,7 @@ class MainController extends DooController{
     public function index(){
 		//Just replace these
 		Doo::loadCore('app/DooSiteMagic');
-		DooSiteMagic::displayHome();	
+		DooSiteMagic::displayHome();
     }
 	
 	public function allurl(){	

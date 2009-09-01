@@ -23,7 +23,7 @@ if(strpos($config['SUBFOLDER'], '/')!==0){
 }
 
 $config['APP_URL'] = 'http://'.$_SERVER['HTTP_HOST'].$config['SUBFOLDER'];
-//$config['AUTOROUTE'] = TRUE;
+$config['AUTOROUTE'] = TRUE;
 $config['DEBUG_ENABLED'] = TRUE;
 
 

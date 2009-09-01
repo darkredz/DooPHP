@@ -19,6 +19,8 @@ $route['*']['/about'] = $route['*']['/'];
 //----------- DB routes ---------
 //$route['*']['/gen_model'] = array('MainController', 'gen_models', 'authName'=>'Model Generator', 'auth'=>array('admin'=>'1234'), 'authFail'=>'Unauthorized!');
 
+$route['*']['/enhanced'] = array('MainController', 'test');
+
 $route['*']['/food/all'] =  array('DbController', 'allFood');
 $route['*']['/food_with_type'] =  array('DbController', 'all_food_with_type');
 $route['*']['/food_with_ingredients'] =  array('DbController', 'food_with_ingredients');

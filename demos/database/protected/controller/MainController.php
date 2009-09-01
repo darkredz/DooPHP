@@ -10,6 +10,73 @@ class MainController extends DooController{
         $data['baseurl'] = Doo::conf()->APP_URL;
         $this->view()->render('about', $data);
     }
+	
+    public function test(){
+        $this->load()->model('Food');
+        $food = new Food;
+        echo '<pre>';
+
+        //print_r( $food->getById(14) );
+        //print_r( $food->getById(14, array('limit'=>1)) );
+
+        //print_r( $food->limit(10) );
+        //print_r( $food->limit(10,'id,name') );
+        //print_r( $food->limit(10,'name','id') );
+        //print_r( $food->limit(10,'name,id','location') );
+        //print_r( Food::_limit(10) );
+
+        //print_r( $food->getOne() );
+        //print_r( Food::_getOne() );
+        //$food->location = 'Asia';
+        //$food->food_type_id = 10;
+        print_r( $food->count() );
+        print_r( Food::_count() );
+        print_r( Food::_count($food) );
+        //Doo::cache('php')->set('foodtotal', Food::_count($food));
+        //echo '<h1>'. Doo::cache('php')->get('foodtotal') .'</h1>';
+
+
+        print_r(  Food::getById_first(6) );
+
+
+        //$food->id = 14;
+        //print_r( $food->getOne() );
+        // print_r( $food->find() );
+
+        //print_r( Food::_find($food) );
+
+        //print_r( $food->getById_location_first(6, 'Malaysia') );
+        //print_r( $food->getById_location(6, 'Malaysia', array('limit'=>1)) );
+        //print_r( $food->relateFoodType($food, array('limit'=>'first')) );
+        //print_r( $food->relateFoodType($food) );
+        //print_r( $food->relateFoodType_first($food) );
+
+        //print_r( Food::getById_location_first(6, 'Malaysia') );
+        //print_r( Food::getById_location(6, 'Malaysia') );
+        //print_r( Food::getById_first(6) );
+        //print_r( Food::getByLocation('Malaysia') );
+        //print_r( Food::relateFoodType_first($food) );
+        //print_r( Food::relateFoodType() );
+        //print_r( Food::relateFoodType_first() );
+        //print_r( Food::_relate('', 'FoodType') );
+        //
+        //$f = new Food;
+        //print_r( $f->relate('FoodType') );
+        //print_r( $f->relate('FoodType', array('limit'=>'first')) );
+
+        # if update/delete/insert cache auto purged on the Model.
+        //$food->id = 6;
+        //$food->name = 'Wan Tan Mee';
+        //$food->update();
+        //print_r($food->find());
+        
+        //$food->purgeCache();  #to delete cache manually
+        //Food::_purgeCache();  #to delete cache manually
+
+        # If no SQL is displayed, it means that the data are read from cache.
+        # And of course your Model have to extend DooSmartModel
+        print_r(Doo::db()->show_sql());
+    }
 
     public function gen_models(){
         Doo::loadCore('db/DooModelGen');

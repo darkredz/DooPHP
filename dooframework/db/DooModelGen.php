@@ -54,8 +54,11 @@ class DooModelGen{
         $smt = Doo::db()->query("SHOW TABLES");
         $tables = $smt->fetchAll();
         foreach( $tables as $tbl ){
-            if(strncmp(PHP_OS,'WIN',3)===0){
+            if(stristr($_SERVER['SERVER_SOFTWARE'], 'Win32')){
+                echo 'Is stupid windows!';
                 $tblname = $tbl['Tables_in_'.strtolower($dbname)];
+            }else{
+                $tblname = $tbl['Tables_in_'.$dbname];
             }
            $smt2 = Doo::db()->query("DESC `$tblname`");
            $fields = $smt2->fetchAll();

@@ -2,6 +2,35 @@
 DooPHP Framework Change Log
 ===========================
 
+Version 1.2 August 28, 2009
+---------------------------
+- New: Better support for native PHP view templates in DooView.
+- New: Added code generation for Models' data validation rules
+- New: Added DooValidator for form and models data validation.
+- New: Added collate and charset settings for the DB.
+- New: Added support for associative array loop using keys in template engine.
+- New: Added DooPhpCache data caching class.
+- New: Added DooSmartModel for auto cache management of Model data.
+- New: Added DooModel for enhanced ORM functionalities.
+- New: Added DooFileCache::getIn() for retrieving cache in different directories.
+- New: Added DooFileCache::setIn() for storing cache in different directories.
+- New: Added DooView::renderc() to include native php templates.
+- New: Added DooView::inc() to include native php templates script.
+- New: Added DooConfig::add() to store dummy data.
+- Chg: ERROR_$)$_ROUTE is defined by default which points to ErrorController.php
+- Chg: Autoroute is off by default in the app
+- Chg: DooConfig var properties changed to public.
+- Chg: All data cache DooFileCache, DooApcCache, DooMemCache, DooXCache, DooEAccelerator default expire duration changed to 0(never expires)
+- Chg: DooFileCache revamped.
+- Chg: DooCache removed. Data cache classes no longer extend DooCache.
+- Bug: Fix on DooModelGen::gen_mysql to support model generation with case sensitive database names
+- Bug: Bug fix on DooSqlMagic::relate() not converting results to Model objects nicely when using 'include' param
+- Bug: Fix on DooUriRouter, $_GET supported on root URL
+- Bug: DooFileCache never expires bug fixed.
+- Bug: Directory path missing in DooFileCache::get() fixed.
+- Bug: Directory path missing in DooFileCache::set() fixed.
+
+
 Version 1.1 August 24, 2009
 ---------------------------
 - New: Added new ACL demo application.

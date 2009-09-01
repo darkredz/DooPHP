@@ -26,6 +26,8 @@ $dbmap['Ingredient']['has_many']['Food'] = array('foreign_key'=>'ingredient_id',
 
 
 //$dbconfig[ Environment or connection name] = array(Host, Database, User, Password, DB Driver, Make Persistent Connection?);
+//for setting collation and charset 'collate'=>'utf8_unicode_ci', 'charset'=>'utf8'
+//$dbconfig['dev'] = array('localhost', 'mydb', 'root', '1234', 'mysql', true, 'collate'=>'utf8_unicode_ci', 'charset'=>'utf8');
 $dbconfig['dev'] = array('localhost', 'foodexample', 'root', '1234', 'mysql',true);
 $dbconfig['prod'] = array('localhost', 'foodexample', 'root', '1234', 'mysql',true);
 

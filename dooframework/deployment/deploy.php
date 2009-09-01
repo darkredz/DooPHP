@@ -17,6 +17,7 @@ class Doo{
 
     public static function app(){
         if(self::$_app===NULL){
+            self::loadCore('app/DooWebApp');
             self::$_app = new DooWebApp;
         }
         return self::$_app;
@@ -65,8 +66,16 @@ class Doo{
                 return self::$_cache['file'];
 
             self::loadCore('cache/DooFileCache');
-            self::$_cache['file'] = DooFileCache::cache();
+            self::$_cache['file'] = new DooFileCache;
             return self::$_cache['file'];
+        }
+        else if($cacheType=='php'){
+            if(isset(self::$_cache['php']))
+                return self::$_cache['php'];
+
+            self::loadCore('cache/DooPhpCache');
+            self::$_cache['php'] = new DooPhpCache;
+            return self::$_cache['php'];
         }
         else if($cacheType=='front'){
             if(isset(self::$_cache['front']))
@@ -156,8 +165,8 @@ class Doo{
         $class['DooConfig'] = 'app/DooConfig';
         $class['DooDigestAuth'] = 'auth/DooDigestAuth';
         $class['DooAcl'] = 'auth/DooAcl';
-        $class['DooCache'] = 'cache/DooCache';
         $class['DooFileCache'] = 'cache/DooFileCache';
+        $class['DooPhpCache'] = 'cache/DooPhpCache';
         $class['DooFrontCache'] = 'cache/DooFrontCache';
         $class['DooApcCache'] = 'cache/DooApcCache';
         $class['DooMemCache'] = 'cache/DooMemCache';
@@ -167,10 +176,13 @@ class Doo{
         $class['DooDbExpression'] = 'db/DooDbExpression';
         $class['DooModelGen'] = 'db/DooModelGen';
         $class['DooSqlMagic'] = 'db/DooSqlMagic';
+        $class['DooModel'] = 'db/DooModel';
+        $class['DooSmartModel'] = 'db/DooSmartModel';
         $class['DooMasterSlave'] = 'db/DooMasterSlave';
         $class['DooRestClient'] = 'helper/DooRestClient';
         $class['DooUrlBuilder'] = 'helper/DooUrlBuilder';
         $class['DooTextHelper'] = 'helper/DooTextHelper';
+        $class['DooValidator'] = 'helper/DooValidator';
         $class['DooPager'] = 'helper/DooPager';
         $class['DooGdImage'] = 'helper/DooGdImage';
         $class['DooLog'] = 'helper/DooLog';
@@ -197,22 +209,23 @@ class Doo{
     }
 
     public static function version(){
-        return '1.1';
+        return '1.2';
     }
 }
+
 class DooConfig{
-    var $SITE_PATH;
-    var $BASE_PATH;
-    var $LOG_PATH;
-    var $APP_URL;
-    var $SUBFOLDER;
-    var $APP_MODE;
-    var $AUTOROUTE;
-    var $DEBUG_ENABLED;
-    var $ERROR_404_DOCUMENT;
-    var $ERROR_404_ROUTE;
-    var $CACHE_PATH;
-    var $MEMCACHE;
+    public $SITE_PATH;
+    public $BASE_PATH;
+    public $LOG_PATH;
+    public $APP_URL;
+    public $SUBFOLDER;
+    public $APP_MODE;
+    public $AUTOROUTE;
+    public $DEBUG_ENABLED;
+    public $ERROR_404_DOCUMENT;
+    public $ERROR_404_ROUTE;
+    public $CACHE_PATH;
+    public $MEMCACHE;
     
     public function set($confArr){
         foreach($confArr as $k=>$v){
@@ -228,6 +241,9 @@ class DooConfig{
         if($this->DEBUG_ENABLED==NULL)
            $this->DEBUG_ENABLED=FALSE;
 
+    }
+    public function add($key, $value){
+        $this->{$key} = $value;
     }
 }
 class DooWebApp{
@@ -409,6 +425,13 @@ class DooUriRouter{
         if($requri=='/' || $requri=='/index.php' || $requri=='/index.php/' || $requri==$subfolder.'index.php/' || $requri==$subfolder.'index.php'){
                 $uri='/';
         }else{
+            if(strpos($_SERVER['REQUEST_URI'], $subfolder.'?')===0 || strpos($_SERVER['REQUEST_URI'], $subfolder.'index.php?')===0){
+                if(isset($route[$type]['/']))
+                    return array($route[$type]['/'], null);
+                if(isset($route['*']['/']))
+                    return array($route['*']['/'], null);
+                return;
+            }
             $uri = $requri;
             if(strpos($uri, '/index.php')===0)
                 $uri = str_replace('/index.php','', $uri);
@@ -617,6 +640,14 @@ class DooController {
 
     public function render($file, $data=NULL, $process=NULL, $forceCompile=false){
             $this->view()->render($file, $data, $process, $forceCompile);
+    }
+
+    public function renderc($file, $data=NULL, $enableControllerAccess=False){
+        if($enableControllerAccess===true){
+            $this->view()->renderc($file, $data, $this);
+        }else{
+            $this->view()->renderc($file, $data);
+        }
     }
     public function language($countryCode=FALSE){
         $langcode = (!empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : '';

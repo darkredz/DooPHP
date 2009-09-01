@@ -266,6 +266,7 @@ class Doo{
         $class['DooRestClient'] = 'helper/DooRestClient';
         $class['DooUrlBuilder'] = 'helper/DooUrlBuilder';
         $class['DooTextHelper'] = 'helper/DooTextHelper';
+        $class['DooValidator'] = 'helper/DooValidator';
         $class['DooPager'] = 'helper/DooPager';
         $class['DooGdImage'] = 'helper/DooGdImage';
         $class['DooLog'] = 'helper/DooLog';
@@ -297,7 +298,7 @@ class Doo{
     }
 
     public static function version(){
-        return '1.1';
+        return '1.2';
     }
 }
 
