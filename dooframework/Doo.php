@@ -30,6 +30,7 @@ class Doo{
     protected static $_useDbReplicate;
     protected static $_cache;
     protected static $_acl;
+	protected static $_session;
 
     /**
      * @return DooConfig configuration settings defined in <i>common.conf.php</i>, auto create if the singleton has not been created yet.
@@ -51,7 +52,7 @@ class Doo{
         }
         return self::$_app;
     }
-	
+
     /**
      * @return DooAcl the application ACL singleton, auto create if the singleton has not been created yet.
      */
@@ -88,6 +89,17 @@ class Doo{
             self::$_db->connect();
 
         return self::$_db;
+    }
+
+    /**
+     * @returns Doo Session
+     */
+    public static function session($namespace = null){
+        if(self::$_session===NULL){
+            self::loadCore('session/DooSession');
+            self::$_session = new DooSession($namespace);
+        }
+        return self::$_session;
     }
 
     /**
@@ -163,7 +175,7 @@ class Doo{
             return self::$_cache['memcache'];
         }
     }
-	
+
     /**
      * Imports the definition of class(es) and tries to create an object/a list of objects of the class.
      * @param string|array $class_name Name(s) of the class to be imported
@@ -238,7 +250,7 @@ class Doo{
     public static function loadCore($class_name){
         require_once(self::conf()->BASE_PATH ."$class_name.php");
     }
-	
+
     /**
      * Provides auto loading feature. To be used with the Magic method __autoload
      * @param string $classname Class name to be loaded.
@@ -273,6 +285,7 @@ class Doo{
         $class['DooLoader'] = 'uri/DooLoader';
         $class['DooUriRouter'] = 'uri/DooUriRouter';
         $class['DooView'] = 'view/DooView';
+		$class['DooSession'] = 'view/DooSession';
 
         if(isset($class[$classname]))
             self::loadCore($class[$classname]);
