@@ -14,7 +14,7 @@
 * add something to session $session->someVariable = "something";
 * get that variable $var = $session=>get("someVariable"); (returns "something")
 *
-* @author Miolos Kovacki <kovacki@gmail.com>
+* @author Milos Kovacki <kovacki@gmail.com>
 * @copyright &copy; 2009 Milos Kovacki
 * @license http://www.doophp.com/license
 */
@@ -33,14 +33,14 @@ class DooSession {
 	*
 	* @var boolean
 	*/
-    protected static $_sessionStarted = false;
+    protected $_sessionStarted = false;
 
 	/*
 	* Variable that defines if session destroyed
 	*
 	* @var boolean
 	*/
-    protected static $_sessionDestroyed = false;
+    protected $_sessionDestroyed = false;
 
 	/*
 	* Constructor - returns an instance object of the session that is named by namespace name
@@ -61,12 +61,10 @@ class DooSession {
         }
 		// should not start with numbers
         if (preg_match('#(^[0-9])#i', $namespace[0])) {
-            require_once 'Zend/Session/Exception.php';
             throw new DooSessionException('Session should not start with numbers.');
         }
 
         $this->_namespace = $namespace;
-
 
 	}
 
@@ -76,7 +74,7 @@ class DooSession {
 	* @return void
 	*/
 
-	public function startSession() {
+	public function start() {
 		// check if session is started if it is return
 		if ($this->_sessionStarted) {
             return;
@@ -85,6 +83,20 @@ class DooSession {
 		$this->_sessionStarted = true;
 	}
 
+	/*
+	* Checks if session started
+	*
+	* @return boolean
+	*/
+
+    public static function isStarted()
+    {
+		if (isset($_SESSION)) {
+			return true;
+		} else {
+			return false;
+		}
+    }
 
 	/*
 	* Set variable into session
@@ -95,20 +107,39 @@ class DooSession {
 	public function __set($name, $value) {
 		if ($name === "")
 			throw new DooSessionException("Keyname should not be empty string!");
+		if (!$this->_sessionStarted)
+			throw new DooSessionException("Session not started.");
 		$name = (string)$name;
 		$_SESSION[$this->_namespace][$name] = $value;
 	}
 
 	/*
-	* Destroy session
+	* Destroy all session data
 	*/
 
 	public function destroy() {
-		if ($this->_sessionDestroyed)
+		if (!$this->_sessionStarted) {
+			throw new DooSessionException("Session not started.");
 			return;
+		}
+		if ($this->_sessionDestroyed) {
+			throw new DooSessionException("Session already destroyed.");
+			return;
+		}
 		session_destroy();
+		$this->_sessionStarted = false;
 		$this->_sessionDestroyed = true;
 	}
+
+	/*
+	* Check wheather session is destroyed or not
+	*
+	* @return boolean
+	*/
+
+    public static function isDestroyed() {
+        return $this->_sessionDestroyed;
+    }
 
 	/*
 	*  Unset namespace or value in it
@@ -118,6 +149,10 @@ class DooSession {
 	*/
 
 	public function namespaceUnset($name = null) {
+		if (!$this-_sessionStarted) {
+			throw new DooSessionException("Session not started, use DooSession::start()");
+			return;
+		}
 		$name = (string)$name;
 		if ($name === '') {
 			unset($_SESSION[$this->_namespace]);
@@ -131,6 +166,10 @@ class DooSession {
 	*/
 
 	public static function getId() {
+		if (!$this-_sessionStarted) {
+			throw new DooSessionException("Session not started, use DooSession::start()");
+			return;
+		}
         return session_id();
     }
 
@@ -171,6 +210,10 @@ class DooSession {
 	*/
 
 	public function &get($name) {
+		if (!$this-_sessionStarted) {
+			throw new DooSessionException("Session not started, use DooSession::start()");
+			return;
+		}
 		$name = (string)$name;
 		if ($name === '')
 			throw new DooSessionException("Name should not be empty");
@@ -186,6 +229,10 @@ class DooSession {
 	*/
 
 	public function & __get($name) {
+		if (!$this-_sessionStarted) {
+			throw new DooSessionException("Session not started, use DooSession::start()");
+			return;
+		}
 		$name = (string)$name;
 		return $this->get($name);
 	}
