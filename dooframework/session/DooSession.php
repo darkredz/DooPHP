@@ -20,27 +20,28 @@
 */
 class DooSession {
 
-    /*
-    * Namespace - Name of Doo session namespace
-    *
-    * @var string
+	/*
+	* Namespace - Name of Doo session namespace
+	*
+	* @var string
 	*/
 
-    protected $_namespace = "Default";
+	protected $_namespace = "Default";
 
 	/*
 	* Variable that defines if session started
 	*
 	* @var boolean
 	*/
-    protected $_sessionStarted = false;
+	protected $_sessionStarted = false;
 
 	/*
 	* Variable that defines if session destroyed
 	*
 	* @var boolean
 	*/
-    protected $_sessionDestroyed = false;
+
+	protected $_sessionDestroyed = false;
 
 	/*
 	* Constructor - returns an instance object of the session that is named by namespace name
@@ -49,23 +50,24 @@ class DooSession {
 	* @return void
 	*/
 
-    public function __construct($namespace = 'Default') {
+	public function __construct($namespace = 'Default') {
 
 		// should not be empty
 		if ($namespace === '') {
-            throw new DooSessionException('Namespace cant be empty string.');
-        }
+			throw new DooSessionException('Namespace cant be empty string.');
+		}
 		// should not start with underscore
-        if ($namespace[0] == "_") {
-            throw new DooSessionException('You cannot start session with underscore.');
-        }
+		if ($namespace[0] == "_") {
+			throw new DooSessionException('You cannot start session with underscore.');
+		}
 		// should not start with numbers
-        if (preg_match('#(^[0-9])#i', $namespace[0])) {
-            throw new DooSessionException('Session should not start with numbers.');
-        }
+		if (preg_match('#(^[0-9])#i', $namespace[0])) {
+			throw new DooSessionException('Session should not start with numbers.');
+		}
 
-        $this->_namespace = $namespace;
+		$this->_namespace = $namespace;
 
+		$this->start();
 	}
 
 	/*
@@ -77,9 +79,10 @@ class DooSession {
 	public function start() {
 		// check if session is started if it is return
 		if ($this->_sessionStarted) {
-            return;
-        }
+			return;
+		}
 		session_start();
+		$_SESSION[$this->_namespace]['session_id'] = $this->getId();
 		$this->_sessionStarted = true;
 	}
 
@@ -89,14 +92,14 @@ class DooSession {
 	* @return boolean
 	*/
 
-    public static function isStarted()
-    {
+	public static function isStarted()
+	{
 		if (isset($_SESSION)) {
 			return true;
 		} else {
 			return false;
 		}
-    }
+	}
 
 	/*
 	* Set variable into session
@@ -126,6 +129,7 @@ class DooSession {
 			throw new DooSessionException("Session already destroyed.");
 			return;
 		}
+		if (isset($_SESSION[$this->_namespace])) unset($_SESSION[$this->_namespace]);
 		session_destroy();
 		$this->_sessionStarted = false;
 		$this->_sessionDestroyed = true;
@@ -137,9 +141,9 @@ class DooSession {
 	* @return boolean
 	*/
 
-    public static function isDestroyed() {
-        return $this->_sessionDestroyed;
-    }
+	public static function isDestroyed() {
+		return $this->_sessionDestroyed;
+	}
 
 	/*
 	*  Unset namespace or value in it
@@ -149,7 +153,7 @@ class DooSession {
 	*/
 
 	public function namespaceUnset($name = null) {
-		if (!$this-_sessionStarted) {
+		if (!$this->_sessionStarted) {
 			throw new DooSessionException("Session not started, use DooSession::start()");
 			return;
 		}
@@ -166,12 +170,12 @@ class DooSession {
 	*/
 
 	public static function getId() {
-		if (!$this-_sessionStarted) {
+		if (!isset($_SESSION)) {
 			throw new DooSessionException("Session not started, use DooSession::start()");
 			return;
 		}
-        return session_id();
-    }
+		return session_id();
+	}
 
 	/*
 	* Sets session id
@@ -180,7 +184,7 @@ class DooSession {
 	*/
 
 	public function setId($id) {
-		if ($this->_sessionStarted)
+		if (!isset($_SESSION))
 			throw new DooSessionException("Session is already started, id must be set before.");
 		if (!is_string($id) || $id === '')
 			throw new DooSessionException("Session id must be string and cannot be empty.");
@@ -197,7 +201,7 @@ class DooSession {
 
 	public function getAll() {
 		$sessionData  = (isset($_SESSION[$this->_namespace]) && is_array($_SESSION[$this->_namespace])) ?
-            $_SESSION[$namespace] : array();
+			$_SESSION[$namespace] : array();
 		return $sessionData;
 	}
 
@@ -210,7 +214,7 @@ class DooSession {
 	*/
 
 	public function &get($name) {
-		if (!$this-_sessionStarted) {
+		if (!$this->_sessionStarted) {
 			throw new DooSessionException("Session not started, use DooSession::start()");
 			return;
 		}
@@ -229,7 +233,7 @@ class DooSession {
 	*/
 
 	public function & __get($name) {
-		if (!$this-_sessionStarted) {
+		if (!$this->_sessionStarted) {
 			throw new DooSessionException("Session not started, use DooSession::start()");
 			return;
 		}
