@@ -608,14 +608,72 @@ class DooSqlMagic {
                 break;
             case 'has_many':
                 if($mtype=='has_many'){
-                    if($sqladd['where']===''){
-                        $sqladd['where'] = "WHERE {$relatedmodel->_table}.{$relatedmodel->_primarykey} IS NOT NULL AND {$model->_table}.{$model->_primarykey} IS NOT NULL";
-                    }else{
-                        $sqladd['where'] = "AND {$relatedmodel->_table}.{$relatedmodel->_primarykey} IS NOT NULL AND {$model->_table}.{$model->_primarykey} IS NOT NULL";
+
+                    //automatically matched for M:M relationship
+                    if(!isset($opt['match']) || $opt['match']==true){
+                        if($sqladd['where']===''){
+                            $sqladd['where'] = "WHERE {$relatedmodel->_table}.{$relatedmodel->_primarykey} IS NOT NULL AND {$model->_table}.{$model->_primarykey} IS NOT NULL";
+                        }else{
+                            $sqladd['where'] .= " AND {$relatedmodel->_table}.{$relatedmodel->_primarykey} IS NOT NULL AND {$model->_table}.{$model->_primarykey} IS NOT NULL";
+                        }
                     }
                     //remove the extra vars which is only exist in the link table. A_has_B
                     $model_vars = array_diff($model_vars, array("_{$model->_table}__{$mparams['foreign_key']}"));
                     $rmodel_vars = array_diff($rmodel_vars, array("_{$relatedmodel->_table}__{$rparams['foreign_key']}"));
+
+                    if(isset($opt['asc'])){
+                        $opt['asc'] = $opt['asc'] . ' ASC, ';
+                    }else{
+                        $opt['asc'] ='';
+                    }
+
+                    //DESC ORDER
+                    if(isset($opt['desc'])){
+                        $opt['desc'] = $opt['desc'] . ' DESC, ';
+                    }else{
+                        $opt['desc'] = '';
+                    }
+
+                    //if asc is defined first then ORDER BY xxx ASC, xxx DESC
+                    //else Order by xxx DESC, xxx ASC
+                    if($opt['asc']!='' && $opt['desc']!=''){
+                        $optkeys = array_keys($opt);
+                        $posDesc = array_search('desc', $optkeys);
+                        $posAsc = array_search('asc', $optkeys);
+
+                        if($posDesc < $posAsc)
+                            $addonOrder = $opt['desc'].' '.$opt['asc'];
+                        else
+                            $addonOrder = $opt['asc'].' '.$opt['desc'];
+                    }else{
+                        $addonOrder = $opt['desc'].' '.$opt['asc'];
+                    }
+
+                    if($opt['limit']!=''){
+                        if(!empty ($addonOrder)){
+                            if(substr($addonOrder, strlen($addonOrder)-4)=='SC, '){
+                                //remove ', ' at the end for the order
+                                $orderLimit = 'ORDER BY '.substr($addonOrder, 0, strlen($addonOrder)-2);
+                                //remove related Model field names from the limit for the main Model
+                                $orderLimit = preg_replace("/[, ]*$relatedmodel->_table\.[a-z0-9_-]{1,64}/i", '', $orderLimit);
+                            }
+                        }
+
+                        $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} $orderLimit LIMIT {$opt['limit']}");
+                        $limitModelStr = '';
+                        foreach($stmtLimit as $rlimit){
+                            $limitModelStr .= $rlimit['id'] .',';
+                        }
+                        $limitModelStr = substr($limitModelStr, 0, strlen($limitModelStr)-1);
+
+                        if($sqladd['where']===''){
+                            $sqladd['where'] = "WHERE {$model->_table}.{$model->_primarykey} IN ($limitModelStr)";
+                            //$sqladd['where'] = "WHERE {$model->_table}.{$model->_primarykey} < (SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} ORDER BY {$model->_table}.{$model->_primarykey} ASC LIMIT 1)+".intval($opt['limit']);
+                        }else{
+                            //$sqladd['where'] .= " AND {$model->_table}.{$model->_primarykey} < (SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} ORDER BY {$model->_table}.{$model->_primarykey} ASC LIMIT 1)+".intval($opt['limit']);
+                        }
+                    }
+
 
                     $sql = "SELECT {$sqladd['select']}, {$mparams['through']}.{$mparams['foreign_key']}, {$mparams['through']}.{$rparams['foreign_key']}
                         ,{$rparams['through']}.{$mparams['foreign_key']} AS _{$relatedmodel->_table}__{$rparams['foreign_key']}
@@ -626,8 +684,8 @@ class DooSqlMagic {
                         {$sqladd['joinType']} {$relatedmodel->_table}
                         ON {$relatedmodel->_table}.{$relatedmodel->_primarykey} = {$rparams['through']}.{$mparams['foreign_key']}
                         {$sqladd['where']}
-                        ORDER BY {$rparams['through']}.{$mparams['foreign_key']},{$rparams['through']}.{$rparams['foreign_key']} ASC
-                        {$sqladd['order']} {$sqladd['custom']} {$sqladd['limit']}";
+                        ORDER BY {$addonOrder} {$rparams['through']}.{$mparams['foreign_key']},{$rparams['through']}.{$rparams['foreign_key']} ASC
+                         {$sqladd['custom']}";
                 }
                 else if($mtype=='belongs_to'){
                     $sql = "SELECT {$sqladd['select']},
@@ -754,11 +812,16 @@ class DooSqlMagic {
                     break;
                     
                     case 'has_many':
+                            $mnull=-1;
                             $model_pk_arr = array();
 
                             foreach($rs as $k=>$v){
-                                
+
                                 $fk = $v[$retrieved_pk_key];
+                                if($v[$retrieved_pk_key]==Null){
+                                    //for many to many usage, if unmatched
+                                    $fk = $mnull--;
+                                }
                                 
                                 //related model foreign key, if is Null means no relation!
                                 $rfk = $v[$rretrieved_pk_key];
@@ -805,6 +868,10 @@ class DooSqlMagic {
                                     //do not add to the associated object Array if, relation not found, means empty Array, no record! if not it will create an Array with an empty Model Object
                                     if($rfk!=NULL)
                                         array_push($record->{$rmodel}, $assoc_model);
+                                    else{
+                                        $record->{$rmodel} = array();
+                                    }
+
                                     $arr[] = $record;
                                 }
                                 //if already exist, then modify the model record by appending the a related object to the model class properties
