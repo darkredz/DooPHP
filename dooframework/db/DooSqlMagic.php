@@ -668,9 +668,8 @@ class DooSqlMagic {
 
                         if($sqladd['where']===''){
                             $sqladd['where'] = "WHERE {$model->_table}.{$model->_primarykey} IN ($limitModelStr)";
-                            //$sqladd['where'] = "WHERE {$model->_table}.{$model->_primarykey} < (SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} ORDER BY {$model->_table}.{$model->_primarykey} ASC LIMIT 1)+".intval($opt['limit']);
                         }else{
-                            //$sqladd['where'] .= " AND {$model->_table}.{$model->_primarykey} < (SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} ORDER BY {$model->_table}.{$model->_primarykey} ASC LIMIT 1)+".intval($opt['limit']);
+                            $sqladd['where'] .= " AND {$model->_table}.{$model->_primarykey} IN ($limitModelStr)";
                         }
                     }
 
