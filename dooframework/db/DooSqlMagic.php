@@ -671,6 +671,9 @@ class DooSqlMagic {
                             $orderLimit = preg_replace("/[, ]*$relatedmodel->_table\.[a-z0-9_-]{1,64}/i", '', $orderLimit);
                             $orderLimit = str_replace('DESC ASC', 'DESC', $orderLimit);
                             $orderLimit = str_replace('ASC DESC', 'ASC', $orderLimit);
+                            if($orderLimit=='ORDER BY ASC' || $orderLimit=='ORDER BY DESC'){
+                                $orderLimit = '';
+                            }
                         }
 
                         if(isset($opt['where']) && $opt['where']!=''){
