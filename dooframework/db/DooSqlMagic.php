@@ -674,6 +674,8 @@ class DooSqlMagic {
                             if($orderLimit=='ORDER BY ASC' || $orderLimit=='ORDER BY DESC'){
                                 $orderLimit = '';
                             }
+                            if(substr(trim($orderLimit), strlen(trim($orderLimit))-1)==',')
+                                $orderLimit = substr(trim($orderLimit), 0, strlen(trim($orderLimit))-1). ' ';
                         }
 
                         if(isset($opt['where']) && $opt['where']!=''){
@@ -688,9 +690,16 @@ class DooSqlMagic {
                             $limitstr = $opt['limit'];
                         }
                         //conditions WHERE param for the Limit
-                        if(isset($opt['param']) && isset($where_values))
-                            $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$limitstr}", array_merge( $opt['param'], $where_values));
-                        else if(isset($opt['param']))
+                        if(isset($opt['param']) && isset($where_values)){
+                            $countQ = 0;
+                            str_replace('?', '', $whrLimit, $countQ);
+                            if($countQ==sizeof($where_values)){
+                                $varsLimit = $where_values;
+                            }else{
+                                $varsLimit = array_merge( $where_values, $opt['param']);
+                            }
+                            $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$limitstr}", $varsLimit);
+                        }else if(isset($opt['param']))
                             $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$limitstr}", $opt['param']);
                         else if(isset($where_values))
                             $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$limitstr}", $where_values);
