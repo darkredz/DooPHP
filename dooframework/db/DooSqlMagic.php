@@ -311,11 +311,10 @@ class DooSqlMagic {
 
         //if asc is defined first then ORDER BY xxx ASC, xxx DESC
         //else Order by xxx DESC, xxx ASC
-        if($opt['asc']!='' && $opt['desc']!=''){
+        if(isset($opt['asc']) && isset($opt['desc']) && $opt['asc']!='' && $opt['desc']!=''){
             $optkeys = array_keys($opt);
             $posDesc = array_search('desc', $optkeys);
             $posAsc = array_search('asc', $optkeys);
-
             if($posDesc < $posAsc)
                 $sqladd['order']= 'ORDER BY '. $opt['desc'] .' DESC, '. $opt['asc'] . ' ASC';
             else
@@ -332,7 +331,6 @@ class DooSqlMagic {
         else{
             $sqladd['order'] ='';
         }
-
 
         //Custom ending
         if(isset($opt['custom'])){
@@ -646,7 +644,6 @@ class DooSqlMagic {
                     }else{
                         $opt['desc'] = '';
                     }
-
                     //if asc is defined first then ORDER BY xxx ASC, xxx DESC
                     //else Order by xxx DESC, xxx ASC
                     if($opt['asc']!='' && $opt['desc']!=''){
@@ -668,8 +665,12 @@ class DooSqlMagic {
                                 //remove ', ' at the end for the order
                                 $orderLimit = 'ORDER BY '.substr($addonOrder, 0, strlen($addonOrder)-2);
                                 //remove related Model field names from the limit for the main Model
-                                $orderLimit = preg_replace("/[, ]*$relatedmodel->_table\.[a-z0-9_-]{1,64}/i", '', $orderLimit);
+                            }else{
+                                $orderLimit = 'ORDER BY '.$addonOrder;
                             }
+                            $orderLimit = preg_replace("/[, ]*$relatedmodel->_table\.[a-z0-9_-]{1,64}/i", '', $orderLimit);
+                            $orderLimit = str_replace('DESC ASC', 'DESC', $orderLimit);
+                            $orderLimit = str_replace('ASC DESC', 'ASC', $orderLimit);
                         }
 
                         $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} $orderLimit LIMIT {$opt['limit']}");
