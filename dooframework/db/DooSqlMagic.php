@@ -673,7 +673,19 @@ class DooSqlMagic {
                             $orderLimit = str_replace('ASC DESC', 'ASC', $orderLimit);
                         }
 
-                        $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} $orderLimit LIMIT {$opt['limit']}");
+                        if(isset($opt['where']) && $opt['where']!=''){
+                            //remove Rmodel field names from the WHERE statement
+                            $whrLimit = preg_replace("/[, ]*$relatedmodel->_table\.[a-z0-9_-]{1,64}[^{$model->_table}\.]*/i", '', $opt['where']);
+                        }
+                        //conditions WHERE param for the Limit
+                        if(isset($opt['param']) && isset($where_values))
+                            $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$opt['limit']}", array_merge( $opt['param'], $where_values));
+                        else if(isset($opt['param']))
+                            $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$opt['limit']}", $opt['param']);
+                        else if(isset($where_values))
+                            $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$opt['limit']}", $where_values);
+                        else
+                            $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} $orderLimit LIMIT {$opt['limit']}");
                         $limitModelStr = '';
                         foreach($stmtLimit as $rlimit){
                             $limitModelStr .= $rlimit['id'] .',';
