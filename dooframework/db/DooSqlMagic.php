@@ -696,7 +696,7 @@ class DooSqlMagic {
                             if($countQ==sizeof($where_values)){
                                 $varsLimit = $where_values;
                             }else{
-                                $varsLimit = array_merge( $where_values, $opt['param']);
+                                $varsLimit = array_merge( $opt['param'], $where_values);
                             }
                             $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$limitstr}", $varsLimit);
                         }else if(isset($opt['param']))
