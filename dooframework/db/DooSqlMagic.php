@@ -681,6 +681,8 @@ class DooSqlMagic {
                         if($opt['limit']==1 || $opt['limit']=='first'){
                             $opt['limit'] = 'first';
                             $limitstr = 1;
+                        }else{
+                            $limitstr = $opt['limit'];
                         }
                         //conditions WHERE param for the Limit
                         if(isset($opt['param']) && isset($where_values))
