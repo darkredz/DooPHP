@@ -659,7 +659,7 @@ class DooSqlMagic {
                         $addonOrder = $opt['desc'].' '.$opt['asc'];
                     }
 
-                    if($opt['limit']!='' && $opt['limit']!='first'){
+                    if($opt['limit']!=''){
                         if(!empty ($addonOrder)){
                             if(substr($addonOrder, strlen($addonOrder)-4)=='SC, '){
                                 //remove ', ' at the end for the order
@@ -677,15 +677,20 @@ class DooSqlMagic {
                             //remove Rmodel field names from the WHERE statement
                             $whrLimit = preg_replace("/[, ]*$relatedmodel->_table\.[a-z0-9_-]{1,64}[^{$model->_table}\.]*/i", '', $opt['where']);
                         }
+
+                        if($opt['limit']==1 || $opt['limit']=='first'){
+                            $opt['limit'] = 'first';
+                            $limitstr = 1;
+                        }
                         //conditions WHERE param for the Limit
                         if(isset($opt['param']) && isset($where_values))
-                            $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$opt['limit']}", array_merge( $opt['param'], $where_values));
+                            $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$limitstr}", array_merge( $opt['param'], $where_values));
                         else if(isset($opt['param']))
-                            $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$opt['limit']}", $opt['param']);
+                            $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$limitstr}", $opt['param']);
                         else if(isset($where_values))
-                            $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$opt['limit']}", $where_values);
+                            $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$limitstr}", $where_values);
                         else
-                            $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} $orderLimit LIMIT {$opt['limit']}");
+                            $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} $orderLimit LIMIT {$limitstr}");
                         $limitModelStr = '';
                         foreach($stmtLimit as $rlimit){
                             $limitModelStr .= $rlimit['id'] .',';
