@@ -309,17 +309,30 @@ class DooSqlMagic {
             $sqladd['where'] ='';
         }
 
+        //if asc is defined first then ORDER BY xxx ASC, xxx DESC
+        //else Order by xxx DESC, xxx ASC
+        if($opt['asc']!='' && $opt['desc']!=''){
+            $optkeys = array_keys($opt);
+            $posDesc = array_search('desc', $optkeys);
+            $posAsc = array_search('asc', $optkeys);
+
+            if($posDesc < $posAsc)
+                $sqladd['order']= 'ORDER BY '. $opt['desc'] .' DESC, '. $opt['asc'] . ' ASC';
+            else
+                $sqladd['order']= 'ORDER BY '. $opt['asc'] .' ASC, '. $opt['desc'] . ' DESC';
+        }
         //ASC ORDER
-        if(isset($opt['asc'])){
+        else if(isset($opt['asc'])){
             $sqladd['order']= 'ORDER BY ' . $opt['asc'] . ' ASC';
-        }else{
+        }
+        //DESC ORDER
+        else if(isset($opt['desc'])){
+            $sqladd['order']= 'ORDER BY ' . $opt['desc'] . ' DESC';
+        }
+        else{
             $sqladd['order'] ='';
         }
 
-        //DESC ORDER
-        if(isset($opt['desc'])){
-            $sqladd['order']= 'ORDER BY ' . $opt['desc'] . ' DESC';
-        }
 
         //Custom ending
         if(isset($opt['custom'])){
@@ -649,7 +662,7 @@ class DooSqlMagic {
                         $addonOrder = $opt['desc'].' '.$opt['asc'];
                     }
 
-                    if($opt['limit']!=''){
+                    if($opt['limit']!='' && $opt['limit']!='first'){
                         if(!empty ($addonOrder)){
                             if(substr($addonOrder, strlen($addonOrder)-4)=='SC, '){
                                 //remove ', ' at the end for the order
