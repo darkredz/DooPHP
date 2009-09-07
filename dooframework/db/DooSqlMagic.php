@@ -680,7 +680,34 @@ class DooSqlMagic {
 
                         if(isset($opt['where']) && $opt['where']!=''){
                             //remove Rmodel field names from the WHERE statement
-                            $whrLimit = preg_replace("/[, ]*$relatedmodel->_table\.[a-z0-9_-]{1,64}[^{$model->_table}\.]*/i", '', $opt['where']);
+                            if($whrLimit = preg_replace("/[,|AND|OR ]*$relatedmodel->_table\.[a-z0-9_-]{1,64}[^{$model->_table}\.]*/i", '', $opt['where'])){
+                                //check for relatedModel WHERE statement
+                                if(preg_match_all("/[,|AND|OR ]*($relatedmodel->_table\.[a-z0-9_-]{1,64}[^{$model->_table}\.]*)/i", $opt['where'], $rlimitMatch)>0){
+                                    $rlimitMatch = $rlimitMatch[0];
+
+                                    $rlimitMatch = implode(' ', $rlimitMatch);
+
+                                    if( substr($rlimitMatch, sizeof($rlimitMatch)-5)=='AND '){
+                                        $rlimitMatch = substr($rlimitMatch, 0, sizeof($rlimitMatch)-5);
+                                    }
+                                    if(isset($opt['param'])){
+                                        $rStmtLimit = $this->query("SELECT {$relatedmodel->_table}.{$relatedmodel->_primarykey} FROM {$relatedmodel->_table} WHERE {$rlimitMatch} LIMIT 1", $opt['param']);
+                                        $rStmtId = $rStmtLimit->fetch();
+                                        $rStmtId = $rStmtId['id'];
+                                    }else{
+                                        $rStmtLimit = $this->query("SELECT {$relatedmodel->_table}.{$relatedmodel->_primarykey} FROM {$relatedmodel->_table} WHERE {$rlimitMatch} LIMIT 1");
+                                        $rStmtId = $rStmtLimit->fetch();
+                                        $rStmtId = $rStmtId['id'];
+                                    }
+
+                                    $mIdStmt = $this->query("SELECT {$mparams['through']}.{$rparams['foreign_key']} FROM {$mparams['through']} WHERE {$rparams['through']}.{$mparams['foreign_key']}=? ORDER BY {$mparams['through']}.{$rparams['foreign_key']} DESC", array($rStmtId));
+                                    //need to combine these ids with the model limit ids
+                                    $m_in_id = array();
+                                    foreach($mIdStmt as $m){
+                                        $m_in_id[] = $m[$rparams['foreign_key']];
+                                    }
+                                }
+                            }
                         }
 
                         if($opt['limit']==1 || $opt['limit']=='first'){
@@ -705,11 +732,15 @@ class DooSqlMagic {
                             $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$limitstr}", $where_values);
                         else
                             $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} $orderLimit LIMIT {$limitstr}");
-                        $limitModelStr = '';
+                        $limitModelStr = array();
                         foreach($stmtLimit as $rlimit){
-                            $limitModelStr .= $rlimit['id'] .',';
+                            $limitModelStr[] = $rlimit['id'];
                         }
-                        $limitModelStr = substr($limitModelStr, 0, strlen($limitModelStr)-1);
+                        //combine if exists
+                        if(isset($m_in_id)){
+                            $limitModelStr = array_unique(array_merge($limitModelStr, $m_in_id));
+                        }
+                        $limitModelStr = implode(',', $limitModelStr);
 
                         if($sqladd['where']===''){
                             $sqladd['where'] = "WHERE {$model->_table}.{$model->_primarykey} IN ($limitModelStr)";
