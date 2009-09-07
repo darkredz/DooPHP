@@ -196,9 +196,8 @@ class DooValidator {
         if(is_string($rules)){
             $rules = include(Doo::conf()->SITE_PATH . 'protected/config/forms/'.$rules.'.php');
         }
-
-        if($missingKey = array_diff_key($rules, $data) ){
-            //print_r($missingKey);
+        
+        if($missingKey = array_diff_key($rules, $data) ){    
             foreach($missingKey as $opt){
                 foreach($opt as $oo=>$o){
                     if($o[0]=='optional'){
@@ -207,6 +206,7 @@ class DooValidator {
                     }
                 }
             }
+
             if( !(isset($o) && $o=='optional') ){
                 $fieldname = array_keys($missingKey);
                 $fieldname = $fieldname[0];
@@ -243,6 +243,8 @@ class DooValidator {
             }
         }
 
+        $optErrorRemove = array();
+
         foreach($data as $k=>$v){
             if(!isset($rules[$k])) continue;
             $cRule = $rules[$k];
@@ -253,6 +255,10 @@ class DooValidator {
                     $vv = array_merge(array($v),array_slice($v2, 1));
                     //echo 'test'.$v2[0];
                     //call func
+                    if(!isset($v) && $v2[0]=='optional'){
+                        //echo $k.' - this is not set and optional, should be removed from error';
+                        $optErrorRemove[] = $k;
+                    }
                     if($err = call_user_func_array(array(&$this, 'test'.$v2[0]), $vv) ){
                         if($this->checkMode==DooValidator::CHECK_ALL)
                             $errors[$k][$v2[0]] = $err;
@@ -285,9 +291,20 @@ class DooValidator {
                 }
             }
         }
-        if(isset($errors))
+        if(isset($errors)){
+            if(sizeof($optErrorRemove)>0){
+                foreach($errors as $ek=>$ev){
+                    if(in_array($ek, $optErrorRemove)){
+                        //echo '<h3>Removing error '.$ek.'</h3>';
+                        unset($errors[$ek]);
+                    }
+                }
+            }
             return $errors;
+        }
     }
+
+    public function testOptional($value){}
 
     /**
      * Validate data with your own custom rules.
@@ -631,7 +648,7 @@ class DooValidator {
      * @return string
      */
     public function testInteger($value, $msg=null){
-        if(!ctype_digit($value)){
+        if(intval($value)!=$value || strlen(intval($value))!=strlen($value)){
             if($msg!==null) return $msg;
             return 'Input is not an integer.';
         }
@@ -830,7 +847,7 @@ class DooValidator {
     public function testMax($value, $max, $msg=null){
         if( $value > $max){
             if($msg!==null) return $msg;
-            return "Value cannot be more than $min";
+            return "Value cannot be more than $max";
         }
     }
 
