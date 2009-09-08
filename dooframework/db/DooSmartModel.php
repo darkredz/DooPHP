@@ -926,7 +926,7 @@ class DooSmartModel{
      */
     public function relatedUpdate($rmodels, $opt=NULL){
         self::_purgeCache($rmodels);
-        return Doo::db()->relatedUpdate($rmodels, $opt);
+        return Doo::db()->relatedUpdate($this, $rmodels, $opt);
     }
 
     /**

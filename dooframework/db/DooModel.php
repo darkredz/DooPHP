@@ -206,7 +206,7 @@ class DooModel{
      * @param array $opt Assoc array of options to update the main model. Supported: <i>where, limit, field, param</i>
      */
     public function relatedUpdate($rmodels, $opt=NULL){
-        return Doo::db()->relatedUpdate($rmodels, $opt);
+        return Doo::db()->relatedUpdate($this, $rmodels, $opt);
     }
 
     /**
