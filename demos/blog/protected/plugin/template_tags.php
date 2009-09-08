@@ -1,10 +1,10 @@
 <?php
 
 //register functions to be used with your template files
-$template_tags = array('link', 'shorten', 'month', 'formatDate', 'debug', 'url', 'url2', 'function_deny', 'isset', 'empty');
+$template_tags = array('links', 'shorten', 'month', 'formatDate', 'debug', 'url', 'url2', 'function_deny', 'isset', 'empty');
 
 
-function link($str){
+function links($str){
     Doo::loadHelper('DooTextHelper');
     return DooTextHelper::convertUrl($str);
 }

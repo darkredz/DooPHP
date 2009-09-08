@@ -24,8 +24,8 @@
           <?php if( isset($data['comments']) && !empty($data['comments']) ): ?>
               <?php foreach($data['comments'] as $k1=>$v1): ?>
                   <strong>Author: </strong><span><?php echo $v1->author; ?></span><br/>
-                  <strong>Email: </strong><span><?php echo link($v1->email); ?></span><br/>
-                  <strong>Website: </strong><span><?php echo LINK($v1->url); ?></span><br/>
+                  <strong>Email: </strong><span><?php echo links($v1->email); ?></span><br/>
+                  <strong>Website: </strong><span><?php echo LINKS($v1->url); ?></span><br/>
                   <strong>Comment: </strong><span><?php echo $v1->content; ?></span><br/>
                   <span><a href="<?php echo $data['rootUrl']; ?>admin/comment/approve/<?php echo $v1->id; ?>">[Approve]</a></span> | <span><a href="<?php echo $data['rootUrl']; ?>admin/comment/reject/<?php echo $v1->id; ?>">[Reject]</a></span>
                   <hr class="divider"/>

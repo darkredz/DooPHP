@@ -24,8 +24,8 @@
           <!-- if {{isset(comments)}} && !{{empty(comments)}} -->
               <!-- loop comments -->
                   <strong>Author: </strong><span>{{comments' value.@author}}</span><br/>
-                  <strong>Email: </strong><span>{{link(comments' value.@email)}}</span><br/>
-                  <strong>Website: </strong><span>{{LINK(comments' value.@url)}}</span><br/>
+                  <strong>Email: </strong><span>{{links(comments' value.@email)}}</span><br/>
+                  <strong>Website: </strong><span>{{LINKS(comments' value.@url)}}</span><br/>
                   <strong>Comment: </strong><span>{{comments' value.@content}}</span><br/>
                   <span><a href="{{rootUrl}}admin/comment/approve/{{l' v.@id}}">[Approve]</a></span> | <span><a href="{{rootUrl}}admin/comment/reject/{{l' v.@id}}">[Reject]</a></span>
                   <hr class="divider"/>
