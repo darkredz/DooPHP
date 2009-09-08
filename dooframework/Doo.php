@@ -285,7 +285,7 @@ class Doo{
         $class['DooLoader'] = 'uri/DooLoader';
         $class['DooUriRouter'] = 'uri/DooUriRouter';
         $class['DooView'] = 'view/DooView';
-		$class['DooSession'] = 'view/DooSession';
+		$class['DooSession'] = 'session/DooSession';
 
         if(isset($class[$classname]))
             self::loadCore($class[$classname]);
