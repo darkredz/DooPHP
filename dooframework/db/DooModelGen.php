@@ -115,8 +115,9 @@ class DooModelGen{
                         if(ctype_digit($ftype[2])){
                             if($ftype[1]=='varchar' || $ftype[1]=='char' )
                                 $rule[] = array('maxlength', intval($ftype[2]));
-                            else if($rulename=='integer')
-                                $rule[] = array('max', intval($ftype[2]));
+                            else if($rulename=='integer'){
+                                $rule[] = array('maxlength', intval($ftype[2]));
+                            }
                         }
                         if(strtolower($f['Null'])=='no')
                             $rule[] = array('notnull');
