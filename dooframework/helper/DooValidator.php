@@ -262,7 +262,7 @@ class DooValidator {
                     if($err = call_user_func_array(array(&$this, 'test'.$v2[0]), $vv) ){
                         if($this->checkMode==DooValidator::CHECK_ALL)
                             $errors[$k][$v2[0]] = $err;
-                        else if($this->checkMode==DooValidator::CHECK_SKIP)
+                        else if($this->checkMode==DooValidator::CHECK_SKIP && isset($v) && $v2[0]!='optional')
                             return $err;
                         else if($this->checkMode==DooValidator::CHECK_ALL_ONE)
                             $errors[$k] = $err;
