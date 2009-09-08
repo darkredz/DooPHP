@@ -2,6 +2,22 @@
 DooPHP Framework Change Log
 ===========================
 
+Version 1.x Septemper 09, 2009
+---------------------------
+- New: Added demo Blog.
+- New: Added support for sqlite db connection in DooSqlMagic
+- New: Added Order by 'asc' and 'desc', both can be used at the same time in DooSqlMagic::find()
+- New: Added 'where' conditional (can be use together with asc,desc,limit) support for Many-to-many relationship in DooSqlMagic
+- New: Added Order by 'asc' and 'desc', both can be used at the same time support for Many-to-many relationship in DooSqlMagic
+- New: Added 'limit' and pagination support which can be used with Asc & Desc for Many-to-many relationship in DooSqlMagic
+- New: Added DooSession for a more convenient session management in PHP.
+- Bug: Fix for 'optional' rule when using 'skip' mode in DooValidator::validate()
+- Bug: Fix for relatedUpdate in DooModel and DooSmartModel
+- Bug: Fix integer maxlength, Validation rules for Model generator
+- Bug: Fix for 'optional' and 'integer' rule in DooValidator
+- Bug: Fix 'where' parameter for Many-to-many relationship in DooSqlMagic(ORM)
+
+
 Version 1.2 Septemper 01, 2009
 ---------------------------
 - New: Better support for native PHP view templates in DooView.
