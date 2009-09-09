@@ -292,9 +292,9 @@ a:hover .paginate{
         $next_page = $this->currentPage+1;
 
         if($this->_noNextPrev)
-            $this->components['prev_link'] = ($this->currentPage != 1 && $this->totalItem >= $this->maxLength) ? "<a class=\"{$this->prevCss}\" href=\"{$this->baseUrl}/{$prev_page}\">{$this->prevText}</a> ":"<span class=\"{$this->inactivePrevCss}\" href=\"javascript:void(0);\">{$this->prevText}</span> ";
+            $this->components['prev_link'] = ($this->currentPage != 1 && $this->totalItem >= $this->maxLength) ? "<a class=\"{$this->prevCss}\" href=\"{$this->baseUrl}/{$prev_page}\">{$this->prevText}</a> ":"<span class=\"{$this->inactivePrevCss}\">{$this->prevText}</span> ";
         else
-            $this->output = ($this->currentPage != 1 && $this->totalItem >= $this->maxLength) ? "<a class=\"{$this->prevCss}\" href=\"{$this->baseUrl}/{$prev_page}\">{$this->prevText}</a> ":"<span class=\"{$this->inactivePrevCss}\" href=\"javascript:void(0);\">{$this->prevText}</span> ";
+            $this->output = ($this->currentPage != 1 && $this->totalItem >= $this->maxLength) ? "<a class=\"{$this->prevCss}\" href=\"{$this->baseUrl}/{$prev_page}\">{$this->prevText}</a> ":"<span class=\"{$this->inactivePrevCss}\">{$this->prevText}</span> ";
 
         if($this->totalPage > $this->maxLength){
             $midRange = $this->maxLength-2;
@@ -352,9 +352,9 @@ a:hover .paginate{
             }
 
             if($this->_noNextPrev)
-                $this->components['next_link'] = ($this->currentPage != $this->totalPage && $this->totalItem >= $this->maxLength) ? "<a class=\"{$this->nextCss}\" href=\"{$this->baseUrl}/$next_page\">{$this->nextText}</a>\n" : "<span class=\"{$this->inactiveNextCss}\" href=\"javascript:void(0);\">{$this->nextText}</span>\n";
+                $this->components['next_link'] = ($this->currentPage != $this->totalPage && $this->totalItem >= $this->maxLength) ? "<a class=\"{$this->nextCss}\" href=\"{$this->baseUrl}/$next_page\">{$this->nextText}</a>\n" : "<span class=\"{$this->inactiveNextCss}\">{$this->nextText}</span>\n";
             else
-                $this->output .= ($this->currentPage != $this->totalPage && $this->totalItem >= $this->maxLength) ? "<a class=\"{$this->nextCss}\" href=\"{$this->baseUrl}/$next_page\">{$this->nextText}</a>\n" : "<span class=\"{$this->inactiveNextCss}\" href=\"javascript:void(0);\">{$this->nextText}</span>\n";
+                $this->output .= ($this->currentPage != $this->totalPage && $this->totalItem >= $this->maxLength) ? "<a class=\"{$this->nextCss}\" href=\"{$this->baseUrl}/$next_page\">{$this->nextText}</a>\n" : "<span class=\"{$this->inactiveNextCss}\">{$this->nextText}</span>\n";
         }
         else{
             for($i=1;$i<=$this->totalPage;$i++){
@@ -362,9 +362,9 @@ a:hover .paginate{
             }
 
             if($this->_noNextPrev)
-                $this->components['next_link'] = ($this->currentPage != $this->totalPage && $this->totalItem >= $this->maxLength) ? "<a class=\"{$this->nextCss}\" href=\"{$this->baseUrl}/$next_page\">{$this->nextText}</a>\n" : "<span class=\"{$this->inactiveNextCss}\" href=\"javascript:void(0);\">{$this->nextText}</span>\n";
+                $this->components['next_link'] = ($this->currentPage != $this->totalPage && $this->totalItem >= $this->maxLength) ? "<a class=\"{$this->nextCss}\" href=\"{$this->baseUrl}/$next_page\">{$this->nextText}</a>\n" : "<span class=\"{$this->inactiveNextCss}\">{$this->nextText}</span>\n";
             else
-                $this->output .= ($this->currentPage != $this->totalPage && $this->totalItem >= $this->maxLength) ? "<a class=\"{$this->nextCss}\" href=\"{$this->baseUrl}/$next_page\">{$this->nextText}</a>\n" : "<span class=\"{$this->inactiveNextCss}\" href=\"javascript:void(0);\">{$this->nextText}</span>\n";
+                $this->output .= ($this->currentPage != $this->totalPage && $this->totalItem >= $this->maxLength) ? "<a class=\"{$this->nextCss}\" href=\"{$this->baseUrl}/$next_page\">{$this->nextText}</a>\n" : "<span class=\"{$this->inactiveNextCss}\">{$this->nextText}</span>\n";
         }
 
         $this->low = ($this->currentPage-1) * $this->itemPerPage;
