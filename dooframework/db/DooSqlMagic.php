@@ -748,11 +748,13 @@ class DooSqlMagic {
                             $limitModelStr = array_unique(array_merge($limitModelStr, $m_in_id));
                         }
                         $limitModelStr = implode(',', $limitModelStr);
-
-                        if($sqladd['where']===''){
-                            $sqladd['where'] = "WHERE {$model->_table}.{$model->_primarykey} IN ($limitModelStr)";
-                        }else{
-                            $sqladd['where'] .= " AND {$model->_table}.{$model->_primarykey} IN ($limitModelStr)";
+                        
+                        if ($limitModelStr !== ''){
+                            if($sqladd['where']===''){
+                                $sqladd['where'] = "WHERE {$model->_table}.{$model->_primarykey} IN ($limitModelStr)";
+                            }else{
+                                $sqladd['where'] .= " AND {$model->_table}.{$model->_primarykey} IN ($limitModelStr)";
+                            }
                         }
                     }
 
