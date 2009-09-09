@@ -116,9 +116,10 @@
  * @since 1.0
  */
 class DooView {
-    protected $tags;
     public $controller;
     public $data;
+    protected $tags;
+    protected $mainRenderFolder;
 
     /**
      * Includes the native PHP template file to be output.
@@ -188,6 +189,7 @@ class DooView {
                     }
                 }
             }
+            $this->data = $data;
             $this->compile($file, $vfilename, $cfilename);
             include $cfilename;
         }
@@ -200,6 +202,8 @@ class DooView {
      * @param string $cfilename Full path of the compiled file to be saved
      */
     protected function compile($file, $vfilename, $cfilename){
+        $this->mainRenderFolder = $file;
+        
         //includes user defined template tags and checks for the tag and compile.
         if($this->tags===NULL){
             include Doo::conf()->SITE_PATH . 'protected/plugin/template_tags.php';
@@ -369,11 +373,24 @@ class DooView {
         if($includeVarPos===0){
             $file = str_replace('<?php echo ', '', $file);
             $file = str_replace('; ?>', '', $file);
-            return '<?php include "{'.$file.'}.php"; ?>';
+            $dynamicFilename = '<?php include "{'.$file.'}.php"; ?>';
+
+            //get the real template file name from $data passed in by users
+            $file = $this->data[str_replace('\']', '', str_replace('$data[\'', '', $file) )];
         }
 
-        $cfilename = Doo::conf()->SITE_PATH . "protected/viewc/$file.php";
-        $vfilename = Doo::conf()->SITE_PATH . "protected/view/$file.html";
+        //if first char is '/' then load the files in view root 'view' folder, <!-- '/admin/index' --> view/admin/index.html
+        if(substr($file, 0,1)=='/'){
+            $file = substr($file, 1);
+            $cfilename = str_replace('\\', '/', Doo::conf()->SITE_PATH) . "protected/viewc/$file.php";
+            $vfilename = str_replace('\\', '/', Doo::conf()->SITE_PATH) . "protected/view/$file.html";
+        }
+        else{
+            $folders = explode('/', $this->mainRenderFolder);
+            $file = implode('/', array_splice($folders, 0, -1)).'/'.$file;
+            $cfilename = str_replace('\\', '/', Doo::conf()->SITE_PATH) . "protected/viewc/$file.php";
+            $vfilename = str_replace('\\', '/', Doo::conf()->SITE_PATH) . "protected/view/$file.html";
+        }
 
         if(!file_exists($vfilename)){
             echo "<span style=\"color:#ff0000\">Include view file <strong>$file.html</strong> not found</span>";
@@ -388,7 +405,10 @@ class DooView {
             }
         }
 
-        return '<?php include "'.$file.'.php"; ?>';
+        if(isset ($dynamicFilename) )
+            return $dynamicFilename;
+            
+        return '<?php include "'.$cfilename.'"; ?>';
     }
 
 
