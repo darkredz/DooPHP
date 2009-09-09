@@ -98,7 +98,7 @@ class DooDigestAuth{
     private static function http_digest_parse($txt)
     {
         $res = preg_match("/username=\"([^\"]+)\"/i", $txt, $match);
-        $data['username'] = $match[1];
+        $data['username'] = (isset($match[1]))?$match[1]:null;
         $res = preg_match('/nonce=\"([^\"]+)\"/i', $txt, $match);
         $data['nonce'] = $match[1];
         $res = preg_match('/nc=([0-9]+)/i', $txt, $match);
