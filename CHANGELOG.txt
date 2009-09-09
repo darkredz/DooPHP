@@ -2,8 +2,10 @@
 DooPHP Framework Change Log
 ===========================
 
-Version 1.x Septemper 09, 2009
+Version 1.x Septemper 10, 2009
 ---------------------------
+- New: Added '/' for include <!-- include '/admin/index' --> will load protected/view/admin/index.html regardless of the location of the parent template
+- New: Enhanced template engine, auto compiled dynamic include files. <!-- "{{filename}}" -->
 - New: Added demo Blog.
 - New: Added support for sqlite db connection in DooSqlMagic
 - New: Added Order by 'asc' and 'desc', both can be used at the same time in DooSqlMagic::find()
