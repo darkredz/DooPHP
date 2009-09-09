@@ -88,27 +88,28 @@ class BlogController extends DooController {
         $p = new Post();
         $p->status = 1;
         $p->id = $this->params['postId'];
-        try{
-            $this->data['post'] = $p->relateTag(
-                                        array(
-                                            'limit'=>'first',
-                                            'asc'=>'tag.name',
-                                            'match'=>false      //Post with no tags should be displayed too
-                                        )
-                                );
 
-            //get approved comments if totalcomment more than 0
-            if($this->data['post']->totalcomment > 0){
-                Doo::loadModel('Comment');
-                $c = new Comment;
-                $c->post_id = $this->data['post']->id;
-                $c->status = 1;
-                $this->data['comments'] = $c->find(array('asc'=>'createtime'));
-            }
-        }catch(Exception $e){
-            //Exception will be thrown if Post not found
-            return 404;
-        }
+		$this->data['post'] = $p->relateTag(
+									array(
+										'limit'=>'first',
+										'asc'=>'tag.name',
+										'match'=>false      //Post with no tags should be displayed too
+									)
+							);
+		
+		//If post not found
+		if($this->data['post']==Null)
+			return 404;
+			
+		//get approved comments if totalcomment more than 0
+		if($this->data['post']->totalcomment > 0){
+			Doo::loadModel('Comment');
+			$c = new Comment;
+			$c->post_id = $this->data['post']->id;
+			$c->status = 1;
+			$this->data['comments'] = $c->find(array('asc'=>'createtime'));
+		}
+		
         $this->data['rootUrl'] = Doo::conf()->APP_URL;
 
         //prepare sidebar data, tags and archive list
