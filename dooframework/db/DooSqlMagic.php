@@ -722,6 +722,7 @@ class DooSqlMagic {
                         }else{
                             $limitstr = $opt['limit'];
                         }
+
                         //conditions WHERE param for the Limit
                         if(isset($opt['param']) && isset($where_values)){
                             $countQ = 0;
@@ -732,9 +733,9 @@ class DooSqlMagic {
                                 $varsLimit = array_merge( $opt['param'], $where_values);
                             }
                             $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$limitstr}", $varsLimit);
-                        }else if(isset($opt['param']))
+                        }else if(isset($opt['param']) && !empty($opt['param']))
                             $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$limitstr}", $opt['param']);
-                        else if(isset($where_values))
+                        else if(isset($where_values) && !empty($where_values))
                             $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$limitstr}", $where_values);
                         else
                             $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} $orderLimit LIMIT {$limitstr}");
