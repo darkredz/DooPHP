@@ -32,18 +32,6 @@ class I18nController extends DooController{
         else{
             Doo::conf()->lang = $_COOKIE['lang'];
         }
-
-        /* for compiling dynamic includes in subfolder during dev.
-        if(isset($_GET['compile'])){
-            $this->compile_dynamic_include();
-        }
-         */
-    }
-
-    // to compile included templates when doing internationalization
-    public function compile_dynamic_include(){
-        $this->view()->render(Doo::conf()->lang .'/header', null,true,true);
-        $this->view()->render(Doo::conf()->lang .'/nav', null,true,true);
     }
 
 }
