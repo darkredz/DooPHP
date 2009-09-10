@@ -22,6 +22,8 @@
  */
 class DooModelGen{
 
+    const EXTEND_MODEL = 'DooModel';
+    const EXTEND_SMARTMODEL = 'DooSmartModel';
 
     public static function exportRules($ruleArr) {
         $rule = preg_replace("/'?\d+'?\s+=>\s+/", '', var_export($ruleArr, true));
@@ -39,8 +41,10 @@ class DooModelGen{
     /**
      * Generates Model class files from a MySQL database
      * @param bool $comments Generate comments along with the Model class
+     * @param bool $vrules Generate validation rules along with the Model class
+     * @param string $extends make Model class to extend DooModel or DooSmartModel
      */
-    public static function gen_mysql($comments=true, $vrules=true){
+    public static function gen_mysql($comments=true, $vrules=true, $extends=''){
         $dbconf = Doo::db()->getDefaultDbConfig();
         if(!isset($dbconf) || empty($dbconf)){
             echo "<html><head><title>DooPHP Model Generator - DB: Error</title></head><body bgcolor=\"#2e3436\"><span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Please setup the DB first in index.php and db.conf.php</span></span>";
@@ -78,7 +82,10 @@ class DooModelGen{
                }
            }
 
-           $filestr = "<?php\nclass $classname{\n";
+           if($extends==DooModelGen::EXTEND_MODEL || $extends==DooModelGen::EXTEND_SMARTMODEL )
+               $filestr = "<?php\nDoo::loadCore('db/$extends');\n\nclass $classname extends $extends{\n";
+           else
+               $filestr = "<?php\nclass $classname{\n";
            $pkey = '';
            $ftype = '';
            $fieldnames = array();
@@ -141,9 +148,10 @@ class DooModelGen{
            $filestr .= "    public \$_primarykey = '$pkey';\n";
            $filestr .= "    public \$_fields = array('$fieldnames');\n";
 
-           if($vrules && isset($rules) && !empty ($rules)){
+           if($vrules && !empty ($rules)){
                $filestr .= "\n    public function getVRules() {\n        return ". self::exportRules($rules) ."\n    }\n\n";
-               $filestr .="    public function validate(\$checkMode='all'){
+               if(!($extends==DooModelGen::EXTEND_MODEL || $extends==DooModelGen::EXTEND_SMARTMODEL )){
+                   $filestr .="    public function validate(\$checkMode='all'){
         //You do not need this if you extend DooModel or DooSmartModel
         //MODE: all, all_one, skip
         Doo::loadHelper('DooValidator');
@@ -151,6 +159,7 @@ class DooModelGen{
         \$v->checkMode = \$checkMode;
         return \$v->validate(get_object_vars(\$this), \$this->getVRules());
     }\n\n";
+               }
            }
            $filestr .= "}\n?>";
 
