@@ -1,6 +1,6 @@
 <?php
 /**
- * DooSqlMagic class file.
+ * DooSession class file.
  *
  * @author Leng Sheng Hong <darkredz@gmail.com>
  * @link http://www.doophp.com/
@@ -10,9 +10,14 @@
 
 /*
 * Session class, manage all session options
-* call it from: $session = Doo::session("mysite");
-* add something to session $session->someVariable = "something";
-* get that variable $var = $session=>get("someVariable"); (returns "something")
+* Call it from:
+* <code>$session = Doo::session("mysite");</code>
+* Add something to session
+* <code>$session->someVariable = "something";</code>
+* Get that variable
+* <code>
+* $var = $session=>get("someVariable"); (returns "something")
+* </code>
 *
 * @author Milos Kovacki <kovacki@gmail.com>
 * @copyright &copy; 2009 Milos Kovacki
@@ -47,10 +52,15 @@ class DooSession {
 	* Constructor - returns an instance object of the session that is named by namespace name
 	*
 	* @param string $namespace - Name of session namespace
+	* @param string $sessionId - Optional param for setting session id
 	* @return void
+	*
+	* <code>
+	* $session = new DooSession('mywebsite', $mySessionId)
+	* </code]
 	*/
 
-	public function __construct($namespace = 'Default') {
+	public function __construct($namespace = 'Default', $sessionId = null) {
 
 		// should not be empty
 		if ($namespace === '') {
@@ -66,7 +76,7 @@ class DooSession {
 		}
 
 		$this->_namespace = $namespace;
-
+		if ($sessionId != null) $this->setId($sessionId);
 		$this->start();
 	}
 
@@ -126,7 +136,6 @@ class DooSession {
 			return;
 		}
 		if ($this->_sessionDestroyed) {
-			throw new DooSessionException("Session already destroyed.");
 			return;
 		}
 		if (isset($_SESSION[$this->_namespace])) unset($_SESSION[$this->_namespace]);
@@ -146,7 +155,7 @@ class DooSession {
 	}
 
 	/*
-	*  Unset namespace or value in it
+	*  Unset whole session namespace or some value inside it
 	*
 	*  @param string $name If name is provided it will unset some value in session namespace
 	*  if not it will unset session.
@@ -184,7 +193,7 @@ class DooSession {
 	*/
 
 	public function setId($id) {
-		if (!isset($_SESSION))
+		if (isset($_SESSION))
 			throw new DooSessionException("Session is already started, id must be set before.");
 		if (!is_string($id) || $id === '')
 			throw new DooSessionException("Session id must be string and cannot be empty.");
@@ -222,7 +231,7 @@ class DooSession {
 		if ($name === '')
 			throw new DooSessionException("Name should not be empty");
 		if (!isset($_SESSION[$this->_namespace][$name]))
-			return null;
+			return $_SESSION[$this->_namespace];
 		else return $_SESSION[$this->_namespace][$name];
 	}
 
