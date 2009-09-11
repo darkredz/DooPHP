@@ -304,6 +304,25 @@ class DooFrontCache{
 		}
 	}
 
+	/*
+	* Frontend cache start with apc, some tests are saying its 30% faster then reading from file
+	*
+	* @param string $id - Identification of cache file
+	*
+	* @example For using:
+	* <code>
+	*  $userListContent = "";
+	*  if (($userListContent = Doo::cache('apc')->get('userList')) == false) {
+	*   Doo::cache('front')->startApc("userList");  ?>SOME HTML GOES HERE
+	*  <?php
+	*   Doo::cache('front')->endApc();
+	*  } else {
+	*  		echo $userListContent;
+	*  }
+	*  </code>
+	*
+	*/
+
 	public function startApc($id) {
 		if ($id=='') {
 			throw new Exception("Cannot start recording with apc if you dont identify your cache");
@@ -311,6 +330,10 @@ class DooFrontCache{
 		$this->_cachefile = $id;
 		ob_start();
 	}
+
+	/*
+	* End apc front cache and insert contents in apc cache with name provided in startApc()
+	*/
 
 	public function endApc() {
 		Doo::cache('apc')->set($this->_cachefile, ob_get_contents());
