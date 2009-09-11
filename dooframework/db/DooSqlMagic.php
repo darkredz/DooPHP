@@ -274,6 +274,25 @@ class DooSqlMagic {
                 if(isset($v) && in_array($o, $model->_fields)){
                     $wheresql .= " AND {$obj['_table']}.$o=?";
                     $where_values[] = $v;
+                    if( is_object($v) ){
+                        $firstChr = substr($v, 0, 1);
+                        if(ctype_punct($firstChr)){
+                            $wheresql .= " AND {$obj['_table']}.$o$firstChr?";
+                            $where_values[] = substr($v, 1);
+                        }else{
+                            if(strpos(strtoupper($v), 'LIKE')===0){
+                                preg_match('/^LIKE[ ]{1,}[\'\"]{1}(.+)[\'\"]{1}[ ]{1,}$/i', $v, $matches);
+                                $wheresql .= " AND {$obj['_table']}.$o LIKE ?";
+                                $where_values[] = $matches[1];
+                            }else{
+                                $wheresql .= " AND {$obj['_table']}.$o=?";
+                                $where_values[] = $v;
+                            }
+                        }
+                    }else{
+                        $wheresql .= " AND {$obj['_table']}.$o=?";
+                        $where_values[] = $v;
+                    }
                 }
             }
 
@@ -394,8 +413,25 @@ class DooSqlMagic {
             $where_values = array();
             foreach($obj as $o=>$v){
                 if(isset($v) && in_array($o, $model->_fields)){
-                    $wheresql .= " AND {$obj['_table']}.$o=?";
-                    $where_values[] = $v;
+                    if( is_object($v) ){
+                        $firstChr = substr($v, 0, 1);
+                        if(ctype_punct($firstChr)){
+                            $wheresql .= " AND {$obj['_table']}.$o$firstChr?";
+                            $where_values[] = substr($v, 1);
+                        }else{
+                            if(strpos(strtoupper($v), 'LIKE')===0){
+                                preg_match('/^LIKE[ ]{1,}[\'\"]{1}(.+)[\'\"]{1}[ ]{1,}$/i', $v, $matches);
+                                $wheresql .= " AND {$obj['_table']}.$o LIKE ?";
+                                $where_values[] = $matches[1];
+                            }else{
+                                $wheresql .= " AND {$obj['_table']}.$o=?";
+                                $where_values[] = $v;
+                            }
+                        }
+                    }else{
+                        $wheresql .= " AND {$obj['_table']}.$o=?";
+                        $where_values[] = $v;
+                    }
                 }
             }
 
@@ -729,9 +765,11 @@ class DooSqlMagic {
                             str_replace('?', '', $whrLimit, $countQ);
                             if($countQ==sizeof($where_values)){
                                 $varsLimit = $where_values;
-                            }else{
+                            }
+                            else{
                                 $varsLimit = array_merge( $opt['param'], $where_values);
                             }
+
                             $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$limitstr}", $varsLimit);
                         }else if(isset($opt['param']) && !empty($opt['param']) && !empty($whrLimit)){
                             $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$limitstr}", $opt['param']);
