@@ -723,6 +723,10 @@ class DooSqlMagic {
                         if(isset($opt['where']) && $opt['where']!=''){
                             //remove Rmodel field names from the WHERE statement
                             if($whrLimit = preg_replace("/[,|AND|OR ]*$relatedmodel->_table\.[a-z0-9_-]{1,64}[^{$model->_table}\.]*/i", '', $opt['where'])){
+                                if(strpos(strtoupper($whrLimit), 'AND')===0){
+                                    $whrLimit = substr($whrLimit, 3);
+                                }
+
                                 //check for relatedModel WHERE statement
                                 if(preg_match_all("/[,|AND|OR ]*($relatedmodel->_table\.[a-z0-9_-]{1,64}[^{$model->_table}\.]*)/i", $opt['where'], $rlimitMatch)>0){
                                     $rlimitMatch = $rlimitMatch[0];
