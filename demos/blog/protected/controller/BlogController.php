@@ -180,7 +180,7 @@ class BlogController extends DooController {
             return 404;
         }
 
-        $pager = new DooPager(Doo::conf()->APP_URL.'page', $totalPosts, 4, 10);
+        $pager = new DooPager(Doo::conf()->APP_URL."tag/$tag->name/page", $totalPosts, 4, 10);
         if(isset($this->params['pindex']))
             $pager->paginate(intval($this->params['pindex']));
         else
