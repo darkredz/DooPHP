@@ -787,9 +787,20 @@ class DooSqlMagic {
                         foreach($stmtLimit as $rlimit){
                             $limitModelStr[] = $rlimit['id'];
                         }
+
                         //combine if exists
                         if(isset($m_in_id)){
+                            $removeIds = array_diff($limitModelStr, $m_in_id);
+                            foreach($removeIds as $k=>$rid){
+                                unset($limitModelStr[$k]);
+                            }
                             $limitModelStr = array_unique(array_merge($limitModelStr, $m_in_id));
+                            $limitLength = explode(',', $opt['limit']);
+                            if(isset($limitLength[1])){
+                                array_splice($limitModelStr, $limitLength[1]);
+                            }else{
+                                array_splice($limitModelStr, $limitLength[0]);
+                            }
                         }
                         $limitModelStr = implode(',', $limitModelStr);
                         
