@@ -172,7 +172,8 @@ class BlogController extends DooController {
         $p->status = 1;     //published post only
 
         $tag = new Tag;
-        $tag->name = trim(str_replace('%20', ' ', $this->params['name']));
+        $tag->name = trim(urldecode($this->params['name']));
+        
         $totalPosts = $tag->relatePost(array('select'=>'COUNT(tag.id) AS total', 'asArray'=>true));
         $totalPosts = $totalPosts[0]['total'];
 
