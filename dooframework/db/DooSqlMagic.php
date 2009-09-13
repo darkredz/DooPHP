@@ -272,8 +272,6 @@ class DooSqlMagic {
             $where_values = array();
             foreach($obj as $o=>$v){
                 if(isset($v) && in_array($o, $model->_fields)){
-                    $wheresql .= " AND {$obj['_table']}.$o=?";
-                    $where_values[] = $v;
                     if( is_object($v) ){
                         $firstChr = substr($v, 0, 1);
                         if(ctype_punct($firstChr)){
