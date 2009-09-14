@@ -429,7 +429,31 @@ class DooView {
                 $properties = explode('.', $matches[2][0]);
 
                 //join arguments back ,'hihi', 100
-                $args = implode(',', $params);
+                $args = '';
+                foreach ($params as $p) {
+                   $k = trim($p);
+                   if (preg_match('/^([a-z0-9_\.\@]+)$/i', $k)) {
+                       //if more than 1 dots, eg. users.total.pdf
+                       $vname='';
+                        if(strpos($k, '@')!==FALSE){
+                            $properties = explode('.@', $k);
+                            $vname .= "['". $properties[0] ."']->" . implode("->", array_slice($properties,1) );
+                        }
+                        else if(strpos($k, '.')!==FALSE){
+                            $properties = explode('.', $k);
+                            $vname .= "['". implode("']['", $properties) ."']";
+                        }
+                        //only 1 dot, users.john
+                        else{
+                            $vname = "['".$k."']";
+                        }
+                       $args .= "\$data$vname,";
+                   } else {
+                      $args .= $p.',';
+                   }
+                }
+                $args = substr($args, 0, strlen($args) - 1);
+                //$args = implode(',', $params);
             }else{
                 $properties = explode('.', $matches[2]);
             }
@@ -502,7 +526,31 @@ class DooView {
                 $properties = explode('.@', $matches[2][0]);
 
                 //join arguments back ,'hihi', 100
-                $args = implode(',', $params);
+                $args = '';
+                foreach ($params as $p) {
+                   $k = trim($p);
+                   if (preg_match('/^([a-z0-9_\.\@]+)$/i', $k)) {
+                       //if more than 1 dots, eg. users.total.pdf
+                       $vname='';
+                        if(strpos($k, '@')!==FALSE){
+                            $properties = explode('.@', $k);
+                            $vname .= "['". $properties[0] ."']->" . implode("->", array_slice($properties,1) );
+                        }
+                        else if(strpos($k, '.')!==FALSE){
+                            $properties = explode('.', $k);
+                            $vname .= "['". implode("']['", $properties) ."']";
+                        }
+                        //only 1 dot, users.john
+                        else{
+                            $vname = "['".$k."']";
+                        }
+                       $args .= "\$data$vname,";
+                   } else {
+                      $args .= $p.',';
+                   }
+                }
+                $args = substr($args, 0, strlen($args) - 1);
+                //$args = implode(',', $params);
             }else{
                 $properties = explode('.@', $matches[2]);
             }
