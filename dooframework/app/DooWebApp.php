@@ -103,9 +103,13 @@ class DooWebApp{
                 if($_SERVER['REQUEST_METHOD']==='PUT')
                     $controller->init_put_vars();
 
-                if(method_exists($controller, $method_name))
+                if(method_exists($controller, $method_name)){
+                    //before run, normally used for ACL auth
+                    if($rs = $controller->beforeRun($controller_name, $method_name)){
+                        return $rs;
+                    }			
                     return $controller->$method_name();
-                else
+                }else
                     $this->throwHeader(404);
             }
             else{
