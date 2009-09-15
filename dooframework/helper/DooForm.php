@@ -218,17 +218,21 @@ class DooForm extends DooValidator {
 				}
 			}
 			// handle values for all fields except select, multicheckbox, checkbox, radio...
+
 			if (count($this->_elementValues) > 0) {
 				if (($k[0] != 'select') && ($k[0] != 'MultiCheckbox') && ($k[0] != 'MultiRadio') && ($k[0] != 'checkbox'))
 				$elementValues = $this->_elementValues;
-				$elementAttributes .= ' value="'.$elementValues[$element].'"';
+				if (isset($elementValues[$element])) {
+					$elementAttributes .= ' value="'.$elementValues[$element].'"';
+				}
 			}
 			// make wrapper div or dd or something other
 			$elementWrapper = (isset($k[1]['wrapper']))?$k[1]['wrapper']:'dt';
 			// make label wrapper
 			$labelWrapper = (isset($k[1]['label-wrapper']))?$k[1]['label-wrapper']:$elementWrapper;
 			// add lable if there is one
-			if (isset($k[1]['label']) && ($k[0] != "submit")) {
+
+			if (isset($k[1]['label']) && ($k[0] != "submit") && ($k[0] != "captcha")) {
 				$labelField = '<'.$elementWrapper.' id="'.$element.'-label"><label for="'.$element.'" '.$elementRequred.'>'. $k[1]['label'] . '</label></'.$elementWrapper.'>';
 				$formElements[$element.'-label'] = $labelField;
 			}
@@ -255,9 +259,16 @@ class DooForm extends DooValidator {
 					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element" '.$elementRequred.'><select '.$elementAttributes.' name="'.$element.'"/>';
 					if (isset($k[1]['multioptions']) && (count($k[1]['multioptions'] > 0))) {
 						foreach ($k[1]['multioptions'] as $optionValue => $optionName) {
-							$selected = (isset($k[1]['value']) && ($k[1]['value'] == $optionValue))?'selected="selected"':'';
-							$selected = (isset($elementValues[$element]) && ($elementValues[$element] == $optionValue))?'selected="selected"':'';
-							$elementHtml .= '<option value="'.$optionValue.'" '.$selected.'>'.$optionName.'</option>';
+							if (is_array($optionName)) {
+								foreach ($optionName as $v => $n) {
+									$selected = (isset($k[1]['value']) && ($k[1]['value'] === $v))?'selected="selected"':'';
+									$elementHtml .= '<option value="'.$v.'" '.$selected.'>'.$n.'</option>';
+								}
+							} else {
+								$selected = (isset($k[1]['value']) && ($k[1]['value'] == $optionValue))?'selected="selected"':'';
+								$selected = (isset($elementValues[$element]) && ($elementValues[$element] == $optionValue))?'selected="selected"':'';
+								$elementHtml .= '<option value="'.$optionValue.'" '.$selected.'>'.$optionName.'</option>';
+							}
 						}
 					}
 					$elementHtml .= '</select></'.$elementWrapper.'>';
@@ -271,6 +282,7 @@ class DooForm extends DooValidator {
 				// checkbox group :)
 				case 'MultiCheckbox':
 					//first add wrapper
+
 					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element" '.$elementRequred.'>';
 					// now get trough all multioptions and create checkboxes
 					if (isset($k[1]['multioptions']) && (count($k[1]['multioptions'] > 0))) {
@@ -303,6 +315,62 @@ class DooForm extends DooValidator {
 						}
 					}
 					break;
+				// captcha
+				case 'captcha':
+					if (!isset($_SESSION)) session_start();
+					$md5 = md5(microtime() * time());
+					$string = substr($md5,0,5);
+					if (file_exists($k[1]['image'])) {
+
+						$captcha = imagecreatefromjpeg($k[1]['image']);
+						$black = imagecolorallocate($captcha, 250, 250, 250);
+						$line = imagecolorallocate($captcha,233,239,239);
+						$buffer = imagecreatetruecolor (20, 20);
+						$buffer2 = imagecreatetruecolor (40, 40);
+						// Add string to image
+						$rotated = imagecreatetruecolor (70, 70);
+						$x = 0;
+						for ($i = 0; $i < strlen($string); $i++) {
+							$buffer = imagecreatetruecolor (20, 20);
+							$buffer2 = imagecreatetruecolor (40, 40);
+
+							// Get a random color
+							$red = mt_rand(0,255);
+							$green = mt_rand(0,255);
+							$blue = 255 - sqrt($red * $red + $green * $green);
+							$color = imagecolorallocate ($buffer, $red, $green, $blue);
+
+							// Create character
+							imagestring($buffer, 5, 0, 0, $string[$i], $color);
+
+							// Resize character
+							imagecopyresized ($buffer2, $buffer, 0, 0, 0, 0, 25 + mt_rand(0,12), 25 + mt_rand(0,12), 20, 20);
+
+							// Rotate characters a little
+							$rotated = imagerotate($buffer2, mt_rand(-25, 25),imagecolorallocatealpha($buffer2,0,0,0,0));
+							imagecolortransparent ($rotated, imagecolorallocatealpha($rotated,0,0,0,0));
+
+							// Move characters around a little
+							$y = mt_rand(1, 3);
+							$x += mt_rand(2, 6);
+							imagecopymerge ($captcha, $rotated, $x, $y, 0, 0, 40, 40, 100);
+							$x += 22;
+
+							imagedestroy ($buffer);
+							imagedestroy ($buffer2);
+						}
+						imageline($captcha,0,20,140,80+rand(1,10),$line);
+						imageline($captcha,40,0,120,90+rand(1,10),$line);
+						// add value to session
+						$_SESSION['doo_captcha_'.$element] = $string;
+						if (is_dir($k[1]['directory'])) {
+							imagejpeg($captcha, $k[1]['directory'] . '/'.$string.'.jpg');
+							$elementHtml .= '<'.$elementWrapper.' id="'.$element.'-element"><img class="doo-captcha-image" height="50" width="120" src="'.$k[1]['url'].$string.'.jpg"/><br/>'.
+							'<'.$elementWrapper.' id="'.$element.'-label"><label for="'.$element.'" '.$elementRequred.'>'. $k[1]['label'] . '</label></'.$elementWrapper.'>'.
+							'<input size="'.strlen($string).'" '.$elementAttributes.' type="text" name="'.$element.'" '.$elementRequred.' class="doo-captcha-text" /></'.$elementWrapper.'>';
+						} else throw new Exception("Cant create captcha there is no captcha directory: " . $k[1]['directory']);
+					} else throw new Exception("Cant create captcha of missing image: " . $k[1]['image']);
+					break;
 			}
 			// add element
 			$formElements[$element] = $elementHtml;
@@ -333,6 +401,15 @@ class DooForm extends DooValidator {
 			if (isset($e[1]['validators'])) {
 				$elementRules = array($element => $e[1]['validators']);
 				$errors[$element] = $v->validate($values, $elementRules);
+				if ($errors[$element]) unset($elementValues[$element]);
+
+			}
+			// handle captcha
+			if (isset($e[0]) && ($e[0] == 'captcha')) {
+				$sessionData = (isset($_SESSION['doo_captcha_'.$element]))?$_SESSION['doo_captcha_'.$element]:'';
+				$elementRules = array($element => array('equal', $sessionData));
+				$errors[$element] = $v->validate($values, $elementRules);
+				if ($errors[$element]) unset($elementValues[$element]);
 			}
 		}
 		// set values

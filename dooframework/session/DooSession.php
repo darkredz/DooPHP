@@ -167,7 +167,7 @@ class DooSession {
 			return;
 		}
 		$name = (string)$name;
-		if ($name === '') {
+		if (empty($name)) {
 			unset($_SESSION[$this->_namespace]);
 		} else {
 			unset($_SESSION[$this->_namespace][$name]);
