@@ -231,7 +231,7 @@ class DooSession {
 		if ($name === '')
 			throw new DooSessionException("Name should not be empty");
 		if (!isset($_SESSION[$this->_namespace][$name]))
-			return $_SESSION[$this->_namespace];
+			return null;
 		else return $_SESSION[$this->_namespace][$name];
 	}
 
