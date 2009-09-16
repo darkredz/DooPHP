@@ -338,6 +338,35 @@ class DooUriRouter{
                 return array($udata, $param);
             }
 
+            if(isset($route['*']['root'])){
+                #echo '<h1>On Root</h1><pre>';
+                $routes = $route['*']['root'];
+
+                foreach($routes as $k=>$r){
+                    #print_r(array($r[0], $r[1]));
+                    $uparts = explode('/', $k);
+                    #print_r($uri_parts);
+
+                    if(sizeof($uparts)-1 != sizeof($uri_parts)){
+                        continue;
+                    }
+                    
+                    $uparts = array_slice($uparts, 1);                    
+                    #print_r($uparts);
+
+                    //convert into param with keys
+                    $param = $this->parse_params($uri_parts, $uparts);
+                    
+                    if(isset($r['match'])){
+                        foreach($r['match'] as $var_name=>$pattern){
+                            if( preg_match($pattern, $param[$var_name])==0 ){
+                                continue 2;
+                            }
+                        }
+                    }
+                    return array($r, $param);
+                }
+            }
         }
     }
 
@@ -411,7 +440,7 @@ class DooUriRouter{
      * Get the parameter list found in the URI which matched a user defined route
      *
      * @param array $req_route The requested route
-     * @param  $defined_route Route defined by the user
+     * @param array $defined_route Route defined by the user
      * @return array An array of parameters found in the requested URI
      */
     protected function parse_params($req_route, $defined_route){
