@@ -8,7 +8,7 @@
  * @license http://www.doophp.com/license
  */
 
-/*
+/**
 * Session class, manage all session options
 * Call it from:
 * <code>$session = Doo::session("mysite");</code>
@@ -22,33 +22,33 @@
 * @author Milos Kovacki <kovacki@gmail.com>
 * @copyright &copy; 2009 Milos Kovacki
 * @license http://www.doophp.com/license
+ * @package doo.session
+ * @since 1.3
 */
 class DooSession {
 
-	/*
+	/**
 	* Namespace - Name of Doo session namespace
 	*
 	* @var string
 	*/
-
 	protected $_namespace = "Default";
 
-	/*
+	/**
 	* Variable that defines if session started
 	*
 	* @var boolean
 	*/
 	protected $_sessionStarted = false;
 
-	/*
+	/**
 	* Variable that defines if session destroyed
 	*
 	* @var boolean
 	*/
-
 	protected $_sessionDestroyed = false;
 
-	/*
+	/**
 	* Constructor - returns an instance object of the session that is named by namespace name
 	*
 	* @param string $namespace - Name of session namespace
@@ -59,7 +59,6 @@ class DooSession {
 	* $session = new DooSession('mywebsite', $mySessionId)
 	* </code]
 	*/
-
 	public function __construct($namespace = 'Default', $sessionId = null) {
 
 		// should not be empty
@@ -80,12 +79,11 @@ class DooSession {
 		$this->start();
 	}
 
-	/*
+	/**
 	* Start session
 	*
 	* @return void
 	*/
-
 	public function start() {
 		// check if session is started if it is return
 		if ($this->_sessionStarted) {
@@ -96,12 +94,11 @@ class DooSession {
 		$this->_sessionStarted = true;
 	}
 
-	/*
+	/**
 	* Checks if session started
 	*
 	* @return boolean
 	*/
-
 	public static function isStarted()
 	{
 		if (isset($_SESSION)) {
@@ -111,12 +108,11 @@ class DooSession {
 		}
 	}
 
-	/*
+	/**
 	* Set variable into session
 	* @param string $name Name of key
 	* @param mixed $value Value for keyname ($name)
 	*/
-
 	public function __set($name, $value) {
 		if ($name === "")
 			throw new DooSessionException("Keyname should not be empty string!");
@@ -126,10 +122,9 @@ class DooSession {
 		$_SESSION[$this->_namespace][$name] = $value;
 	}
 
-	/*
+	/**
 	* Destroy all session data
 	*/
-
 	public function destroy() {
 		if (!$this->_sessionStarted) {
 			throw new DooSessionException("Session not started.");
@@ -144,23 +139,21 @@ class DooSession {
 		$this->_sessionDestroyed = true;
 	}
 
-	/*
+	/**
 	* Check wheather session is destroyed or not
 	*
 	* @return boolean
 	*/
-
 	public static function isDestroyed() {
 		return $this->_sessionDestroyed;
 	}
 
-	/*
+	/**
 	*  Unset whole session namespace or some value inside it
 	*
 	*  @param string $name If name is provided it will unset some value in session namespace
 	*  if not it will unset session.
 	*/
-
 	public function namespaceUnset($name = null) {
 		if (!$this->_sessionStarted) {
 			throw new DooSessionException("Session not started, use DooSession::start()");
@@ -174,10 +167,9 @@ class DooSession {
 		}
 	}
 
-	/*
+	/**
 	* Get session id
 	*/
-
 	public static function getId() {
 		if (!isset($_SESSION)) {
 			throw new DooSessionException("Session not started, use DooSession::start()");
@@ -186,12 +178,11 @@ class DooSession {
 		return session_id();
 	}
 
-	/*
+	/**
 	* Sets session id
 	*
 	* @param $id session identifier
 	*/
-
 	public function setId($id) {
 		if (isset($_SESSION))
 			throw new DooSessionException("Session is already started, id must be set before.");
@@ -202,26 +193,24 @@ class DooSession {
 		session_id($id);
 	}
 
-	/*
+	/**
 	* Get all variables from namespace in a array
 	*
 	* @return array Variables from session
 	*/
-
 	public function getAll() {
 		$sessionData  = (isset($_SESSION[$this->_namespace]) && is_array($_SESSION[$this->_namespace])) ?
 			$_SESSION[$namespace] : array();
 		return $sessionData;
 	}
 
-	/*
+	/**
 	* Get variable from namespace by reference
 	*
 	* @param string $name if that variable doesnt exist returns null
 	*
 	* @return mixed
 	*/
-
 	public function &get($name) {
 		if (!$this->_sessionStarted) {
 			throw new DooSessionException("Session not started, use DooSession::start()");
@@ -235,12 +224,11 @@ class DooSession {
 		else return $_SESSION[$this->_namespace][$name];
 	}
 
-	/*
+	/**
 	* Get value from current namespace
 	*
 	* @param string $name Name of variable
 	*/
-
 	public function & __get($name) {
 		if (!$this->_sessionStarted) {
 			throw new DooSessionException("Session not started, use DooSession::start()");
@@ -251,7 +239,7 @@ class DooSession {
 	}
 
 }
-//
+
 class DooSessionException extends Exception {
 
 }

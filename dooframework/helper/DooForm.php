@@ -14,84 +14,75 @@
 * @author Milos Kovacki <kovacki@gmail.com>
 * @copyright &copy; 2009 Milos Kovacki
 * @license http://www.doophp.com/license
+ * @package doo.helper
+ * @since 1.3
 */
 class DooForm extends DooValidator {
 
-	/*
+	/**
 	* Form attributes
 	* @var array
 	*/
-
 	protected $_attr = array();
 
-	/*
+	/**
 	* Form decorators
 	* @var array
 	*/
-
 	protected $_decorators = array();
 
-	/*
+	/**
 	* Display groups for grouping elements
 	* @var array
 	*/
-
 	protected $_displayGroups = array();
 
-	/*
+	/**
 	* Element array
 	* @var array
 	*/
-
 	protected $_elements = array();
 
-	/*
+	/**
 	* Form elements
 	* @var array
 	*/
-
 	protected $_formElements = array();
 
-	/*
+	/**
 	* Form action
 	* @var string
 	*/
-
 	protected $_action = "";
 
-	/*
+	/**
 	* Form method
 	* @var string
 	*/
-
 	protected $_method = "post";
 
-	/*
+	/**
 	* Form validators
 	* @var array
 	*/
-
 	protected $_validators = array();
 
-	/*
+	/**
 	* Form errors
 	* @var array
 	*/
-
 	protected $_errors = array();
 
-	/*
+	/**
 	* Element values
 	* @var array
 	*/
-
 	protected $_elementValues = array();
 
 
-	/*
+	/**
 	* Class constructor
 	*/
-
 	public function __construct($form) {
 		if (is_array($form)) {
 			$this->setForm($form);
@@ -100,12 +91,10 @@ class DooForm extends DooValidator {
 		}
 	}
 
-	/*
+	/**
 	* Set form construct it
 	*/
-
 	public function setForm($form) {
-
 		// set method
 		if (isset($form['method'])) {
 			$this->_setMethod($form['method']);
@@ -118,12 +107,11 @@ class DooForm extends DooValidator {
 		}
 	}
 
-	/*
+	/**
 	* Form rendering
 	*
 	* @return string Form html
 	*/
-
 	public function render() {
 		$this->_addElements();
 		$formElements = $this->_formElements;
@@ -148,15 +136,14 @@ class DooForm extends DooValidator {
 		$this->_method = $method;
 	}
 
-	/*
+	/**
 	* Set form action
 	*/
-
 	public function _setAction($action) {
 		$this->_action = (string)$action;
 	}
 
-	/*
+	/**
 	* Add elements to form
 	*
 	* Making form
@@ -203,7 +190,6 @@ class DooForm extends DooValidator {
 	* echo $this->form;
 	* </code>
 	*/
-
 	public function _addElements() {
 		$formHtml = "";
 		$formElements = "";
@@ -378,14 +364,12 @@ class DooForm extends DooValidator {
 		$this->_formElements = $formElements;
 	}
 
-	/*
+	/**
 	* Validate form
 	*
 	* @var array Values for form, for example $_POST
-	*
 	* @return boolean True or false if form is not valid
 	*/
-
 	public function isValid($values) {
 		$valid = true;
 		$errors = array();
