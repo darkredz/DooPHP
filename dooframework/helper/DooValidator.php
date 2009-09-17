@@ -973,6 +973,38 @@ class DooValidator {
         }
     }
 
+   /**
+    * Validate if value Exists in database
+    *
+    * @param string $value Value of data to be validated
+    * @param string $table Name of the table in DB
+    * @param string $field Name of field you want to check
+    * @return string
+    */
+    public function testDbExist($value, $table, $field, $msg=null) {
+        $result = Doo::db()->fetchRow("SELECT COUNT($field) AS count FROM " . $table . ' WHERE '.$field.' = ? LIMIT 1', array($value));
+        if ((!isset($result['count'])) || ($result['count'] < 1)) {
+            if($msg!==null) return $msg;
+            return 'Value does not exist in database.';
+        }
+    }
+
+   /**
+    * Validate if value does Not Exist in database
+    *
+    * @param string $value Value of data to be validated
+    * @param string $table Name of the table in DB
+    * @param string $field Name of field you want to check
+    * @return string
+    */
+    public function testDbNotExist($value, $table, $field, $msg=null) {
+        $result = Doo::db()->fetchRow("SELECT COUNT($field) AS count FROM " . $table . ' WHERE '.$field.' = ? LIMIT 1', array($value));
+        if ((isset($result['count'])) && ($result['count'] > 0)) {
+            if($msg!==null) return $msg;
+            return 'Same value exists in database.';
+        }
+    }
+
 }
 
 ?>
