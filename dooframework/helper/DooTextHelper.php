@@ -244,13 +244,21 @@ class DooTextHelper {
      * @param string $str String input
      * @param int $limit Number of characters to limit
      * @param string $ending End characters. Default '...'
+     * @param string $encoding The character encoding. eg. utf8
      * @return string
      */
-    public static function limitChar($str, $limit, $ending='...'){
-        if(strlen($str) <= $limit)
-            return $str;
+    public static function limitChar($str, $limit, $ending='...', $encoding=null){
+        if($encoding==null){
+            if(strlen($str) <= $limit)
+                return $str;
 
-        return substr($str, 0, $limit) . $ending;
+            return substr($str, 0, $limit) . $ending;
+        }else{
+            if(mb_strlen($str, $encoding) <= $limit)
+                return $str;
+
+            return mb_substr($str, 0, $limit, $encoding) . $ending;
+        }
     }
 
     /**
