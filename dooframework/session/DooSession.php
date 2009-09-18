@@ -219,9 +219,9 @@ class DooSession {
 		$name = (string)$name;
 		if ($name === '')
 			throw new DooSessionException("Name should not be empty");
-		if (!isset($_SESSION[$this->_namespace][$name]))
-			return null;
-		else return $_SESSION[$this->_namespace][$name];
+		if (!isset($_SESSION[$this->_namespace][$name])){
+			$result = null; return $result;
+    } else { return $_SESSION[$this->_namespace][$name]; }
 	}
 
 	/**
