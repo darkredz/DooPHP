@@ -110,6 +110,12 @@ class DooConfig{
     public $MEMCACHE;
 
     /**
+     * Output/processed comments block in the template files.
+     * @var bool
+     */
+    public $SHOW_TEMPLATE_COMMENT;
+
+    /**
      * Set the configurations. SITE_PATH, BASE_PATH and APP_URL is required
      * @param array $confArr associative array of the configs.
      */
