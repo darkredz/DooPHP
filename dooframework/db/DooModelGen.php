@@ -26,7 +26,7 @@ class DooModelGen{
     const EXTEND_SMARTMODEL = 'DooSmartModel';
 
     public static function exportRules($ruleArr) {
-        $rule = preg_replace("/'?\d+'?\s+=>\s+/", '', var_export($ruleArr, true));
+        $rule = preg_replace("/\d+\s+=>\s+/", '', var_export($ruleArr, true));
         $rule = str_replace("\n      ", ' ', $rule);
         $rule = str_replace(",\n    )", ' )', $rule);
         $rule = str_replace("array (", 'array(', $rule);
