@@ -40,9 +40,10 @@
  * cache()
  * acl()
  * beforeRun()
+ * isAjax()
  * </code>
  *
- * You still have a lot of freedom to name your methods and properties other than the 16 names mentioned.
+ * You still have a lot of freedom to name your methods and properties other than the 17 names mentioned.
  *
  * @author Leng Sheng Hong <darkredz@gmail.com>
  * @version $Id: DooController.php 1000 2009-07-7 18:27:22
@@ -277,6 +278,14 @@ class DooController {
 						);
         if(isset($extensions[$type]))
             header("Content-Type: {$extensions[$type]}; charset=$charset");
+    }
+
+    /**
+     * Check if the request is an AJAX request usually sent with JS library such as JQuery/YUI/MooTools
+     * @return bool
+     */
+    public function isAjax(){
+        return (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
     }
 
     /**
