@@ -85,6 +85,16 @@
  * }
  * </code>
  *
+ * Since 1.3, you can have comments block in the template which will not be output/processed unless
+ * SHOW_TEMPLATE_COMMENT is True in common.conf.php
+ * <code>
+ * <!-- comment -->
+ *    this is a comment
+ *    testing {{debug(myVar)}}
+ *    <!-- include 'debugger' -->
+ * <!-- endcomment -->
+ * </code>
+ *
  * <p>You can use <b>native PHP</b> as view templates in DooPHP. Use DooView::renderc() instead of render.</p>
  * <p>In your Controller:</p>
  * <code>
@@ -242,7 +252,6 @@ class DooView {
         //convert variable in loop {{user' value}}  {{user' value' value}}
         $str = preg_replace_callback('/{{([^ \t\r\n\(\)\.}\']+)([^\t\r\n\(\)}{]+)}}/', array( &$this, 'convertVarLoop'), $str);
 
-
         //convert else
         $str = str_replace('<!-- else -->', '<?php else: ?>', $str);
 
@@ -263,6 +272,11 @@ class DooView {
         // <?php echo $data['file']; chars allowed for the grouping
         $str = preg_replace_callback('/<!-- include [\'\"]{1}([^\t\r\n\"]+).*[\'\"]{1} -->/', array( &$this, 'convertInclude'), $str);
 
+        //remove comments
+        if(!isset(Doo::conf()->SHOW_TEMPLATE_COMMENT) || Doo::conf()->SHOW_TEMPLATE_COMMENT!=true){
+            $str = preg_replace('/<!-- comment -->.+<!-- endcomment -->/s', '', $str);
+        }
+        
         //-------------------- Compiling -------------------------
         //write to compiled file in viewc and include that file in.
         $folders = explode('/', $file);
