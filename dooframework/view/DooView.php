@@ -146,7 +146,7 @@ class DooView {
 
     public function  __call($name,  $arguments) {
         if($this->controller!=NULL){
-            call_user_func_array(array(&$this->controller, $name), $arguments);
+            return call_user_func_array(array(&$this->controller, $name), $arguments);
         }
     }
 
