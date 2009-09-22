@@ -8,14 +8,12 @@
  * @license http://www.doophp.com/license
  */
 
-/*
+/**
 * DooForm class manage forms
 *
 * @author Milos Kovacki <kovacki@gmail.com>
 * @copyright &copy; 2009 Milos Kovacki
 * @license http://www.doophp.com/license
- * @package doo.helper
- * @since 1.3
 */
 class DooForm extends DooValidator {
 
@@ -23,66 +21,77 @@ class DooForm extends DooValidator {
 	* Form attributes
 	* @var array
 	*/
+
 	protected $_attr = array();
 
 	/**
 	* Form decorators
 	* @var array
 	*/
+
 	protected $_decorators = array();
 
 	/**
 	* Display groups for grouping elements
 	* @var array
 	*/
+
 	protected $_displayGroups = array();
 
 	/**
 	* Element array
 	* @var array
 	*/
+
 	protected $_elements = array();
 
 	/**
 	* Form elements
 	* @var array
 	*/
+
 	protected $_formElements = array();
 
 	/**
 	* Form action
 	* @var string
 	*/
+
 	protected $_action = "";
 
 	/**
 	* Form method
 	* @var string
 	*/
+
 	protected $_method = "post";
 
 	/**
 	* Form validators
 	* @var array
 	*/
+
 	protected $_validators = array();
 
 	/**
 	* Form errors
 	* @var array
 	*/
+
 	protected $_errors = array();
 
 	/**
 	* Element values
 	* @var array
 	*/
+
 	protected $_elementValues = array();
 
 
 	/**
 	* Class constructor
 	*/
+
 	public function __construct($form) {
 		if (is_array($form)) {
 			$this->setForm($form);
@@ -94,7 +103,9 @@ class DooForm extends DooValidator {
 	/**
 	* Set form construct it
 	*/
+
 	public function setForm($form) {
+
 		// set method
 		if (isset($form['method'])) {
 			$this->_setMethod($form['method']);
@@ -112,6 +123,7 @@ class DooForm extends DooValidator {
 	*
 	* @return string Form html
 	*/
+
 	public function render() {
 		$this->_addElements();
 		$formElements = $this->_formElements;
@@ -139,6 +151,7 @@ class DooForm extends DooValidator {
 	/**
 	* Set form action
 	*/
+
 	public function _setAction($action) {
 		$this->_action = (string)$action;
 	}
@@ -149,38 +162,38 @@ class DooForm extends DooValidator {
 	* Making form
 	* <code>
 	* $form = new DooForm(array(
-            'method' => 'post',
-            'action' => $action,
-            'elements' => array(
-                'username' => array('text', array(
-                    'required' => true,
-                    'label' => 'Username:',
-					'attributes' => array("style" => 'border:1px solid #000;', 'class' => 'mitar'),
-					'wrapper' => 'div'
-                )),
-				'profile_type' => array('select', array(
-                    'required' => true,
-					'multioptions' => array(1 => 'private', 2 => 'public'),
-					'label' => 'Profile type:'
-                )),
-                'password' => array('password', array(
-                    'required' => true,
-                    'label' => 'Password:'
-                )),
-                'looking_for' => array('MultiCheckbox', array(
-                    'required' => false,
-					'multioptions' => array(0 => 'love', 1 => 'hate', 3 => 'other'),
-                    'label' => 'I am looking for:'
-                )),
-                'submit' => array('submit', array(
-                    'label' => $this->translate("Edit password"),
-                    'order' => 100,
-                ))
-            ),
-        ));
+    *        'method' => 'post',
+    *        'action' => $action,
+    *        'elements' => array(
+    *            'username' => array('text', array(
+    *                'required' => true,
+    *                'label' => 'Username:',
+	*				'attributes' => array("style" => 'border:1px solid #000;', 'class' => 'mitar'),
+	*				'wrapper' => 'div'
+    *            )),
+	*			'profile_type' => array('select', array(
+    *                'required' => true,
+	*				'multioptions' => array(1 => 'private', 2 => 'public'),
+	*				'label' => 'Profile type:'
+    *            )),
+    *            'password' => array('password', array(
+    *                'required' => true,
+    *                'label' => 'Password:'
+    *            )),
+    *            'looking_for' => array('MultiCheckbox', array(
+    *                'required' => false,
+	*				'multioptions' => array(0 => 'love', 1 => 'hate', 3 => 'other'),
+    *                'label' => 'I am looking for:'
+    *            )),
+    *            'submit' => array('submit', array(
+    *                'label' => $this->translate("Edit password"),
+    *                'order' => 100,
+    *            ))
+    *        ),
+    *    ));
 	* </code>
 	*
-	* Then just do, it will return you form html.
+	* Then just render it, it will return you form html.
 	* <code>
 	* $this->view()->form = $form->render();
 	* </code>
@@ -190,6 +203,7 @@ class DooForm extends DooValidator {
 	* echo $this->form;
 	* </code>
 	*/
+
 	public function _addElements() {
 		$formHtml = "";
 		$formElements = "";
@@ -259,8 +273,14 @@ class DooForm extends DooValidator {
 					}
 					$elementHtml .= '</select></'.$elementWrapper.'>';
 					break;
+				// text area
+				case 'textarea':
+					 $elementHtml = '<'.$elementWrapper.' id="'.$element.'-element"><textarea '.$elementAttributes.' name="'.$element.'"/></textarea></'.$elementWrapper.'>';
+					break;
 				// checkbox
 				case 'checkbox':
+					$checked = (isset($elementValues[$element]) && ($elementValues[$element] == "on"))?'checked="checked"':'';
+					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element"><input '.$elementAttributes.' type="checkbox" name="'.$element.'" '.$checked.'/></'.$elementWrapper.'>';
 					break;
 				// multi checkbox (zomg), crazy shit
 				// Ok this multicheckbox for value gets and damn fucking array of elements because
@@ -368,8 +388,10 @@ class DooForm extends DooValidator {
 	* Validate form
 	*
 	* @var array Values for form, for example $_POST
+	*
 	* @return boolean True or false if form is not valid
 	*/
+
 	public function isValid($values) {
 		$valid = true;
 		$errors = array();
@@ -391,7 +413,8 @@ class DooForm extends DooValidator {
 			// handle captcha
 			if (isset($e[0]) && ($e[0] == 'captcha')) {
 				$sessionData = (isset($_SESSION['doo_captcha_'.$element]))?$_SESSION['doo_captcha_'.$element]:'';
-				$elementRules = array($element => array('equal', $sessionData));
+				$msg = (isset($e[1]['message']))?$e[1]['message']:null;
+				$elementRules = array($element => array('equal', $sessionData, $msg));
 				$errors[$element] = $v->validate($values, $elementRules);
 				if ($errors[$element]) unset($elementValues[$element]);
 			}
