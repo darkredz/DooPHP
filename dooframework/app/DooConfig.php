@@ -113,7 +113,13 @@ class DooConfig{
      * Output/processed comments block in the template files.
      * @var bool
      */
-    public $SHOW_TEMPLATE_COMMENT;
+    public $TEMPLATE_SHOW_COMMENT;
+
+    /**
+     * Always compile template files if true
+     * @var bool
+     */
+    public $TEMPLATE_COMPILE_ALWAYS;
 
     /**
      * Set the configurations. SITE_PATH, BASE_PATH and APP_URL is required
