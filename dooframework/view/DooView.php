@@ -142,7 +142,7 @@ class DooView {
         $this->data = $data;
         $this->controller = $controller;
         //includes user defined template tags for template use
-        include Doo::conf()->SITE_PATH . 'protected/plugin/template_tags.php';
+        include_once Doo::conf()->SITE_PATH . 'protected/plugin/template_tags.php';
         include Doo::conf()->SITE_PATH . "protected/viewc/$file.php";
     }
 
@@ -175,14 +175,18 @@ class DooView {
      */
     public function render($file, $data=NULL, $process=NULL, $forceCompile=false){
 
+        if(isset(Doo::conf()->TEMPLATE_COMPILE_ALWAYS) && Doo::conf()->TEMPLATE_COMPILE_ALWAYS==true){
+            $process = $forceCompile = true;
+        }
         //if process not set, then check the app mode, if production mode, skip the process(false) and just include the compiled files
-        if($process===NULL)
+        else if($process===NULL){
             $process = (Doo::conf()->APP_MODE!='prod');
+        }
 
         //just include the compiled file if process is false
         if($process!=true){
             //includes user defined template tags for template use
-            include Doo::conf()->SITE_PATH . 'protected/plugin/template_tags.php';
+            include_once Doo::conf()->SITE_PATH . 'protected/plugin/template_tags.php';
             include Doo::conf()->SITE_PATH . "protected/viewc/$file.php";
         }
         else{
@@ -193,7 +197,13 @@ class DooView {
             if(!$forceCompile){
                 if(file_exists($cfilename)){
                     if(filemtime($cfilename)>=filemtime($vfilename)){
-                        include Doo::conf()->SITE_PATH . 'protected/plugin/template_tags.php';
+                        include_once Doo::conf()->SITE_PATH . 'protected/plugin/template_tags.php';
+                        if(!isset(Doo::conf()->TEMPLATE_TAGS)){
+                            foreach($template_tags as $k=>$v ){
+                                $template_tags[$k] = strtolower($v);
+                            }
+                            Doo::conf()->add('TEMPLATE_TAGS', $template_tags);
+                        }
                         include $cfilename;
                         return;
                     }
@@ -216,11 +226,16 @@ class DooView {
         
         //includes user defined template tags and checks for the tag and compile.
         if($this->tags===NULL){
-            include Doo::conf()->SITE_PATH . 'protected/plugin/template_tags.php';
-            foreach($template_tags as $k=>$v ){
-                $template_tags[$k] = strtolower($v);
+            if(!isset(Doo::conf()->TEMPLATE_TAGS)){
+                include_once Doo::conf()->SITE_PATH . 'protected/plugin/template_tags.php';
+                foreach($template_tags as $k=>$v ){
+                    $template_tags[$k] = strtolower($v);
+                }
+                Doo::conf()->add('TEMPLATE_TAGS', $template_tags);
+                $this->tags = $template_tags;
+            }else{
+                $this->tags = Doo::conf()->TEMPLATE_TAGS;
             }
-            $this->tags = $template_tags;
         }
 
         //--------------------------- Parsing -----------------------------
@@ -273,8 +288,10 @@ class DooView {
         $str = preg_replace_callback('/<!-- include [\'\"]{1}([^\t\r\n\"]+).*[\'\"]{1} -->/', array( &$this, 'convertInclude'), $str);
 
         //remove comments
-        if(!isset(Doo::conf()->SHOW_TEMPLATE_COMMENT) || Doo::conf()->SHOW_TEMPLATE_COMMENT!=true){
-            $str = preg_replace('/<!-- comment -->.+<!-- endcomment -->/s', '', $str);
+        if(!isset(Doo::conf()->TEMPLATE_SHOW_COMMENT) || Doo::conf()->TEMPLATE_SHOW_COMMENT!=true){
+            //$str = preg_replace('/<!-- comment -->.+<!-- endcomment -->/s', '', $str);
+            $str = str_replace('<!-- comment -->', '<?php /** ', $str);
+            $str = str_replace('<!-- endcomment -->', ' */ ?>', $str);
         }
         
         //-------------------- Compiling -------------------------
