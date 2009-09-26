@@ -87,6 +87,13 @@ class DooForm extends DooValidator {
 
 	protected $_elementValues = array();
 
+	/**
+	* Form enctype
+	* @var string
+	*/
+
+	protected $_enctype = null;
+
 
 	/**
 	* Class constructor
@@ -116,6 +123,9 @@ class DooForm extends DooValidator {
 		if (isset($form['elements'])) {
 			$this->_elements = $form['elements'];
 		}
+		if (isset($form['enctype'])) {
+			$this->_enctype = $form['enctype'];
+		}
 	}
 
 	/**
@@ -128,7 +138,8 @@ class DooForm extends DooValidator {
 		$this->_addElements();
 		$formElements = $this->_formElements;
 		$errors = $this->_errors;
-		$formHtml = '<form action="'.$this->_action . '" method="'.$this->_method.'" class="doo-form">';
+		$enctype = (isset($this->_enctype) && ($this->_enctype = 'multipart/form-data'))?'enctype="'.$this->_enctype.'"':'';
+		$formHtml = '<form action="'.$this->_action . '" method="'.$this->_method.'" '.$enctype.' class="doo-form">';
 		foreach ($formElements as $element => $e) {
 			$formHtml .= $formElements[$element];
 			if ((count($this->_errors) > 0) && (isset($errors[$element]))) {
@@ -207,10 +218,18 @@ class DooForm extends DooValidator {
 	public function _addElements() {
 		$formHtml = "";
 		$formElements = "";
+		$elementValues = array();
 		foreach ($this->_elements as $element => $k) {
+
 			$elementHtml = "";
 			$elementAttributes = "";
 			$elementRequred = (isset($k[1]['required']) && ($k[1]['required'] == 1))?'requred="true"':'';
+
+			// add element values
+			 if (isset($k[1]['value'])) {
+				$elementValues[$element] = $k[1]['value'];
+				//$this->_elementValues = $elementValues;
+			 }
 			// handle element attributes
 			if (isset($k[1]['attributes']) && count($k[1]['attributes']) > 0) { // there are element attributes handle them
 				foreach ($k[1]['attributes'] as $attribute => $a) {
@@ -218,10 +237,7 @@ class DooForm extends DooValidator {
 				}
 			}
 			// handle values for all fields except select, multicheckbox, checkbox, radio...
-
-			if (count($this->_elementValues) > 0) {
-				if (($k[0] != 'select') && ($k[0] != 'MultiCheckbox') && ($k[0] != 'MultiRadio') && ($k[0] != 'checkbox'))
-				$elementValues = $this->_elementValues;
+			if (($k[0] != 'select') && ($k[0] != 'MultiCheckbox') && ($k[0] != 'MultiRadio') && ($k[0] != 'checkbox') && ($k[0] != 'textarea')) {
 				if (isset($elementValues[$element])) {
 					$elementAttributes .= ' value="'.$elementValues[$element].'"';
 				}
@@ -254,6 +270,9 @@ class DooForm extends DooValidator {
 				case 'hidden':
 					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element"><input '.$elementAttributes.' type="hidden" name="'.$element.'"/></'.$elementWrapper.'>';
 					break;
+				case 'file':
+					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element"><input '.$elementAttributes.' type="file" name="'.$element.'"/></'.$elementWrapper.'>';
+					break;
 				// select
 				case 'select':
 					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element" '.$elementRequred.'><select '.$elementAttributes.' name="'.$element.'"/>';
@@ -275,7 +294,8 @@ class DooForm extends DooValidator {
 					break;
 				// text area
 				case 'textarea':
-					 $elementHtml = '<'.$elementWrapper.' id="'.$element.'-element"><textarea '.$elementAttributes.' name="'.$element.'"/></textarea></'.$elementWrapper.'>';
+					$text =(isset($elementValues[$element]))?$elementValues[$element]:'';
+					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element"><textarea '.$elementAttributes.' name="'.$element.'"/>'.$text.'</textarea></'.$elementWrapper.'>';
 					break;
 				// checkbox
 				case 'checkbox':
@@ -382,6 +402,7 @@ class DooForm extends DooValidator {
 			$formElements[$element] = $elementHtml;
 		}
 		$this->_formElements = $formElements;
+		$this->_elementValues = $elementValues;
 	}
 
 	/**
@@ -417,6 +438,29 @@ class DooForm extends DooValidator {
 				$elementRules = array($element => array('equal', $sessionData, $msg));
 				$errors[$element] = $v->validate($values, $elementRules);
 				if ($errors[$element]) unset($elementValues[$element]);
+			}
+			// handle file
+			if (isset($e[0]) && ($e[0] == 'file')) {
+				// if there is file check if file exists
+				if (isset($_FILES[$element])) {
+					// check file extension
+					if (isset($e[1]['extension'])) {
+						$extensions = array();
+						echo $_FILES[$element]['name'];
+						@$extension = end(explode('.', $_FILES[$element]['name']));
+						$extensions = explode(',', $e[1]['extension']);
+						if (!in_array($extension, $extensions)) $errors[$element] = array('File must have ' . $e[1]['extension'] . ' extension.');
+
+					}
+					// check file size
+					if (isset($e[1]['size'])) {
+						if ($e[1]['size'] < $_FILES[$element]['size']) $errors[$element] = array('File is too big!');
+					}
+				} else {
+					if (isset($e[1]['required']) && $e[1]['required'] == 1)  {
+						$errors[$element][] =  array('File for upload is required.');
+					}
+				}
 			}
 		}
 		// set values
