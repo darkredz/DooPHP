@@ -47,7 +47,6 @@ class DooWebApp{
 
         if($routeRs[0]!=NULL && $routeRs[1]!=NULL){
             //dispatch, call Controller class
-            #echo "<h1>Dispatched!</h1>{$routeRs[0]}->{$routeRs[1]}<br>";
             require_once(Doo::conf()->BASE_PATH ."controller/DooController.php");
             require_once(Doo::conf()->SITE_PATH ."protected/controller/{$routeRs[0]}.php");
             if(strpos($routeRs[0], '/')!==FALSE){
@@ -136,7 +135,99 @@ class DooWebApp{
             header('HTTP/1.1 404 Not Found');
         $this->route_to();
     }
-    
+
+    /**
+     * Process a module.
+     *
+     * <p>This is similar to rerouting to a Controller. The framework offer 3 ways to process and render a module.</p>
+     *
+     * <p>Based on a predefined route:</p>
+     * <code>
+     * # The route is predefined in routes.conf.php
+     * # $route['*']['/top/:nav'] = array('MyController', 'renderTop');
+     * $data['top'] = Doo::app()->module('/top/banner');
+     * </code>
+     *
+     * <p>Based on Controller name and Action method:</p>
+     * <code>
+     * Doo::app()->module('MyController', 'renderTop');
+     *
+     * # If controller is in sub folder
+     * Doo::app()->module('folder/MyController', 'renderTop');
+     *
+     * # Passed in parameter if controller is using $this->param['var']
+     * Doo::app()->module('MyController', 'renderTop', array('nav'=>'banner'));
+     * </code>
+     *
+     * <p>If class name is different from controller filename:</p>
+     * <code>
+     * # filename is index.php, class name is Admin
+     * Doo::app()->module(array('index', 'Admin'), 'renderTop');
+     *
+     * # in a sub folder
+     * Doo::app()->module(array('admin/index', 'Admin'), 'renderTop');
+     *
+     * # with parameters
+     * Doo::app()->module(array('admin/index', 'Admin'), 'renderTop', array('nav'=>'banner'));
+     * </code>
+     *
+     * @param string|array $moduleUri URI or Controller name of the module
+     * @param string $action Action to be called
+     * @param array $params Parameters to be passed in to the Module
+     * @return string Output of the module
+     */
+    public function module($moduleUri, $action=null, $params=null){
+        if($moduleUri[0]=='/'){
+            if(Doo::conf()->SUBFOLDER!='/')
+                $_SERVER['REQUEST_URI'] = substr(Doo::conf()->SUBFOLDER, 0, strlen(Doo::conf()->SUBFOLDER)-1) . $moduleUri;
+            else
+                $_SERVER['REQUEST_URI'] = $moduleUri;
+
+            ob_start();
+            $this->route_to();
+            $data = ob_get_contents();
+            ob_end_clean();
+            return $data;
+        }
+        //if Controller name passed in:  Doo::app()->module('admin/SomeController', 'login',  array('nav'=>'home'));
+        else if(is_string($moduleUri)){
+            $controller_name = $moduleUri;
+            if(strpos($moduleUri, '/')!==false){
+                $arr = explode('/', $moduleUri);
+                $controller_name = $arr[sizeof($arr)-1];
+            }
+            print_r($controller_name);
+            require_once Doo::conf()->SITE_PATH ."protected/controller/$moduleUri.php";
+            $controller = new $controller_name;
+            $controller->params = $params;
+            if($rs = $controller->beforeRun($controller_name, $action)){
+                $this->throwHeader( $rs );
+                return;
+            }
+            ob_start();
+            $this->throwHeader( $controller->{$action}() );
+            $data = ob_get_contents();
+            ob_end_clean();
+            return $data;
+        }
+        //if array passed in. For controller file name != controller class name.
+        //eg. Doo::app()->module(array('admin/Admin', 'AdminController'), 'login',  array('nav'=>'home'));
+        else{
+            require_once Doo::conf()->SITE_PATH ."protected/controller/{$moduleUri[0]}.php";
+            $controller = new $moduleUri[1];
+            $controller->params = $params;
+            if($rs = $controller->beforeRun($moduleUri[1], $action)){
+                $this->throwHeader( $rs );
+                return;
+            }
+            ob_start();
+            $this->throwHeader( $controller->{$action}() );
+            $data = ob_get_contents();
+            ob_end_clean();
+            return $data;
+        }
+    }
+
     /**
      * Analyze controller return value and send appropriate headers such as 404, 302, 301, redirect to internal routes.
      *
