@@ -218,7 +218,7 @@ class DooForm extends DooValidator {
 	public function _addElements() {
 		$formHtml = "";
 		$formElements = "";
-		$elementValues = array();
+		$elementValues = $this->_elementValues;
 		foreach ($this->_elements as $element => $k) {
 
 			$elementHtml = "";
@@ -390,8 +390,8 @@ class DooForm extends DooValidator {
 						// add value to session
 						$_SESSION['doo_captcha_'.$element] = $string;
 						if (is_dir($k[1]['directory'])) {
-							imagejpeg($captcha, $k[1]['directory'] . '/'.$string.'.jpg');
-							$elementHtml .= '<'.$elementWrapper.' id="'.$element.'-element"><img class="doo-captcha-image" height="50" width="120" src="'.$k[1]['url'].$string.'.jpg"/><br/>'.
+							imagejpeg($captcha, $k[1]['directory'] . '/'.md5($string).'.jpg');
+							$elementHtml .= '<'.$elementWrapper.' id="'.$element.'-element"><img class="doo-captcha-image" height="50" width="120" src="'.$k[1]['url'].md5($string).'.jpg"/><br/>'.
 							'<'.$elementWrapper.' id="'.$element.'-label"><label for="'.$element.'" '.$elementRequred.'>'. $k[1]['label'] . '</label></'.$elementWrapper.'>'.
 							'<input size="'.strlen($string).'" '.$elementAttributes.' type="text" name="'.$element.'" '.$elementRequred.' class="doo-captcha-text" /></'.$elementWrapper.'>';
 						} else throw new Exception("Cant create captcha there is no captcha directory: " . $k[1]['directory']);
@@ -433,11 +433,15 @@ class DooForm extends DooValidator {
 			}
 			// handle captcha
 			if (isset($e[0]) && ($e[0] == 'captcha')) {
-				$sessionData = (isset($_SESSION['doo_captcha_'.$element]))?$_SESSION['doo_captcha_'.$element]:'';
+				$sessionData = (isset($_SESSION['doo_captcha_'.$element]))?md5($_SESSION['doo_captcha_'.$element]):'';
 				$msg = (isset($e[1]['message']))?$e[1]['message']:null;
 				$elementRules = array($element => array('equal', $sessionData, $msg));
+				$values[$element] = md5($values[$element]);
 				$errors[$element] = $v->validate($values, $elementRules);
-				if ($errors[$element]) unset($elementValues[$element]);
+				if ($errors[$element])
+					unset($elementValues[$element]);
+				// delete captcha if captcha is good
+				if (isset($e[1]['url']) && file_exists($e[1]['directory'].'/'.$sessionData.".jpg")) unlink($e[1]['directory'].'/'.$sessionData.".jpg");
 			}
 			// handle file
 			if (isset($e[0]) && ($e[0] == 'file')) {
