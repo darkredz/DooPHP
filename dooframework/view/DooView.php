@@ -541,7 +541,10 @@ class DooView {
                 $varname = "\$data['".$matches[2]."']";
             }
         }
-
+        
+        $varname = str_replace("\$data[''", "'", $varname);
+        $varname = str_replace("'']", "'", $varname);
+        
         if($args==='')
             return "<?php echo {$matches[1]}($varname); ?>";
         else
