@@ -196,7 +196,6 @@ class DooWebApp{
                 $arr = explode('/', $moduleUri);
                 $controller_name = $arr[sizeof($arr)-1];
             }
-            print_r($controller_name);
             require_once Doo::conf()->SITE_PATH ."protected/controller/$moduleUri.php";
             $controller = new $controller_name;
             $controller->params = $params;
