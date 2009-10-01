@@ -463,7 +463,11 @@ class DooView {
                 $args = '';
                 foreach ($params as $p) {
                    $k = trim($p);
-                   if (preg_match('/^([a-z0-9_\.\@]+)$/i', $k)) {
+                   if (preg_match('/^[0-9]*\\.?[0-9]{0,}$/', $k)){
+                        $args .= "$k,";
+                        continue;
+                   }
+                   else if (preg_match('/^([a-z0-9_\.\@]+)$/i', $k)) {
                        //if more than 1 dots, eg. users.total.pdf
                        $vname='';
                         if(strpos($k, '@')!==FALSE){
@@ -476,7 +480,11 @@ class DooView {
                         }
                         //only 1 dot, users.john
                         else{
-                            $vname = "['".$k."']";
+                            if(intval($k)==$k && strlen(intval($k))==strlen($k)){
+                                $args .= "$k,";
+                                continue;
+                            }else
+                                $vname = "['".$k."']";
                         }
                        $args .= "\$data$vname,";
                    } else {
@@ -560,7 +568,11 @@ class DooView {
                 $args = '';
                 foreach ($params as $p) {
                    $k = trim($p);
-                   if (preg_match('/^([a-z0-9_\.\@]+)$/i', $k)) {
+                   if (preg_match('/^[0-9]*\\.?[0-9]{0,}$/', $k)){
+                        $args .= "$k,";
+                        continue;
+                   }
+                   else if (preg_match('/^([a-z0-9_\.\@]+)$/i', $k)) {
                        //if more than 1 dots, eg. users.total.pdf
                        $vname='';
                         if(strpos($k, '@')!==FALSE){
@@ -573,7 +585,11 @@ class DooView {
                         }
                         //only 1 dot, users.john
                         else{
-                            $vname = "['".$k."']";
+                            if(intval($k)==$k && strlen(intval($k))==strlen($k)){
+                                $args .= "$k,";
+                                continue;
+                            }else
+                                $vname = "['".$k."']";
                         }
                        $args .= "\$data$vname,";
                    } else {
