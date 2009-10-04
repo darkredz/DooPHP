@@ -439,7 +439,7 @@ class DooView {
         if(isset ($dynamicFilename) )
             return $dynamicFilename;
             
-        return '<?php include "'.$cfilename.'"; ?>';
+        return '<?php include "./protected/viewc/'.$file.'.php"; ?>';
     }
 
 
