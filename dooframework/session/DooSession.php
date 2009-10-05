@@ -144,7 +144,7 @@ class DooSession {
 	*
 	* @return boolean
 	*/
-	public static function isDestroyed() {
+	public function isDestroyed() {
 		return $this->_sessionDestroyed;
 	}
 
