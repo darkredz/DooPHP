@@ -165,12 +165,7 @@ class DooAuth {
      * @return <Mixed>
      */
     public function securityToken() {
-        $ad = $this->app_session->AuthData;
-        if (isset ($ad)) {
-            $ad['sec_token'] = uniqid(rand(), true);
-            return $ad['sec_token'];
-        }
-        return false;
+        return uniqid(rand(), true);
     }
 
     /**
