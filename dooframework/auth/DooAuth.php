@@ -12,88 +12,97 @@
 class DooAuth {
     /**
      * HIGH security level
-     * @var <Integer> 
+     * @var integer
      */
-    public static $HIGH_LEVEL = 1;
+    const HIGH_LEVEL = 1;
     /**
      * MEDIUM security level
-     * @var <Integer>
+     * @var integer
      */
-    public static $MEDIUM_LEVEL = 2;
+    const MEDIUM_LEVEL = 2;
     /**
      * LOW security level
-     * @var <Integer>
+     * @var integer
      */
-    public static $LOW_LEVEL = 3;
+    const LOW_LEVEL = 3;
     /**
      * Discarded form indicator
-     * @var <Integer>
+     * @var integer
      */
-    public static $FORM_DISCARDED = 1;
+    const FORM_DISCARDED = 1;
     /**
      * Timeout form indicator
-     * @var <Integer>
+     * @var integer
      */
-    public static $FORM_TIMEOUT = 2;
+    const FORM_TIMEOUT = 2;
     /**
      * DooSession instance
-     * @var <DooSession>
+     * @var DooSession
      */
-    public $app_session;
+    protected $appSession;
     /**
      * Application name
-     * @var <String>
+     * @var string
      */
-    public $app_name;
+    protected $appName;
     /**
      * A random string for hashing
-     * @var <String>
+     * @var string
      */
-    public $salt = 'DYhG93b0qyJfHxfs2tuVoUubWwvjiR4G0FgaC9mi'; //For default. Please, change!!
+    protected $salt;
     /**
      * maximum time for downtime
-     * $max_downtime = 0 , off downtime check
-     * @var <Integer>
+     * @var integer
      */
-    public $max_downtime = 60; //time in seconds
+    protected $authSessionExpire = 60; //time in seconds
     /**
      * Security level
-     * @var <Integer>
+     * @var integer
      */
-    public $security_level;
+    protected $securityLevel;
     /**
      * Maximun time for form timeout
-     * @var <Integer>
+     * @var integer
      */
-    public $max_allowed_time = 60; //time frame - in seconds
+    protected $authPostWait = 60; //time frame - in seconds
     /**
      * Minimun time for form timeout
-     * @var <Integer>
+     * @var integer
      */
-    public $min_allowed_time = 20; //time frame - in seconds
+    protected $authPostExpire = 20; //time frame - in seconds
+    /**
+     * Session authentication data
+     * @var array
+     */
+    protected $authData;
+    /**
+     * Indicator for valid authetication
+     * @var boolean
+     */
+    protected $isValid = false;
 
     /**
      * Constructor - returns an instance object of DooAuth
      */
-    public function __construct($app_name=null) {
-        $this->app_session = Doo::session(isset ($app_name) ? $app_name : 'generic_app_name');
-        $this->security_level = self::$LOW_LEVEL; //For default
+    public function __construct($appName) {
+        $this->setApplicationName($appName);
     }
 
     /**
-     * Get auth data
-     * @return <Mixed>
+     * Start auth component
      */
-    public function getData() {
-        return ($this->isValid() ? $this->app_session->AuthData : false);
+    public function start() {
+        $this->appSession = Doo::session($this->getApplicationName());
+        $this->authData = $this->appSession->AuthData;
+        $this->validate();
     }
 
     /**
      * Finalize autentication
      */
     public function finalize() {
-        if (!$this->app_session->isDestroyed())
-            $this->app_session->destroy();
+        if (!$this->appSession->isDestroyed())
+            $this->appSession->destroy();
     }
 
     /**
@@ -102,33 +111,33 @@ class DooAuth {
      * @param <Mixed> User group
      */
     public function setData($username, $group=FALSE) {
-        $this->app_session->AuthData = array();
-        $this->app_session->AuthData['username'] = $username;
-        $this->app_session->AuthData['group'] = $group;
-        $this->app_session->AuthData['security_level'] = $this->security_level;
-        $this->app_session->AuthData['time'] = time();
-        switch ($this->security_level) {
-            case self::$HIGH_LEVEL:
-                $this->app_session->AuthData['initialized'] = true;
-                $this->app_session->AuthData['fingerprint'] = md5($_SERVER['HTTP_USER_AGENT'].$this->salt);
+        $this->appSession->AuthData = array();
+        $this->appSession->AuthData['_username'] = $username;
+        $this->appSession->AuthData['_group'] = $group;
+        $this->appSession->AuthData['_securityLevel'] = $this->getSecurityLevel();
+        $this->appSession->AuthData['_time'] = time();
+        switch ($this->securityLevel) {
+            case self::HIGH_LEVEL:
+                $this->appSession->AuthData['_initialized'] = true;
+                $this->appSession->AuthData['_fingerprint'] = md5($_SERVER['HTTP_USER_AGENT'].$this->getSalt());
                 session_regenerate_id();
-                $this->app_session->AuthData['id'] = md5($this->app_session->getId());
-                $this->app_session->AuthData['max_downtime'] = $this->max_downtime * 15;
-                $this->app_session->AuthData['max_allowed_time'] = $this->max_allowed_time * 11; //~25% of max_downtime
-                $this->app_session->AuthData['min_allowed_time'] = $this->min_allowed_time;
+                $this->appSession->AuthData['_id'] = md5($this->appSession->getId());
+                $this->appSession->AuthData['_authSessionExpire'] = $this->getSessionExpire() * 15;
+                $this->appSession->AuthData['_authPostWait'] = $this->getPostWait() * 11; //~25% of authSessionExpire
+                $this->appSession->AuthData['_authPostExpire'] = $this->getPostExpire();
                 break;
-            case self::$MEDIUM_LEVEL:
-                $this->app_session->AuthData['initialized'] = true;
-                $this->app_session->AuthData['fingerprint'] = md5($_SERVER['HTTP_USER_AGENT'].$this->salt);
-                $this->app_session->AuthData['max_downtime'] = $this->max_downtime * 120;
-                $this->app_session->AuthData['max_allowed_time'] = $this->max_allowed_time * 60; //~50% of max_downtime
-                $this->app_session->AuthData['min_allowed_time'] = $this->min_allowed_time;
+            case self::MEDIUM_LEVEL:
+                $this->appSession->AuthData['_initialized'] = true;
+                $this->appSession->AuthData['_fingerprint'] = md5($_SERVER['HTTP_USER_AGENT'].$this->getSalt());
+                $this->appSession->AuthData['_authSessionExpire'] = $this->getSessionExpire() * 120;
+                $this->appSession->AuthData['_authPostWait'] = $this->getPostWait() * 60; //~50% of authSessionExpire
+                $this->appSession->AuthData['_authPostExpire'] = $this->getPostExpire();
                 break;
-            case self::$LOW_LEVEL:
-                $this->app_session->AuthData['initialized'] = true;
-                $this->app_session->AuthData['max_downtime'] = $this->max_downtime * 360;
-                $this->app_session->AuthData['max_allowed_time'] = $this->max_allowed_time * 90; //~75% of max_downtime
-                $this->app_session->AuthData['min_allowed_time'] = $this->min_allowed_time;
+            case self::LOW_LEVEL:
+                $this->appSession->AuthData['_initialized'] = true;
+                $this->appSession->AuthData['_authSessionExpire'] = $this->getSessionExpire() * 360;
+                $this->appSession->AuthData['_authPostWait'] = $this->getPostWait() * 90; //~75% of authSessionExpire
+                $this->appSession->AuthData['_authPostExpire'] = $this->getPostExpire();
                 break;
             default:
                 break;
@@ -136,26 +145,22 @@ class DooAuth {
     }
 
     /**
-     * Verify user session
+     * Validate authentication data
      * @see http://phpsec.org/projects/guide/4.html
      * @see http://www.serversidemagazine.com/php/session-hijacking
      * @return <Boolean>
      */
-    public function isValid() {
-        $ad = $this->app_session->AuthData;
-        if (isset ($ad)) {
-            $downtime = ((time()-$ad['time']) > $ad['max_downtime']) ;
-            if (!$ad['initialized'] || !isset ($ad['username']) || $downtime)
-                return false;
-            if (($ad['security_level']==self::$MEDIUM_LEVEL || $ad['security_level']==self::$HIGH_LEVEL)
-                && $ad['fingerprint'] != md5($_SERVER['HTTP_USER_AGENT'].$this->salt))
-                return false;
-            if ($ad['security_level']==self::$HIGH_LEVEL && $ad['id']!=md5($this->app_session->getId()))
-                return false;
-            $this->app_session->AuthData['time'] = time();
-            return true;
-        }
-        return false;
+    public function validate() {
+        if (isset ($this->authData)) {
+            if (    ($this->_securityLevel==self::LOW_LEVEL && ($this->_initialized || isset ($this->_username) || ((time()-$this->_time) <= $this->_authSessionExpire))) || //LOW_LEVEL
+                    (($this->_securityLevel==self::MEDIUM_LEVEL || $this->_securityLevel==self::HIGH_LEVEL) //MEDIUM_LEVEL
+                         && $this->_fingerprint == md5($_SERVER['HTTP_USER_AGENT'].$this->getSalt())) ||
+                    ($this->_securityLevel==self::HIGH_LEVEL && $this->_id==md5($this->appSession->getId())) ) { //HIGH_LEVEL
+                $this->_time = time();
+                $this->isValid = true;
+            }
+        } else
+            $this->isValid = false;
     }
 
     /**
@@ -165,26 +170,111 @@ class DooAuth {
      * @return <Mixed>
      */
     public function securityToken() {
-        return uniqid(rand(), true);
-    }
-
-    /**
-     * Validate security token
-     * @see http://www.serversidemagazine.com/php/php-security-measures-against-csrf-attacks
-     * @return <Mixed>
-     */
-    public function validateSecurityToken() {
-        $ad = $this->app_session->AuthData;
-        if (isset ($ad)) {
-            $time = time() - $ad['time'];
-            if ($time < $ad['min_allowed_time'])
-                return self::$FORM_DISCARDED;
-            elseif ($time > $ad['max_allowed_time'])
-                return self::$FORM_TIMEOUT;
-            else
-                return true;
+        if ($this->isValid()) {
+            $this->appSession->AuthData['_formToken'] = uniqid(rand(), true);
+            return $this->_formToken;
         }
         return false;
     }
+
+    /**
+     * Validate form with security token
+     * @see http://www.serversidemagazine.com/php/php-security-measures-against-csrf-attacks
+     * @return <Mixed>
+     */
+    public function validateForm($receivedToken) {
+        if ($this->isValid && isset($receivedToken)) {
+            if ($this->_formToken!=$receivedToken)
+                return false;
+            $time = time() - $this->_time;
+            if ($time < $this->_authPostExpire)
+                return self::$FORM_DISCARDED;
+            elseif ($time > $this->_authPostWait)
+                return self::$FORM_TIMEOUT;
+            return true;
+        }
+        return false;
+    }
+
+    /////////// SETTERs & GETTERs ////////////
+    public function setApplicationName($appName) {
+        if (!isset ($appName))
+            throw new DooAuthException("Application name cannot be empty");
+        $this->appName = $appName;
+    }
+    public function getApplicationName() {
+        if (!isset ($this->appName))
+            throw new DooAuthException("Application name not defined");
+        return $this->appName;
+    }
+    public function setSalt($salt) {
+        if (!isset ($salt))
+            throw new DooAuthException("Salt cannot be empty");
+        $this->salt = $salt;
+    }
+    public function getSalt() {
+        if (!isset ($this->salt))
+            throw new DooAuthException("Salt not defined");
+        return $this->salt;
+    }
+    public function setSecurityLevel($securityLevel) {
+        if (!isset ($securityLevel))
+            throw new DooAuthException("Security level cannot be empty");
+        $this->securityLevel = $securityLevel;
+    }
+    public function getSecurityLevel() {
+        if (!isset ($this->securityLevel))
+            throw new DooAuthException("Security level not defined");
+        return $this->securityLevel;
+    }
+    public function setSessionExpire($sessionExpire) {
+        if (!isset ($sessionExpire))
+            throw new DooAuthException("Session expire cannot be empty");
+        $this->authSessionExpire = $sessionExpire;
+    }
+    public function getSessionExpire() {
+        if (!isset ($this->authSessionExpire))
+            throw new DooAuthException("Session expire not defined");
+        return $this->authSessionExpire;
+    }
+    public function setPostExpire($postExpire) {
+        if (!isset ($postExpire))
+            throw new DooAuthException("Post expire cannot be empty");
+        $this->authPostExpire = $postExpire;
+    }
+    public function getPostExpire() {
+        if (!isset ($this->authPostExpire))
+            throw new DooAuthException("Post expire not defined");
+        return $this->authPostExpire;
+    }
+    public function setPostWait($postWait) {
+        if (!isset ($postWait))
+            throw new DooAuthException("Post wait cannot be empty");
+        $this->authPostWait = $postWait;
+    }
+    public function getPostWait() {
+        if (!isset ($this->authPostWait))
+            throw new DooAuthException("Post wait not defined");
+        return $this->authPostWait;
+    }
+    public function isValid() {
+        return $this->isValid;
+    }
+
+    ////////////////// Magic ////////////////////
+    public function  __set($name,  $value) {
+        if (!isset ($this->authData))
+            throw new DooAuthException("authentication data not initialized");
+        return $this->authData[$name] = $value;
+    }
+    public function  __get($name) {
+        if (!isset ($this->authData))
+            throw new DooAuthException("authentication data not initialized");
+        return $this->authData[$name];
+    }
+}
+
+class DooAuthException extends Exception {
+    
 }
 ?>
