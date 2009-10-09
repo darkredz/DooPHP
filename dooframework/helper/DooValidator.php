@@ -448,7 +448,9 @@ class DooValidator {
      * @return string
      */
     public function testEmail($value, $msg=null){
-        if(!preg_match('/^\w[-.\w]*@([-a-z0-9]+\.)+[a-z]{2,4}$/i', $value)){
+        if(!preg_match('/^\w[-.\w]*@([-a-z0-9]+\.)+[a-z]{2,4}$/i', $value) ||
+            strpos($value, '--')!==False || strpos($value, '-.')!==False
+        ){
             if($msg!==null) return $msg;
             return 'Invalid email format!';
         }
