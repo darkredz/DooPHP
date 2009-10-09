@@ -126,7 +126,8 @@ class DooModelGen{
                                 $rule[] = array('maxlength', intval($ftype[2]));
                             }
                         }
-						if(strtolower($f['Null'])=='no' && (strpos(strtolower($f['Extra']), 'auto_increment') !== false))
+
+						if(strtolower($f['Null'])=='no' && (strpos(strtolower($f['Extra']), 'auto_increment') === false))
                             $rule[] = array('notnull');
                         else
                             $rule[] = array('optional');
