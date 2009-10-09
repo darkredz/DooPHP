@@ -48,7 +48,7 @@ class DooWebApp{
         if($routeRs[0]!=NULL && $routeRs[1]!=NULL){
             //dispatch, call Controller class
             require_once(Doo::conf()->BASE_PATH ."controller/DooController.php");
-            require_once(Doo::conf()->SITE_PATH ."protected/controller/{$routeRs[0]}.php");
+            require_once(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/{$routeRs[0]}.php");
             if(strpos($routeRs[0], '/')!==FALSE){
                 $clsname = explode('/', $routeRs[0]);
                 $routeRs[0] = $clsname[ sizeof($clsname)-1 ];
@@ -86,7 +86,7 @@ class DooWebApp{
         else if(Doo::conf()->AUTOROUTE){
             
             list($controller_name, $method_name, $params )= $router->auto_connect(Doo::conf()->SUBFOLDER);
-            $controller_file = Doo::conf()->SITE_PATH ."protected/controller/{$controller_name}.php";
+            $controller_file = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/{$controller_name}.php";
 
             if(file_exists($controller_file)){
                 require_once(Doo::conf()->BASE_PATH ."controller/DooController.php");
@@ -196,7 +196,7 @@ class DooWebApp{
                 $arr = explode('/', $moduleUri);
                 $controller_name = $arr[sizeof($arr)-1];
             }
-            require_once Doo::conf()->SITE_PATH ."protected/controller/$moduleUri.php";
+            require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/$moduleUri.php";
             $controller = new $controller_name;
             $controller->params = $params;
             if($rs = $controller->beforeRun($controller_name, $action)){
@@ -212,7 +212,7 @@ class DooWebApp{
         //if array passed in. For controller file name != controller class name.
         //eg. Doo::app()->module(array('admin/Admin', 'AdminController'), 'login',  array('nav'=>'home'));
         else{
-            require_once Doo::conf()->SITE_PATH ."protected/controller/{$moduleUri[0]}.php";
+            require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/{$moduleUri[0]}.php";
             $controller = new $moduleUri[1];
             $controller->params = $params;
             if($rs = $controller->beforeRun($moduleUri[1], $action)){

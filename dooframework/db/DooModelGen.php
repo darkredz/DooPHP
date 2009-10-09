@@ -164,7 +164,7 @@ class DooModelGen{
            }
            $filestr .= "}\n?>";
 
-           $handle = fopen(Doo::conf()->SITE_PATH . "/protected/model/$classname.php", 'w+');
+           $handle = fopen(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "model/$classname.php", 'w+');
            fwrite($handle, $filestr);
            fclose($handle);
            echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";                        
@@ -250,7 +250,7 @@ class DooModelGen{
            $filestr .= "    public \$_primarykey = '$pkey';\n";
            $filestr .= "    public \$_fields = array('$fieldnames');\n";
            $filestr .= "}\n?>";
-           $handle = fopen(Doo::conf()->SITE_PATH . "/protected/model/$classname.php", 'w+');
+           $handle = fopen(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "model/$classname.php", 'w+');
            fwrite($handle, $filestr);
            fclose($handle);
            echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";

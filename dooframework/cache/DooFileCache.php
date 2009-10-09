@@ -27,7 +27,7 @@ class DooFileCache {
             if(isset(Doo::conf()->CACHE_PATH))
                 $this->_directory = Doo::conf()->CACHE_PATH;
             else
-                $this->_directory = Doo::conf()->SITE_PATH . 'protected/cache/';
+                $this->_directory = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'cache/';
         }else{
             $this->_directory = $path;
         }

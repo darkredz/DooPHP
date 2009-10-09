@@ -31,6 +31,13 @@ class DooConfig{
     public $SITE_PATH;
 
     /**
+     * Name of the protected folder where all the application scripts located. Default 'protected/'
+     * @var string
+     */
+    public $PROTECTED_FOLDER = 'protected/';
+	
+	
+    /**
      * Path to the location of Doo framework directory. eg. /var/lib/dooframework/
      * @var string 
      */

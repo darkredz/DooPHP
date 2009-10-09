@@ -194,7 +194,7 @@ class DooValidator {
         //$data = array('username'=>'leng s', 'pwd'=>'234231dfasd', 'email'=>'asdb12@#asd.com.my');
         //$rules = array('username'=>array('username'), 'pwd'=>array('password',6,32), 'email'=>array('email'));
         if(is_string($rules)){
-            $rules = include(Doo::conf()->SITE_PATH . 'protected/config/forms/'.$rules.'.php');
+            $rules = include(Doo::conf()->SITE_PATH .  Doo::conf()->PROTECTED_FOLDER . 'config/forms/'.$rules.'.php');
         }
         
         if($missingKey = array_diff_key($rules, $data) ){    

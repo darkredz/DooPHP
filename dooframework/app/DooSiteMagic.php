@@ -85,7 +85,7 @@ class DooSiteMagic{
 			if(get_magic_quotes_gpc())
 				$_POST['routes']=str_replace("\\",'',$_POST['routes']);
 			$replacename = ($replace)?'routes':'routes2';
-			$handle = fopen(Doo::conf()->SITE_PATH.'protected/config/'.$replacename.'.conf.php', 'w+');
+			$handle = fopen(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'config/'.$replacename.'.conf.php', 'w+');
 			$rs = fwrite($handle, "<?php\n\n".$_POST['routes']."\n\n?>");
 			fclose($handle);
 			if($rs===False){
@@ -100,7 +100,7 @@ class DooSiteMagic{
 	 * Generates Controller class files from routes definition
 	 */
 	public static function buildSite(){
-		include Doo::conf()->SITE_PATH . 'protected/config/routes.conf.php';
+		include Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'config/routes.conf.php';
 		$controllers = array();
 		foreach($route as $req=>$r){
             foreach($r as $rname=>$value){
@@ -119,12 +119,12 @@ class DooSiteMagic{
 				$filestr .= "\n\n\tfunction $mname() {\n\t\techo 'You are visiting '.\$_SERVER['REQUEST_URI'];\n\t}";
 			}
 			$filestr .= "\n\n}\n?>";
-			if(file_exists(Doo::conf()->SITE_PATH.'protected/controller/'.$cname.'.php')){
+			if(file_exists(Doo::conf()->SITE_PATH. Doo::conf()->PROTECTED_FOLDER . 'controller/'.$cname.'.php')){
 				echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><strong><span style=\"color:#729fbe;\">$cname.php</span></strong><span style=\"color:#fff;\"> <span style=\"color:#fff;\">file exists! Skipped ...</span></span></span><br/><br/>";
 			}else{
 				echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Controller file </span><strong><span style=\"color:#e7c118;\">$cname</span></strong><span style=\"color:#fff;\"> generated.</span></span><br/><br/>";
 				$total++;
-				$handle = fopen(Doo::conf()->SITE_PATH.'protected/controller/'.$cname.'.php', 'w+');
+				$handle = fopen(Doo::conf()->SITE_PATH. Doo::conf()->PROTECTED_FOLDER . 'controller/'.$cname.'.php', 'w+');
 				fwrite($handle, $filestr);
 				fclose($handle);
 			}

@@ -142,8 +142,8 @@ class DooView {
         $this->data = $data;
         $this->controller = $controller;
         //includes user defined template tags for template use
-        include_once Doo::conf()->SITE_PATH . 'protected/plugin/template_tags.php';
-        include Doo::conf()->SITE_PATH . "protected/viewc/$file.php";
+        include_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'plugin/template_tags.php';
+        include Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "/viewc/$file.php";
     }
 
     /**
@@ -151,7 +151,7 @@ class DooView {
      * @param string $file File name without extension (.php)
      */
     public function inc($file){
-        include Doo::conf()->SITE_PATH . "protected/viewc/$file.php";
+        include Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "viewc/$file.php";
     }
 
     public function  __call($name,  $arguments) {
@@ -186,18 +186,18 @@ class DooView {
         //just include the compiled file if process is false
         if($process!=true){
             //includes user defined template tags for template use
-            include_once Doo::conf()->SITE_PATH . 'protected/plugin/template_tags.php';
-            include Doo::conf()->SITE_PATH . "protected/viewc/$file.php";
+            include_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'plugin/template_tags.php';
+            include Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "viewc/$file.php";
         }
         else{
-            $cfilename = Doo::conf()->SITE_PATH . "protected/viewc/$file.php";
-            $vfilename = Doo::conf()->SITE_PATH . "protected/view/$file.html";
+            $cfilename = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "viewc/$file.php";
+            $vfilename = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "view/$file.html";
             
             //if file exist and is not older than the html template file, include the compiled php instead and exit the function
             if(!$forceCompile){
                 if(file_exists($cfilename)){
                     if(filemtime($cfilename)>=filemtime($vfilename)){
-                        include_once Doo::conf()->SITE_PATH . 'protected/plugin/template_tags.php';
+                        include_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'plugin/template_tags.php';
                         if(!isset(Doo::conf()->TEMPLATE_TAGS)){
                             foreach($template_tags as $k=>$v ){
                                 $template_tags[$k] = strtolower($v);
@@ -227,7 +227,7 @@ class DooView {
         //includes user defined template tags and checks for the tag and compile.
         if($this->tags===NULL){
             if(!isset(Doo::conf()->TEMPLATE_TAGS)){
-                include_once Doo::conf()->SITE_PATH . 'protected/plugin/template_tags.php';
+                include_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'plugin/template_tags.php';
                 foreach($template_tags as $k=>$v ){
                     $template_tags[$k] = strtolower($v);
                 }
@@ -302,7 +302,7 @@ class DooView {
         //if a subfolder is specified, search for it, if not exist then create the folder
         $pathsize = sizeof($folders);
         if($pathsize>0){
-            $path = Doo::conf()->SITE_PATH . "protected/viewc/";
+            $path = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "viewc/";
             for($i=0;$i<$pathsize;$i++){
                 $path .= $folders[$i] .'/';
                 if(!file_exists($path)){
@@ -413,14 +413,14 @@ class DooView {
         //if first char is '/' then load the files in view root 'view' folder, <!-- '/admin/index' --> view/admin/index.html
         if(substr($file, 0,1)=='/'){
             $file = substr($file, 1);
-            $cfilename = str_replace('\\', '/', Doo::conf()->SITE_PATH) . "protected/viewc/$file.php";
-            $vfilename = str_replace('\\', '/', Doo::conf()->SITE_PATH) . "protected/view/$file.html";
+            $cfilename = str_replace('\\', '/', Doo::conf()->SITE_PATH) . Doo::conf()->PROTECTED_FOLDER . "viewc/$file.php";
+            $vfilename = str_replace('\\', '/', Doo::conf()->SITE_PATH) . Doo::conf()->PROTECTED_FOLDER . "view/$file.html";
         }
         else{
             $folders = explode('/', $this->mainRenderFolder);
             $file = implode('/', array_splice($folders, 0, -1)).'/'.$file;
-            $cfilename = str_replace('\\', '/', Doo::conf()->SITE_PATH) . "protected/viewc/$file.php";
-            $vfilename = str_replace('\\', '/', Doo::conf()->SITE_PATH) . "protected/view/$file.html";
+            $cfilename = str_replace('\\', '/', Doo::conf()->SITE_PATH) . Doo::conf()->PROTECTED_FOLDER . "viewc/$file.php";
+            $vfilename = str_replace('\\', '/', Doo::conf()->SITE_PATH) . Doo::conf()->PROTECTED_FOLDER . "view/$file.html";
         }
 
         if(!file_exists($vfilename)){
@@ -439,7 +439,7 @@ class DooView {
         if(isset ($dynamicFilename) )
             return $dynamicFilename;
             
-        return '<?php include Doo::conf()->SITE_PATH . "protected/viewc/'.$file.'.php"; ?>';
+        return '<?php include Doo::conf()->SITE_PATH .  Doo::conf()->PROTECTED_FOLDER . "viewc/'.$file.'.php"; ?>';
     }
 
 

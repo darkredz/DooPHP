@@ -211,7 +211,7 @@ class Doo{
      * @return mixed returns NULL by default. If $createObj is TRUE, it creates and return the Object(s) of the class name passed in.
      */
     public static function loadClass($class_name, $createObj=FALSE){
-        return self::load($class_name, self::conf()->SITE_PATH ."protected/class/", $createObj);
+        return self::load($class_name, self::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "class/", $createObj);
     }
 
     /**
@@ -219,7 +219,7 @@ class Doo{
      * @param string $class_name Name of the class to be imported
      */
     public static function loadController($class_name){
-        require_once(self::conf()->SITE_PATH ."protected/controller/$class_name.php");
+        require_once(self::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/$class_name.php");
     }
 
     /**
@@ -229,7 +229,7 @@ class Doo{
      * @return mixed returns NULL by default. If $createObj is TRUE, it creates and return the Object(s) of the class name passed in.
      */
     public static function loadModel($class_name, $createObj=FALSE){
-        return self::load($class_name, self::conf()->SITE_PATH ."protected/model/", $createObj);
+        return self::load($class_name, self::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "model/", $createObj);
     }
 
     /**

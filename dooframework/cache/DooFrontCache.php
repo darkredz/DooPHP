@@ -71,7 +71,7 @@ class DooFrontCache{
 			if(isset(Doo::conf()->CACHE_PATH))
 				$this->_directory = Doo::conf()->CACHE_PATH . 'frontend/';
 			else
-				$this->_directory = Doo::conf()->SITE_PATH . 'protected/cache/frontend/';
+				$this->_directory = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'cache/frontend/';
 		}else{
 			$this->_directory = $path;
 		}
