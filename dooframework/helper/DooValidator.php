@@ -368,7 +368,7 @@ class DooValidator {
      * @return string
      */
     public function testUsername($value, $minLength=4, $maxLength=12, $msg=null){
-        if(!preg_match('/^[a-zA-Z][a-zA-Z.0-9_-]{'.$minLength.','.$maxLength.'}$/i', $value)){
+        if(!preg_match('/^[a-zA-Z][a-zA-Z.0-9_-]{'. ($minLength-1) .','.$maxLength.'}$/i', $value)){
             if($msg!==null) return $msg;
             return "User name must be $minLength-$maxLength characters. Only characters, dots, digits, underscore & hyphen are allowed.";
         }
@@ -389,6 +389,14 @@ class DooValidator {
                 strpos($value, '_-')!==False || strpos($value, '-_')!==False){
             if($msg!==null) return $msg;
             return "User name cannot consist of 2 continuous punctuation.";
+        }
+        else if(ctype_punct($value[0])){
+            if($msg!==null) return $msg;
+            return "User name cannot start with a punctuation.";
+        }
+        else if(ctype_punct( substr($value, strlen($value)-1) )){
+            if($msg!==null) return $msg;
+            return "User name cannot end with a punctuation.";
         }
     }
 
