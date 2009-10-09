@@ -334,11 +334,21 @@ class DooValidator {
      * @param string $msg Custom error message
      * @return string
      */
-    public function testCustom($value, $function, $msg=null){
-        if($err = call_user_func($function, $value)){
-            if($err!==true){
-                if($msg!==null) return $msg;
-                return $err;
+    public function testCustom($value, $function, $options=null ,$msg=null){
+        if($options==null){
+            if($err = call_user_func($function, $value)){
+                if($err!==true){
+                    if($msg!==null) return $msg;
+                    return $err;
+                }
+            }
+        }else{
+            //if array, additional parameters
+            if($err = call_user_func_array($function, array_merge(array($value), $options)) ){
+                if($err!==true){
+                    if($msg!==null) return $msg;
+                    return $err;
+                }
             }
         }
     }
