@@ -731,9 +731,10 @@ class DooSqlMagic {
 
                                     $rlimitMatch = implode(' ', $rlimitMatch);
 
-                                    if( substr($rlimitMatch, sizeof($rlimitMatch)-5)=='AND '){
-                                        $rlimitMatch = substr($rlimitMatch, 0, sizeof($rlimitMatch)-5);
+                                    if( substr($rlimitMatch, strlen($rlimitMatch)-4)=='AND '){
+                                        $rlimitMatch = substr($rlimitMatch, 0, strlen($rlimitMatch)-4);
                                     }
+
                                     if(isset($opt['param'])){
                                         $rStmtLimit = $this->query("SELECT {$relatedmodel->_table}.{$relatedmodel->_primarykey} FROM {$relatedmodel->_table} WHERE {$rlimitMatch} LIMIT 1", $opt['param']);
                                         $rStmtId = $rStmtLimit->fetch();
