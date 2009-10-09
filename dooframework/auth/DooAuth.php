@@ -14,17 +14,17 @@ class DooAuth {
      * HIGH security level
      * @var integer
      */
-    const HIGH_LEVEL = 1;
+    const LEVEL_HIGH = 1;
     /**
      * MEDIUM security level
      * @var integer
      */
-    const MEDIUM_LEVEL = 2;
+    const LEVEL_MEDIUM = 2;
     /**
      * LOW security level
      * @var integer
      */
-    const LOW_LEVEL = 3;
+    const LEVEL_LOW = 3;
     /**
      * Discarded form indicator
      * @var integer
@@ -117,7 +117,7 @@ class DooAuth {
         $this->appSession->AuthData['_securityLevel'] = $this->getSecurityLevel();
         $this->appSession->AuthData['_time'] = time();
         switch ($this->securityLevel) {
-            case self::HIGH_LEVEL:
+            case self::LEVEL_HIGH:
                 $this->appSession->AuthData['_initialized'] = true;
                 $this->appSession->AuthData['_fingerprint'] = md5($_SERVER['HTTP_USER_AGENT'].$this->getSalt());
                 session_regenerate_id();
@@ -126,14 +126,14 @@ class DooAuth {
                 $this->appSession->AuthData['_authPostWait'] = $this->getPostWait() * 11; //~25% of authSessionExpire
                 $this->appSession->AuthData['_authPostExpire'] = $this->getPostExpire();
                 break;
-            case self::MEDIUM_LEVEL:
+            case self::LEVEL_MEDIUM:
                 $this->appSession->AuthData['_initialized'] = true;
                 $this->appSession->AuthData['_fingerprint'] = md5($_SERVER['HTTP_USER_AGENT'].$this->getSalt());
                 $this->appSession->AuthData['_authSessionExpire'] = $this->getSessionExpire() * 120;
                 $this->appSession->AuthData['_authPostWait'] = $this->getPostWait() * 60; //~50% of authSessionExpire
                 $this->appSession->AuthData['_authPostExpire'] = $this->getPostExpire();
                 break;
-            case self::LOW_LEVEL:
+            case self::LEVEL_LOW:
                 $this->appSession->AuthData['_initialized'] = true;
                 $this->appSession->AuthData['_authSessionExpire'] = $this->getSessionExpire() * 360;
                 $this->appSession->AuthData['_authPostWait'] = $this->getPostWait() * 90; //~75% of authSessionExpire
@@ -152,10 +152,10 @@ class DooAuth {
      */
     public function validate() {
         if (isset ($this->authData)) {
-            if (    ($this->_securityLevel==self::LOW_LEVEL && ($this->_initialized || isset ($this->_username) || ((time()-$this->_time) <= $this->_authSessionExpire))) || //LOW_LEVEL
-                    (($this->_securityLevel==self::MEDIUM_LEVEL || $this->_securityLevel==self::HIGH_LEVEL) //MEDIUM_LEVEL
+            if (    ($this->_securityLevel==self::LEVEL_LOW && ($this->_initialized || isset ($this->_username) || ((time()-$this->_time) <= $this->_authSessionExpire))) || //LEVEL_LOW
+                    (($this->_securityLevel==self::LEVEL_MEDIUM || $this->_securityLevel==self::LEVEL_HIGH) //LEVEL_MEDIUM
                          && $this->_fingerprint == md5($_SERVER['HTTP_USER_AGENT'].$this->getSalt())) ||
-                    ($this->_securityLevel==self::HIGH_LEVEL && $this->_id==md5($this->appSession->getId())) ) { //HIGH_LEVEL
+                    ($this->_securityLevel==self::LEVEL_HIGH && $this->_id==md5($this->appSession->getId())) ) { //LEVEL_HIGH
                 $this->_time = time();
                 $this->isValid = true;
             }
