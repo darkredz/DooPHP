@@ -724,6 +724,12 @@ class DooSqlMagic {
                                 if(strpos(strtoupper($whrLimit), 'AND')===0){
                                     $whrLimit = substr($whrLimit, 3);
                                 }
+                                else{
+                                    $tmpAnd = strpos($whrLimit, 'D ');
+                                    if($tmpAnd!==False){
+                                        $whrLimit = substr($whrLimit, $tmpAnd+2);
+                                    }
+                                }
 
                                 //check for relatedModel WHERE statement
                                 if(preg_match_all("/[,|AND|OR ]*($relatedmodel->_table\.[a-z0-9_-]{1,64}[^{$model->_table}\.]*)/i", $opt['where'], $rlimitMatch)>0){
@@ -775,7 +781,7 @@ class DooSqlMagic {
                             else{
                                 $varsLimit = array_merge( $opt['param'], $where_values);
                             }
-
+                            
                             $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$limitstr}", $varsLimit);
                         }else if(isset($opt['param']) && !empty($opt['param']) && !empty($whrLimit)){
                             $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$limitstr}", $opt['param']);
