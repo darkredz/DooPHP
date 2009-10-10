@@ -282,7 +282,7 @@ class DooFrontCache{
 
 		// If the cache has not expired, include it.
 		if (file_exists($this->_cachefile) && time() - $secondsCache < filemtime($this->_cachefile)) {
-			include $this->_cachefile;
+			include $this->_cachefile ;
 			//echo "<h1> Cached copy, generated ".date('H:i', filemtime($this->_cachefile ))." </h1>\n";
 			exit;
 		}
@@ -371,9 +371,7 @@ class DooFrontCache{
 	 * Frontend cache ending. Cache the output to a file in the defined cache folder.
 	 */
 	public function end(){
-		$fp = fopen($this->_cachefile, 'w+');
-		fwrite($fp, ob_get_contents());
-		fclose($fp);
+		file_put_contents($this->_cachefile, ob_get_contents(), LOCK_EX);
 		ob_end_flush();
 	}
 
