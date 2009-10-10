@@ -228,6 +228,24 @@ class DooWebApp{
     }
 
     /**
+     * Advanced version of DooWebApp::module().
+     *
+     * Module rendered using this method is located in SITE_PATH/protected/module
+     *
+     * @param string $moduleName Name of the module. Folder name.
+     * @param string|array $moduleUri URI or Controller name of the module
+     * @param string $action Action to be called
+     * @param array $params Parameters to be passed in to the Module
+     * @return string Output of the module
+     */
+    public function getModule($moduleName, $moduleUri, $action=null, $params=null){
+        $tmp = Doo::conf()->PROTECTED_FOLDER;
+        Doo::conf()->PROTECTED_FOLDER = $tmp . 'module/'.$moduleName.'/';
+        $this->module($moduleUri, $action, $params);
+        Doo::conf()->PROTECTED_FOLDER = $tmp;
+    }
+
+    /**
      * Analyze controller return value and send appropriate headers such as 404, 302, 301, redirect to internal routes.
      *
      * <p>It is very SEO friendly but you would need to know the basics of HTTP status code.</p>
