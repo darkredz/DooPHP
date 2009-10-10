@@ -730,9 +730,12 @@ class DooSqlMagic {
                                     $rlimitMatch = $rlimitMatch[0];
 
                                     $rlimitMatch = implode(' ', $rlimitMatch);
-
+                                    
                                     if( substr($rlimitMatch, strlen($rlimitMatch)-4)=='AND '){
                                         $rlimitMatch = substr($rlimitMatch, 0, strlen($rlimitMatch)-4);
+                                    }
+                                    else if($rlimitMatch[strlen($rlimitMatch)-1]=='A'){
+                                        $rlimitMatch = substr($rlimitMatch, 0, strlen($rlimitMatch)-1);
                                     }
 
                                     if(isset($opt['param'])){
