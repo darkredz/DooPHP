@@ -114,6 +114,8 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
 	$confData = traceVar(Doo::conf());
 	$getData = traceVar($_GET);
 	$postData = traceVar($_POST);
+    if(isset ($_SESSION))
+    	$sessionData = traceVar($_SESSION);
 
     echo "<html><head><title>DooPHP Diagnostics - $errstr</title>";
 	
@@ -258,9 +260,9 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
 		echo str_replace('<code>', "<code id=\"panelPost\"><span style=\"color:#0000BB;\">\$_POST Variables</span>", $postData);
 	}
 		
-	if(isset($_SESSION)){
-		$_SESSION = str_replace(']=&gt;<br />&nbsp;&nbsp;','] =>&nbsp;',DooTextHelper::highlightPHP($_SESSION));
-		echo str_replace('<code>', "<code id=\"panelSession\"><span style=\"color:#0000BB;\">\$_SESSION Variables</span>", $_SESSION);
+	if(isset($sessionData)){
+		$sessionData = str_replace(']=&gt;<br />&nbsp;&nbsp;','] =>&nbsp;',DooTextHelper::highlightPHP($sessionData));
+		echo str_replace('<code>', "<code id=\"panelSession\"><span style=\"color:#0000BB;\">\$_SESSION Variables</span>", $sessionData);
 	}
 	
     echo '</pre><br/>';
