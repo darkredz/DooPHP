@@ -311,6 +311,22 @@ class DooWebApp{
         }
     }
 
+    /**
+     * To debug variables with DooPHP's diagnostic view
+     * @param mixed $var The variable to view in diagnostics.
+     */
+    public function debug($var){
+        throw new DooDebugException($var);
+    }
+
 }
 
+class DooDebugException extends Exception{
+    public $var;
+    
+    public function __construct($var, $message='Debugging App',$code=999) {
+        parent::__construct($message,$code);
+        $this->var = $var;
+    }
+}
 ?>
