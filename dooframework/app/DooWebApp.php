@@ -321,12 +321,4 @@ class DooWebApp{
 
 }
 
-class DooDebugException extends Exception{
-    public $var;
-    
-    public function __construct($var, $message='Debugging App',$code=999) {
-        parent::__construct($message,$code);
-        $this->var = $var;
-    }
-}
 ?>

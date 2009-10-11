@@ -316,4 +316,14 @@ function errorBacktrace() {
         echo '<li><span style="color:#3A66CC">' . (isset($item['file']) ? $item['file'] : '<unknown file>') . '</span><strong style="color:#DD0000">(' . (isset($item['line']) ? $item['line'] : '<unknown line>') . ')</strong> calling <span style="color:#0000BB">' . $item['function'] . '()</span></li>';
     echo '</ol>';    
 }
+
+
+class DooDebugException extends Exception{
+    public $var;
+    
+    public function __construct($var, $message='Debugging App',$code=999) {
+        parent::__construct($message,$code);
+        $this->var = $var;
+    }
+}
 ?>
