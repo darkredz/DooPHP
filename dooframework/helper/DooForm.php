@@ -138,14 +138,16 @@ class DooForm extends DooValidator {
 		$this->_addElements();
 		$formElements = $this->_formElements;
 		$errors = $this->_errors;
-		$enctype = (isset($this->_enctype) && ($this->_enctype = 'multipart/form-data'))?'enctype="'.$this->_enctype.'"':'';
+		$enctype = (isset($this->_enctype) && ($this->_enctype == 'multipart/form-data'))?'enctype="'.$this->_enctype.'"':'';
 		$formHtml = '<form action="'.$this->_action . '" method="'.$this->_method.'" '.$enctype.' class="doo-form">';
 		foreach ($formElements as $element => $e) {
 			$formHtml .= $formElements[$element];
 			if ((count($this->_errors) > 0) && (isset($errors[$element]))) {
 				$formHtml .= '<ul class="errors">';
 				foreach ($errors[$element] as $error) {
-					if (is_array($error)) $error = array_shift($error);
+					if (is_array($error)) {
+						$error = array_shift($error);
+					}
 					$formHtml .= '<li>'.$error.'</li>';
 				}
 				$formHtml .= '</ul>';
@@ -233,13 +235,13 @@ class DooForm extends DooValidator {
 			// handle element attributes
 			if (isset($k[1]['attributes']) && count($k[1]['attributes']) > 0) { // there are element attributes handle them
 				foreach ($k[1]['attributes'] as $attribute => $a) {
-					$elementAttributes .= $attribute . '="'.$a.'" ';
+					$elementAttributes .= $attribute . '="'.htmlspecialchars($a).'" ';
 				}
 			}
 			// handle values for all fields except select, multicheckbox, checkbox, radio...
 			if (($k[0] != 'select') && ($k[0] != 'MultiCheckbox') && ($k[0] != 'MultiRadio') && ($k[0] != 'checkbox') && ($k[0] != 'textarea')) {
 				if (isset($elementValues[$element])) {
-					$elementAttributes .= ' value="'.$elementValues[$element].'"';
+					$elementAttributes .= ' value="'.htmlspecialchars($elementValues[$element]).'"';
 				}
 			}
 			// make wrapper div or dd or something other
@@ -347,7 +349,9 @@ class DooForm extends DooValidator {
 					break;
 				// captcha
 				case 'captcha':
-					if (!isset($_SESSION)) session_start();
+					if (!isset($_SESSION)) {
+						session_start();
+					}
 					$md5 = md5(microtime() * time());
 					$string = substr($md5,0,4);
 					if (file_exists($k[1]['image'])) {
@@ -469,7 +473,9 @@ class DooForm extends DooValidator {
 			if (isset($e[1]['validators'])) {
 				$elementRules = array($element => $e[1]['validators']);
 				$errors[$element] = $v->validate($values, $elementRules);
-				if ($errors[$element]) unset($elementValues[$element]);
+				if ($errors[$element]) {
+					unset($elementValues[$element]);
+				}
 
 			}
 			// handle captcha
@@ -479,10 +485,13 @@ class DooForm extends DooValidator {
 				$elementRules = array($element => array('equal', $sessionData, $msg));
 				$values[$element] = md5($values[$element]);
 				$errors[$element] = $v->validate($values, $elementRules);
-				if ($errors[$element])
+				if ($errors[$element]) {
 					unset($elementValues[$element]);
+				}
 				// delete captcha if captcha is good
-				if (isset($e[1]['url']) && file_exists($e[1]['directory'].'/'.$sessionData.".jpg")) unlink($e[1]['directory'].'/'.$sessionData.".jpg");
+				if (isset($e[1]['url']) && file_exists($e[1]['directory'].'/'.$sessionData.".jpg")) {
+					unlink($e[1]['directory'].'/'.$sessionData.".jpg");
+				}
 			}
 			// handle file
 			if (isset($e[0]) && ($e[0] == 'file')) {
@@ -494,12 +503,16 @@ class DooForm extends DooValidator {
 						echo $_FILES[$element]['name'];
 						@$extension = end(explode('.', $_FILES[$element]['name']));
 						$extensions = explode(',', $e[1]['extension']);
-						if (!in_array($extension, $extensions)) $errors[$element] = array('File must have ' . $e[1]['extension'] . ' extension.');
+						if (!in_array($extension, $extensions)) {
+							$errors[$element] = array('File must have ' . $e[1]['extension'] . ' extension.');
+						}
 
 					}
 					// check file size
 					if (isset($e[1]['size'])) {
-						if ($e[1]['size'] < $_FILES[$element]['size']) $errors[$element] = array('File is too big!');
+						if ($e[1]['size'] < $_FILES[$element]['size']) {
+							$errors[$element] = array('File is too big!');
+						}
 					}
 				} else {
 					if (isset($e[1]['required']) && $e[1]['required'] == 1)  {
