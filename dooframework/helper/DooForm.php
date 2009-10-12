@@ -247,10 +247,12 @@ class DooForm extends DooValidator {
 			// make label wrapper
 			$labelWrapper = (isset($k[1]['label-wrapper']))?$k[1]['label-wrapper']:$elementWrapper;
 			// add lable if there is one
-
-			if (isset($k[1]['label']) && ($k[0] != "submit") && ($k[0] != "captcha")) {
-				$labelField = '<'.$elementWrapper.' id="'.$element.'-label"><label for="'.$element.'" '.$elementRequred.'>'. $k[1]['label'] . '</label></'.$elementWrapper.'>';
-				$formElements[$element.'-label'] = $labelField;
+			if (!isset($k[1]['hide-label']) || ($k[1]['hide-label'] != true))
+			{
+				if (isset($k[1]['label']) && ($k[0] != "submit") && ($k[0] != "captcha")) {
+					$labelField = '<'.$labelWrapper.' id="'.$element.'-label"><label for="'.$element.'" '.$elementRequred.'>'. $k[1]['label'] . '</label></'.$labelWrapper.'>';
+					$formElements[$element.'-label'] = $labelField;
+				}
 			}
 			// switch by type and make elements
 			switch ($k[0]) {
@@ -278,11 +280,13 @@ class DooForm extends DooValidator {
 					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element" '.$elementRequred.'><select '.$elementAttributes.' name="'.$element.'"/>';
 					if (isset($k[1]['multioptions']) && (count($k[1]['multioptions'] > 0))) {
 						foreach ($k[1]['multioptions'] as $optionValue => $optionName) {
-							if (is_array($optionName)) {
+							if (is_array($optionName)) { // if its array make option groups
+								$elementHtml .= '<optgroup label="'.$optionValue.'">';
 								foreach ($optionName as $v => $n) {
 									$selected = (isset($k[1]['value']) && ($k[1]['value'] === $v))?'selected="selected"':'';
 									$elementHtml .= '<option value="'.$v.'" '.$selected.'>'.$n.'</option>';
 								}
+								$elementHtml .= '</optgroup>';
 							} else {
 								$selected = (isset($k[1]['value']) && ($k[1]['value'] == $optionValue))?'selected="selected"':'';
 								$selected = (isset($elementValues[$element]) && ($elementValues[$element] == $optionValue))?'selected="selected"':'';
@@ -345,7 +349,7 @@ class DooForm extends DooValidator {
 				case 'captcha':
 					if (!isset($_SESSION)) session_start();
 					$md5 = md5(microtime() * time());
-					$string = substr($md5,0,5);
+					$string = substr($md5,0,4);
 					if (file_exists($k[1]['image'])) {
 
 						$captcha = imagecreatefromjpeg($k[1]['image']);
@@ -364,10 +368,47 @@ class DooForm extends DooValidator {
 							$red = mt_rand(0,255);
 							$green = mt_rand(0,255);
 							$blue = 255 - sqrt($red * $red + $green * $green);
-							$color = imagecolorallocate ($buffer, $red, $green, $blue);
-
+							// if there is font color set font color
+							if (isset($k[1]['font-color'])) {
+								switch ($k[1]['font-color']) {
+									case 'white':
+										$color = imagecolorallocate($buffer, 255, 255, 255);
+										break;
+									case 'black':
+										$color = imagecolorallocate($buffer, 0, 0, 0);
+										break;
+									case 'green':
+										$color = imagecolorallocate($buffer, 0, 175, 24);
+										break;
+									case 'blue':
+										$color = imagecolorallocate($buffer, 41, 56, 223);
+										break;
+									case 'red':
+										$color = imagecolorallocate($buffer, 207, 25, 25);
+										break;
+									case 'pink':
+										$color = imagecolorallocate($buffer, 207, 25, 23);
+										break;
+									case 'yellow':
+										$color = imagecolorallocate($buffer, 230, 255, 15);
+										break;
+									case 'orange':
+										$color = imagecolorallocate($buffer, 255, 167, 15);
+										break;
+									default:
+										$color = imagecolorallocate($buffer, 0, 0, 0);
+										break;
+								}
+							} else {
+								$color = imagecolorallocate ($buffer, $red, $green, $blue);
+							}
 							// Create character
-							imagestring($buffer, 5, 0, 0, $string[$i], $color);
+							if (isset($k[1]['font']) && file_exists($k[1]['font'])) {
+								$fontSize = (isset($k[1]['font-size']))?$k[1]['font-size']:12;
+								imagefttext($buffer, $fontSize, 0, 2, 15, $color, $k[1]['font'], $string[$i]);
+							} else {
+								imagestring($buffer, 5, 0, 0, $string[$i], $color);
+							}
 
 							// Resize character
 							imagecopyresized ($buffer2, $buffer, 0, 0, 0, 0, 25 + mt_rand(0,12), 25 + mt_rand(0,12), 20, 20);
