@@ -69,7 +69,6 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
 	
 	//require
 	if($errno==2 && strpos($errstr, 'require_once(')===0 && strpos(str_replace('\\','/',$errfile), str_replace('\\','/',Doo::conf()->BASE_PATH).'Doo.php')===0){
-		echo '<pre>';
 		$dmsg = debug_backtrace();
 		foreach($dmsg as $k=>$a){
 			//if is user file, and must be a load method
@@ -82,7 +81,20 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
 			}
 		}
 	}
-	
+    else if($errno==2 && strpos(str_replace('\\','/',$errfile), str_replace('\\','/',Doo::conf()->BASE_PATH).'view/DooView.php')===0){
+		$dmsg = debug_backtrace();
+		foreach($dmsg as $k=>$a){
+            if(strpos(str_replace('\\','/',$a['file']), str_replace('\\','/',Doo::conf()->SITE_PATH))===0
+                && stripos(str_replace('\\','/',$a['file']), '/controller')!==false){
+                    $errfile = $a['file'];
+                    $errline = $a['line'];
+                    if(strpos($errstr, 'file_get_contents')!==false){
+                       $errstr = 'Template not found ' . str_replace('[<a href=\'function.file-get-contents\'>function.file-get-contents</a>]: failed to open stream: ','',str_replace('file_get_contents','',$errstr));
+                    }
+                    break;
+            }
+        }
+    }
 	if(strpos(str_replace('\\','/',$errfile), str_replace('\\','/',Doo::conf()->BASE_PATH))===0){
 		$dmsg = debug_backtrace();
 		$last = array_pop($dmsg);
@@ -316,7 +328,6 @@ function errorBacktrace() {
         echo '<li><span style="color:#3A66CC">' . (isset($item['file']) ? $item['file'] : '<unknown file>') . '</span><strong style="color:#DD0000">(' . (isset($item['line']) ? $item['line'] : '<unknown line>') . ')</strong> calling <span style="color:#0000BB">' . $item['function'] . '()</span></li>';
     echo '</ol>';    
 }
-
 
 class DooDebugException extends Exception{
     public $var;
