@@ -111,8 +111,20 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
     $script = DooTextHelper::highlightPHP($script);
 	
 	if(!empty($script)){
-		$lines = explode('<br />', $script);
-		$errLineContent = '<div class="errorbig" onclick="javascript:viewCode();">'.$lines[$errline-1].'</div>';
+        //if template file addon the <pre>
+        if(strpos(str_replace('\\','/',$errfile), str_replace('\\','/',Doo::conf()->SITE_PATH.Doo::conf()->PROTECTED_FOLDER).'view')===0){
+            $pre = '<pre>';
+            $Xpre = '</pre>';
+        }else{
+            $pre = '';
+            $Xpre = '';
+        }
+
+        $lines = explode('<br />', $script);
+
+        $errLineContent = '<div class="errorbig" onclick="javascript:viewCode();">'.$pre.$lines[$errline-1].$Xpre.'</div>';
+
+        //highlight the error line
 		$lines[$errline-1] = '<div id="eerrline" class="errline" onclick="javascript:closeCode();" title="Click to close"><a id="'.$errline.'" name="'.$errline.'"></a>' . $lines[$errline-1] . '</div>';
 
 		//remove the code tag from 1st and last line
@@ -241,11 +253,11 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
 	}
 	
     //error code script
-    echo '<code id="scriptcode" class="scriptcode">';
+    echo $pre.'<code id="scriptcode" class="scriptcode">';
 	if(isset($lines)){
 		echo implode('<br />', $lines);
     }
-	echo '</code>';
+	echo '</code>'.$Xpre;
 
     echo '<br/><hr/><h2 style="background-color:#4370A4;color:#fff;width:220px;padding:5px;"> * Stack Trace...</h2>';
 	global $errTrace;
