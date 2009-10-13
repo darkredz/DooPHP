@@ -82,6 +82,18 @@ class DooAuth {
     protected $isValid = false;
 
     /**
+     * Username from the session
+     * @var string
+     */
+    public $username;
+
+    /**
+     * Group name from the session
+     * @var string
+     */
+    public $group;
+
+    /**
      * Constructor - returns an instance object of DooAuth
      */
     public function __construct($appName) {
@@ -158,6 +170,8 @@ class DooAuth {
                     ($this->_securityLevel==self::LEVEL_HIGH && $this->_id==md5($this->appSession->getId())) ) { //LEVEL_HIGH
                 $this->_time = time();
                 $this->isValid = true;
+                $this->username = $this->appSession->AuthData['_username'];
+                $this->group = $this->appSession->AuthData['_group'];
             }
         } else
             $this->isValid = false;
