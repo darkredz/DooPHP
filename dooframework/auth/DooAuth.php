@@ -119,13 +119,13 @@ class DooAuth {
 
     /**
      * Set auth data for user session
-     * @param <String> User name
-     * @param <Mixed> User group
+     * @param string User name
+     * @param mixed User group
      */
     public function setData($username, $group=FALSE) {
         $this->appSession->AuthData = array();
-        $this->appSession->AuthData['_username'] = $username;
-        $this->appSession->AuthData['_group'] = $group;
+        $this->username = $this->appSession->AuthData['_username'] = $username;
+        $this->group = $this->appSession->AuthData['_group'] = $group;
         $this->appSession->AuthData['_securityLevel'] = $this->getSecurityLevel();
         $this->appSession->AuthData['_time'] = time();
         switch ($this->securityLevel) {
@@ -164,7 +164,7 @@ class DooAuth {
      */
     public function validate() {
         if (isset ($this->authData)) {
-            if (    ($this->_securityLevel==self::LEVEL_LOW && ($this->_initialized || isset ($this->_username) || ((time()-$this->_time) <= $this->_authSessionExpire))) || //LEVEL_LOW
+            if (    ($this->_securityLevel==self::LEVEL_LOW && ($this->_initialized || isset ($this->appSession->AuthData['_username']) || ((time()-$this->appSession->AuthData['_time']) <= $this->_authSessionExpire))) || //LEVEL_LOW
                     (($this->_securityLevel==self::LEVEL_MEDIUM || $this->_securityLevel==self::LEVEL_HIGH) //LEVEL_MEDIUM
                          && $this->_fingerprint == md5($_SERVER['HTTP_USER_AGENT'].$this->getSalt())) ||
                     ($this->_securityLevel==self::LEVEL_HIGH && $this->_id==md5($this->appSession->getId())) ) { //LEVEL_HIGH
@@ -181,7 +181,7 @@ class DooAuth {
      * Get token for security purpose (secure forms, etc)
      * @see http://www.serversidemagazine.com/php/php-security-measures-against-csrf-attacks
      * @see http://www.serversidemagazine.com/php/session-hijacking
-     * @return <Mixed>
+     * @return mixed
      */
     public function securityToken() {
         if ($this->isValid()) {
@@ -194,7 +194,7 @@ class DooAuth {
     /**
      * Validate form with security token
      * @see http://www.serversidemagazine.com/php/php-security-measures-against-csrf-attacks
-     * @return <Mixed>
+     * @return mixed
      */
     public function validateForm($receivedToken) {
         if ($this->isValid && isset($receivedToken)) {
