@@ -252,7 +252,7 @@ class DooForm extends DooValidator {
 			if (!isset($k[1]['hide-label']) || ($k[1]['hide-label'] != true))
 			{
 				if (isset($k[1]['label']) && ($k[0] != "submit") && ($k[0] != "captcha")) {
-					$labelField = '<'.$labelWrapper.' id="'.$element.'-label"><label for="'.$element.'" '.$elementRequred.'>'. $k[1]['label'] . '</label></'.$labelWrapper.'>';
+					$labelField = '<'.$labelWrapper.' id="'.$element.'-label"><label for="'.$element.'-element" '.$elementRequred.'>'. $k[1]['label'] . '</label></'.$labelWrapper.'>';
 					$formElements[$element.'-label'] = $labelField;
 				}
 			}
@@ -279,7 +279,7 @@ class DooForm extends DooValidator {
 					break;
 				// select
 				case 'select':
-					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element" '.$elementRequred.'><select '.$elementAttributes.' name="'.$element.'"/>';
+					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element" '.$elementRequred.'><select '.$elementAttributes.' name="'.$element.'">';
 					if (isset($k[1]['multioptions']) && (count($k[1]['multioptions'] > 0))) {
 						foreach ($k[1]['multioptions'] as $optionValue => $optionName) {
 							if (is_array($optionName)) { // if its array make option groups
