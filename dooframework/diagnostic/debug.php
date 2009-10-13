@@ -127,7 +127,10 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
 	$getData = traceVar($_GET);
 	$postData = traceVar($_POST);
     if(isset ($_SESSION))
-    	$sessionData = traceVar($_SESSION);
+        $sessionData = traceVar($_SESSION);
+    if(isset ($_COOKIE))
+        $cookieData = traceVar($_COOKIE);
+
 
     echo "<html><head><title>DooPHP Diagnostics - $errstr</title>";
 	
@@ -206,7 +209,7 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
         }
 		var lastcode="";
 		function code(n){
-			var arr = ["panelConf","panelGet","panelPost","panelSession"];
+			var arr = ["panelConf","panelGet","panelPost","panelSession","panelCookie"];
 			if(arr[n]==lastcode){
 				document.getElementById(arr[n]).style.display = "none";
 				document.getElementById("goVar").style.display = "none";						
@@ -254,7 +257,7 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
 	    errorBacktrace();
 	}
     
-    echo '<br/><hr/><h2 class="var" style="background-color:#4370A4;color:#fff;width:680px;padding:5px;"> * Variables... <a href="javascript:code(0);">&nbsp;Conf </a> . <a href="javascript:code(1);">&nbsp;GET&nbsp;</a> . <a href="javascript:code(2);">&nbsp;POST&nbsp;</a> . <a href="javascript:code(3);">&nbsp;Session&nbsp;</a></h2>';
+    echo '<br/><hr/><h2 class="var" style="background-color:#4370A4;color:#fff;width:680px;padding:5px;"> * Variables... <a href="javascript:code(0);">&nbsp;Conf </a> . <a href="javascript:code(1);">&nbsp;GET&nbsp;</a> . <a href="javascript:code(2);">&nbsp;POST&nbsp;</a> . <a href="javascript:code(3);">&nbsp;Session&nbsp;</a> . <a href="javascript:code(4);">&nbsp;Cookie&nbsp;</a></h2>';
 	
 	//config data
     echo '<pre id="goVar">';
@@ -271,10 +274,15 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
 		$postData = str_replace(']=&gt;<br />&nbsp;&nbsp;','] =>&nbsp;',DooTextHelper::highlightPHP($postData));
 		echo str_replace('<code>', "<code id=\"panelPost\"><span style=\"color:#0000BB;\">\$_POST Variables</span>", $postData);
 	}
-		
+
 	if(isset($sessionData)){
 		$sessionData = str_replace(']=&gt;<br />&nbsp;&nbsp;','] =>&nbsp;',DooTextHelper::highlightPHP($sessionData));
 		echo str_replace('<code>', "<code id=\"panelSession\"><span style=\"color:#0000BB;\">\$_SESSION Variables</span>", $sessionData);
+	}
+
+	if(isset($_COOKIE)){
+		$cookieData = str_replace(']=&gt;<br />&nbsp;&nbsp;','] =>&nbsp;',DooTextHelper::highlightPHP($cookieData));
+		echo str_replace('<code>', "<code id=\"panelCookie\"><span style=\"color:#0000BB;\">\$_COOKIE Variables</span>", $cookieData);
 	}
 	
     echo '</pre><br/>';
