@@ -164,14 +164,14 @@ class DooAuth {
      */
     public function validate() {
         if (isset ($this->authData)) {
-            if (    ($this->_securityLevel==self::LEVEL_LOW && ($this->_initialized || isset ($this->appSession->AuthData['_username']) || ((time()-$this->appSession->AuthData['_time']) <= $this->_authSessionExpire))) || //LEVEL_LOW
+            if (    ($this->_securityLevel==self::LEVEL_LOW && ($this->_initialized || isset ($this->authData['_username']) || ((time()-$this->authData['_time']) <= $this->_authSessionExpire))) || //LEVEL_LOW
                     (($this->_securityLevel==self::LEVEL_MEDIUM || $this->_securityLevel==self::LEVEL_HIGH) //LEVEL_MEDIUM
                          && $this->_fingerprint == md5($_SERVER['HTTP_USER_AGENT'].$this->getSalt())) ||
                     ($this->_securityLevel==self::LEVEL_HIGH && $this->_id==md5($this->appSession->getId())) ) { //LEVEL_HIGH
                 $this->_time = time();
                 $this->isValid = true;
-                $this->username = $this->appSession->AuthData['_username'];
-                $this->group = $this->appSession->AuthData['_group'];
+                $this->username = $this->authData['_username'];
+                $this->group = $this->authData['_group'];
             }
         } else
             $this->isValid = false;
