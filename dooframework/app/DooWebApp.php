@@ -241,8 +241,9 @@ class DooWebApp{
     public function getModule($moduleName, $moduleUri, $action=null, $params=null){
         $tmp = Doo::conf()->PROTECTED_FOLDER;
         Doo::conf()->PROTECTED_FOLDER = $tmp . 'module/'.$moduleName.'/';
-        $this->module($moduleUri, $action, $params);
+        $result = $this->module($moduleUri, $action, $params);
         Doo::conf()->PROTECTED_FOLDER = $tmp;
+        return $result;
     }
 
     /**
