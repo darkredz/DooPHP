@@ -118,8 +118,11 @@ class DooSession {
 			throw new DooSessionException("Keyname should not be empty string!");
 		if (!$this->_sessionStarted)
 			throw new DooSessionException("Session not started.");
-		$name = (string)$name;
-		$_SESSION[$this->_namespace][$name] = $value;
+
+        if($value===Null)
+            unset ($_SESSION[$this->_namespace][$name]);
+        else
+    		$_SESSION[$this->_namespace][$name] = $value;
 	}
 
 	/**
@@ -128,7 +131,6 @@ class DooSession {
 	public function destroy() {
 		if (!$this->_sessionStarted) {
 			throw new DooSessionException("Session not started.");
-			return;
 		}
 		if ($this->_sessionDestroyed) {
 			return;
@@ -157,9 +159,7 @@ class DooSession {
 	public function namespaceUnset($name = null) {
 		if (!$this->_sessionStarted) {
 			throw new DooSessionException("Session not started, use DooSession::start()");
-			return;
 		}
-		$name = (string)$name;
 		if (empty($name)) {
 			unset($_SESSION[$this->_namespace]);
 		} else {
@@ -173,7 +173,6 @@ class DooSession {
 	public static function getId() {
 		if (!isset($_SESSION)) {
 			throw new DooSessionException("Session not started, use DooSession::start()");
-			return;
 		}
 		return session_id();
 	}
@@ -214,14 +213,15 @@ class DooSession {
 	public function &get($name) {
 		if (!$this->_sessionStarted) {
 			throw new DooSessionException("Session not started, use DooSession::start()");
-			return;
 		}
-		$name = (string)$name;
-		if ($name === '')
+		if ($name == '')
 			throw new DooSessionException("Name should not be empty");
 		if (!isset($_SESSION[$this->_namespace][$name])){
-			$result = null; return $result;
-    } else { return $_SESSION[$this->_namespace][$name]; }
+			$result = null;
+            return $result;
+        } else {
+            return $_SESSION[$this->_namespace][$name];
+        }
 	}
 
 	/**
@@ -232,9 +232,7 @@ class DooSession {
 	public function & __get($name) {
 		if (!$this->_sessionStarted) {
 			throw new DooSessionException("Session not started, use DooSession::start()");
-			return;
 		}
-		$name = (string)$name;
 		return $this->get($name);
 	}
 
