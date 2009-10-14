@@ -150,7 +150,7 @@ class DooValidator {
                     'ccVisa', 'ccColorHex', 'creditCard', 'custom', 'date', 'datetime', 'digit', 'digit', 'email', 'equal', 'float',
                     'greaterThan', 'greaterThanOrEqual', 'ip', 'integer', 'lessThan', 'lessThanOrEqual', 'lowercase', 'max',
                     'maxlength', 'min', 'minlength', 'notEmpty', 'notEqual', 'notNull', 'password', 'passwordComplex', 'price', 'regex',
-                    'uppercase', 'url', 'username'
+                    'uppercase', 'url', 'username','dbExist','dbNotExist','alphaSpace','notInList','inList'
                 );
     }
 
@@ -248,23 +248,22 @@ class DooValidator {
         foreach($data as $k=>$v){
             if(!isset($rules[$k])) continue;
             $cRule = $rules[$k];
-            //print_r($cRule);
             foreach($cRule as $v2){
                 if(is_array($v2)){
                     //print_r(array_slice($v2, 1));
                     $vv = array_merge(array($v),array_slice($v2, 1));
                     //echo 'test'.$v2[0];
                     //call func
-                    if(!isset($v) && $v2[0]=='optional'){
+                    if(empty($v) && $v2[0]=='optional'){
                         //echo $k.' - this is not set and optional, should be removed from error';
                         $optErrorRemove[] = $k;
                     }
                     if($err = call_user_func_array(array(&$this, 'test'.$v2[0]), $vv) ){
                         if($this->checkMode==DooValidator::CHECK_ALL)
                             $errors[$k][$v2[0]] = $err;
-                        else if($this->checkMode==DooValidator::CHECK_SKIP && isset($v) && $v2[0]!='optional')
-                            return $err;
-                        else if($this->checkMode==DooValidator::CHECK_ALL_ONE)
+                        else if($this->checkMode==DooValidator::CHECK_SKIP && isset($v) && $v2[0]!='optional'){
+                            return $err;                        
+                        }else if($this->checkMode==DooValidator::CHECK_ALL_ONE)
                             $errors[$k] = $err;
                     }
                 }
@@ -305,6 +304,12 @@ class DooValidator {
     }
 
     public function testOptional($value){}
+    public function testRequired($value, $msg){
+        if(empty($value)){
+            if($msg!==null) return $msg;
+            return 'This field is required!';
+        }
+    }
 
     /**
      * Validate data with your own custom rules.
@@ -752,6 +757,23 @@ class DooValidator {
     }
 
     /**
+     * Validate if string only consist of letters and spaces
+     *
+     * Input string can only consist of only Letters and spaces.
+     *
+     * @param string $value Value of data to be validated
+     * @param string $msg Custom error message
+     * @return string
+     */
+    public function testAlphaSpace($value, $msg=null){
+        if(!ctype_alpha(str_replace(' ','',$value))){
+            if($msg!==null) return $msg;
+            return 'Input can only consist of letters and spaces.';
+        }
+    }
+
+
+    /**
      * Validate lowercase string.
      *
      * Input string can only be lowercase letters.
@@ -1022,6 +1044,38 @@ class DooValidator {
         if ((isset($result['count'])) && ($result['count'] > 0)) {
             if($msg!==null) return $msg;
             return 'Same value exists in database.';
+        }
+    }
+
+
+
+    /**
+     * Validate if a value is in a list of values
+     *
+     * @param string $value Value of data to be validated
+     * @param int $equalValue List of values to be checked
+     * @param string $msg Custom error message
+     * @return string
+     */
+    public function testInList($value, $valueList, $msg=null){
+        if(!(in_array($value, $valueList))){
+            if($msg!==null) return $msg;
+            return 'Unmatched value.';
+        }
+    }
+
+    /**
+     * Validate if a value is NOT in a list of values
+     *
+     * @param string $value Value of data to be validated
+     * @param int $equalValue List of values to be checked
+     * @param string $msg Custom error message
+     * @return string
+     */
+    public function testNotInList($value, $valueList, $msg=null){
+        if(in_array($value, $valueList)){
+            if($msg!==null) return $msg;
+            return 'Unmatched value.';
         }
     }
 
