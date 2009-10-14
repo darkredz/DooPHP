@@ -470,13 +470,14 @@ class DooForm extends DooValidator {
 				$elementValues[$element] = $values[$element];
 			}
 			// handle validators
-			if (isset($e[1]['validators'])) {
-				$elementRules = array($element => $e[1]['validators']);
-				$errors[$element] = $v->validate($values, $elementRules);
-				if ($errors[$element]) {
-					unset($elementValues[$element]);
+			if ((isset($e[1]['validators']))) {
+				if (!isset($e[1]['requred']) || ($e[1]['requred'] != false)) {
+					$elementRules = array($element => $e[1]['validators']);
+					$errors[$element] = $v->validate($values, $elementRules);
+					if ($errors[$element]) {
+						unset($elementValues[$element]);
+					}
 				}
-
 			}
 			// handle captcha
 			if (isset($e[0]) && ($e[0] == 'captcha')) {
