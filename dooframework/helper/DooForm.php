@@ -501,13 +501,11 @@ class DooForm extends DooValidator {
 					// check file extension
 					if (isset($e[1]['extension'])) {
 						$extensions = array();
-						echo $_FILES[$element]['name'];
-						@$extension = end(explode('.', $_FILES[$element]['name']));
+						$extension = substr($_FILES[$element]['name'], strrpos($_FILES[$element]['name'], '.')+1);
 						$extensions = explode(',', $e[1]['extension']);
 						if (!in_array($extension, $extensions)) {
 							$errors[$element] = array('File must have ' . $e[1]['extension'] . ' extension.');
 						}
-
 					}
 					// check file size
 					if (isset($e[1]['size'])) {
