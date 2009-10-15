@@ -276,6 +276,10 @@ class DooForm extends DooValidator {
 					break;
 				case 'file':
 					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element"><input '.$elementAttributes.' type="file" name="'.$element.'"/></'.$elementWrapper.'>';
+					// add automatic enctype for form
+					if ($this->_enctype != 'multipart/form-data') {
+						$this->_enctype = 'multipart/form-data';
+					}
 					break;
 				// select
 				case 'select':
