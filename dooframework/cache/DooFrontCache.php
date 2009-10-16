@@ -350,7 +350,7 @@ class DooFrontCache{
 	public function getPartApc($id, $secondsCache=3600) {
 		if (($this->_cachefile = Doo::cache("apc")->get($id)) && time() - $secondsCache < filemtime($this->_cachefile)) {
 			return $this->_cachefile;
-			echo "<h1> Cached loaded, generated time".date('H:i', filemtime($this->_cachefile ))." </h1>\n";
+			//echo "<h1> Cached loaded, generated time".date('H:i', filemtime($this->_cachefile ))." </h1>\n";
 			return true;
 		}
 	}
@@ -360,7 +360,6 @@ class DooFrontCache{
 	 * @param string $id ID of the cache. To be used with partial cache
 	 */
 	public function start($id=''){
-		echo $id;
 		if($id!=''){
 			$this->_cachefile  = $this->_directory.'parts/'.$id.'.html';
 		}
