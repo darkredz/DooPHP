@@ -85,7 +85,7 @@ class DooGdImage {
      * @param string $processPath Path to save the processes images
      * @param bool $saveFile To save the processed images
      */
-    function  __construct($uploadPath='', $processPath='', $saveFile=true, $timeAsName=true){
+    public function  __construct($uploadPath='', $processPath='', $saveFile=true, $timeAsName=true){
         $this->uploadPath = $uploadPath;
         $this->processPath = $processPath;
         $this->saveFile = $saveFile;
@@ -174,7 +174,7 @@ class DooGdImage {
         $height = $imginfo['height'];
 
         //Crop now
-        imagecopyresized($cropimg, $img, 0, 0, $cropStartX, $cropStartY, $width, $height, $width, $height);
+        imagecopyresampled($cropimg, $img, 0, 0, $cropStartX, $cropStartY, $width, $height, $width, $height);
 
         if($this->saveFile){
             //delete if exist
@@ -226,11 +226,11 @@ class DooGdImage {
         //For GD version 2.0.1 only
         if (function_exists('imagecreatetruecolor')){
             $newImg = imagecreatetruecolor($width, $height);
-            imagecopyresized($newImg, $img, 0, 0, 0, 0, $width, $height, $imginfo['width'], $imginfo['height']);
+            imagecopyresampled($newImg, $img, 0, 0, 0, 0, $width, $height, $imginfo['width'], $imginfo['height']);
         }
         else{
             $newImg = imagecreate($width, $height);
-            imagecopyresized($newImg, $img, 0, 0, 0, 0, $width, $height, $imginfo['width'], $imginfo['height']);
+            imagecopyresampled($newImg, $img, 0, 0, 0, 0, $width, $height, $imginfo['width'], $imginfo['height']);
         }
 
         if($this->saveFile){
@@ -286,7 +286,7 @@ class DooGdImage {
         }
         else{
             $new = imagecreate($width, $height);
-            imagecopyresized($new, $img, 0, 0, 0, 0, $width, $height, $imageInfo['width'], $imageInfo['height']);
+            imagecopyresampled($new, $img, 0, 0, 0, 0, $width, $height, $imageInfo['width'], $imageInfo['height']);
         }
 
         $white = imagecolorallocate($new, 255, 255, 255);
@@ -403,23 +403,41 @@ class DooGdImage {
      * @param string $filename The file field name in $_FILES HTTP File Upload variables
      * @return string The file name of the uploaded image.
      */
-    public function uploadImage($filename){
+    public function uploadImage($filename, $rename=''){
         $img = !empty($_FILES[$filename]) ? $_FILES[$filename] : null;
         if($img==Null)return;
 
+        $pic = strrpos($img['name'], '.');
+        $ext = substr($img['name'], $pic+1);
+
         if ($this->timeAsName){
-            $pic = strrpos($img['name'], '.');
-            $ext = substr($img['name'], $pic+1);
             $newName = date('Ymdhis') . '.' . $ext;
         }
         else{
             $newName = $img['name'];
         }
 
-        $imgPath = $this->uploadPath . $newName;
-        
-        if (move_uploaded_file($img['tmp_name'], $imgPath))
-            return $newName;
+        if($rename=='')
+            $imgPath = $this->uploadPath . $newName;
+        else
+            $imgPath = $this->uploadPath . $rename . '.' . $ext;
+
+        if (move_uploaded_file($img['tmp_name'], $imgPath)){
+            return ($rename=='')? $newName : $rename. '.' . $ext;
+        }
+    }
+
+    /**
+     * Get the uploaded images format type
+     *
+     * @param string $filename The file field name in $_FILES HTTP File Upload variables
+     * @return string The image format type of the uploaded image.
+     */
+    public function getUploadFormat($filename){
+        if(!empty($_FILES[$filename])){
+            if(!empty($_FILES[$filename]['type']))
+                return str_replace('image/', '', $_FILES[$filename]['type']);
+        }
     }
 }
 
