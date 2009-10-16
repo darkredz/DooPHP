@@ -82,6 +82,39 @@ class DooRestClient {
     }
 
     /**
+     * Check if a given URL exist.
+     *
+     * The url exists if the return HTTP code is 200
+     * @param string $url Url of the page
+     * @return boolean True if exists (200)
+     */
+    public static function checkUrlExist($url){
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_NOBODY, true); // set to HEAD request
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // don't output the response
+        curl_exec($ch);
+        $valid = curl_getinfo($ch, CURLINFO_HTTP_CODE) == 200;
+        curl_close($ch);
+        return $valid;
+    }
+
+    /**
+     * Send request to a URL and returns the HEAD request HTTP code.
+     * 
+     * @param string $url Url of the page
+     * @return int returns the HTTP code
+     */
+    public static function retrieveHeaderCode($url){
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_NOBODY, true); // set to HEAD request
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // don't output the response
+        curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        return $code;
+    }
+
+    /**
      * Get/set the connection timeout duration (seconds)
      * @param int $sec Timeout duration in seconds
      * @return mixed
