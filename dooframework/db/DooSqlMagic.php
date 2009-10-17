@@ -638,7 +638,7 @@ class DooSqlMagic {
         //generate SQL based on $rtype (has_one, has_many, belongs_to)
         switch($rtype){
             case 'has_one':
-                $sql = "SELECT {$sqladd['select']}
+                $sql = "SELECT {$sqladd['select']},  {$relatedmodel->_table}.{$rparams['foreign_key']} AS _{$relatedmodel->_table}__{$rparams['foreign_key']}
                     FROM {$model->_table}
                     {$sqladd['include']}
                     {$sqladd['joinType']} {$relatedmodel->_table}
