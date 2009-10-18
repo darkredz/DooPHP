@@ -1239,8 +1239,12 @@ class DooSqlMagic {
         }else{
             foreach($obj as $o=>$v){
                 if(isset($v) && in_array($o, $model->_fields)){
-                    $values[] = $v;
-                    $field_and_value .= $o .'=?,';
+                    if(is_object($v)){
+                        $field_and_value .= "$o=$v,";
+                    }else{
+                        $values[] = $v;
+                        $field_and_value .= $o .'=?,';
+                    }
                 }
             }
         }
@@ -1299,8 +1303,12 @@ class DooSqlMagic {
         }else{
             foreach($data as $o=>$v){
                 if(isset($v) && in_array($o, $model->_fields)){
-                    $values[] = $v;
-                    $field_and_value .= $o .'=?,';
+                    if(is_object($v)){
+                        $field_and_value .= "$o=$v,";
+                    }else{
+                        $values[] = $v;
+                        $field_and_value .= $o .'=?,';
+                    }
                 }
             }
         }
