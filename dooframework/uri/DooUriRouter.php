@@ -304,7 +304,7 @@ class DooUriRouter{
 
                 //if the static part doesn't match any existing routes' static part... skip, continue the search
                 foreach($uparts as $i=>$upart){
-                    if(0===strpos($upart,':'))
+                    if($upart[0]===':')
                         continue;
                     if(isset($_GET)){
                         if($upart!=$uri_parts[$i] && strpos($uri_parts[$i], $upart.'?')===False){
