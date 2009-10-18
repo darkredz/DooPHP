@@ -73,7 +73,7 @@ class DooGdImage {
     public $generatedQuality = 100;
 
     /**
-     * Determine whether to use time as file name for the uploaded images.
+     * Determine whether to use time + unique value as a file name for the uploaded images.
      * @var bool
      */
     public $timeAsName = true;
@@ -411,7 +411,7 @@ class DooGdImage {
         $ext = substr($img['name'], $pic+1);
 
         if ($this->timeAsName){
-            $newName = date('Ymdhis') . '.' . $ext;
+            $newName = time().'-'.mt_rand(1000,9999) . '.' . $ext;
         }
         else{
             $newName = $img['name'];
