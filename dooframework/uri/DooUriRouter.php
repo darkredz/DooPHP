@@ -110,10 +110,10 @@ class DooUriRouter{
             Doo::loadCore('auth/DooDigestAuth');
             DooDigestAuth::http_auth($route['authName'],$route['auth'], $route['authFail'], $route['authFailURL']);
         }
-		
+
         if(isset($route['className']))
 			return array($route[0],$route[1],$params,$route['className']);
-		
+
         //return Controller class, method, parameters of the route
         return array($route[0],$route[1],$params);
     }
@@ -163,7 +163,7 @@ class DooUriRouter{
      */
     private function connect($route,$subfolder){
         $type = strtolower($_SERVER['REQUEST_METHOD']);
-        
+
         #echo 'type = ' . $type . '<br/>';
         #echo 'request URI = ' . $_SERVER['REQUEST_URI'] . '<br/>';
         #echo 'requested file = ' . $_SERVER['SCRIPT_NAME'] . '<br/>';
@@ -218,7 +218,7 @@ class DooUriRouter{
         if($pos = strpos($uri, '/?')){
             $uri = substr($uri,0,$pos);
         }
-        
+
         //strip slashes at the end
         if($uri!='/'){
             $this->strip_slash($uri);
@@ -290,7 +290,7 @@ class DooUriRouter{
                         }
                         $lastpart = explode($ext, $lastpart);
                     }
-                    
+
                     $lplength = sizeof($lastpart);
                     if($lplength<2)
                         continue;
@@ -306,12 +306,14 @@ class DooUriRouter{
                 foreach($uparts as $i=>$upart){
                     if(0===strpos($upart,':'))
                         continue;
-                    if($upart!=$uri_parts[$i])
+                    if(isset($_GET)){
+                        if($upart!=$uri_parts[$i] && strpos($uri_parts[$i], $upart.'?')===False){
+                            continue 2;
+                        }
+                    }else if($upart!=$uri_parts[$i]){
                         continue 2;
+                    }
                 }
-
-    			#echo '<br/>---------------------<br/><h3>Route parts:</h3><br>';
-    			#print_r($uparts);
     #			echo '<h1>MATCHED found!</h1><hr/><br/>';
 
                 //set parameters list
@@ -349,13 +351,13 @@ class DooUriRouter{
                     if(sizeof($uparts)-1 != sizeof($uri_parts)){
                         continue;
                     }
-                    
-                    $uparts = array_slice($uparts, 1);                    
+
+                    $uparts = array_slice($uparts, 1);
                     #print_r($uparts);
 
                     //convert into param with keys
                     $param = $this->parse_params($uri_parts, $uparts);
-                    
+
                     if(isset($r['match'])){
                         foreach($r['match'] as $var_name=>$pattern){
                             if( preg_match($pattern, $param[$var_name])==0 ){
@@ -453,12 +455,12 @@ class DooUriRouter{
         }
         return $params;
     }
-    
+
     /**
      * Strip out the additional slashes found at the end of an URI
-     * 
+     *
      * This method is called recursively to removed all slashes repeatedly
-     * 
+     *
      * @param string $str Requested URI
      */
     protected function strip_slash(&$str){
