@@ -302,14 +302,13 @@ class DooUriRouter{
                         $uri_parts[$lpindex] = $lastpart[0] . str_repeat($udata['extension'], $lplength-2);
                 }
 
-                $static_part = explode('/:', $ukey,2);
-                $static_part = $static_part[0];
-    			#echo '<br/>---------------------<br/><h3>Static part:</h3><br/>';
-    			#print_r($static_part);
-
                 //if the static part doesn't match any existing routes' static part... skip, continue the search
-                if(substr($uri,0,strlen($static_part))!==$static_part)
-                    continue;
+                foreach($uparts as $i=>$upart){
+                    if(0===strpos($upart,':'))
+                        continue;
+                    if($upart!=$uri_parts[$i])
+                        continue 2;
+                }
 
     			#echo '<br/>---------------------<br/><h3>Route parts:</h3><br>';
     			#print_r($uparts);
