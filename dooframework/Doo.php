@@ -31,6 +31,7 @@ class Doo{
     protected static $_cache;
     protected static $_acl;
 	protected static $_session;
+	protected static $_translator;
 
     /**
      * @return DooConfig configuration settings defined in <i>common.conf.php</i>, auto create if the singleton has not been created yet.
@@ -100,6 +101,17 @@ class Doo{
             self::$_session = new DooSession($namespace);
         }
         return self::$_session;
+    }
+
+	/**
+     * @returns Doo Translator
+     */
+    public static function translator($adapter, $data, $options=array()) {
+        if(self::$_translator===NULL){
+            self::loadCore('translate/DooTranslator');
+            self::$_translator = new DooTranslator($adapter, $data, $options);
+        }
+        return self::$_translator;
     }
 
     /**
@@ -286,6 +298,7 @@ class Doo{
         $class['DooUriRouter'] = 'uri/DooUriRouter';
         $class['DooView'] = 'view/DooView';
 		$class['DooSession'] = 'session/DooSession';
+		$class['DooTranslator'] = 'translate/DooTranslator';
 
         if(isset($class[$classname]))
             self::loadCore($class[$classname]);
