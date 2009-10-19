@@ -303,15 +303,19 @@ class DooUriRouter{
                 }
 
                 //if the static part doesn't match any existing routes' static part... skip, continue the search
-                foreach($uparts as $i=>$upart){
-                    if($upart[0]===':')
-                        continue;
-                    if(isset($_GET)){
-                        if($upart!=$uri_parts[$i] && strpos($uri_parts[$i], $upart.'?')===False){
+                if(isset($_GET)){
+                    foreach($uparts as $i=>$upart){
+                        if($upart[0]===':')
+                            continue;
+                        if($upart!=$uri_parts[$i] && strpos($uri_parts[$i], $upart.'?')===False)
                             continue 2;
-                        }
-                    }else if($upart!=$uri_parts[$i]){
-                        continue 2;
+                    }
+                }else{
+                    foreach($uparts as $i=>$upart){
+                        if($upart[0]===':')
+                            continue;
+                        if($upart!=$uri_parts[$i])
+                            continue 2;
                     }
                 }
     #			echo '<h1>MATCHED found!</h1><hr/><br/>';
@@ -448,7 +452,7 @@ class DooUriRouter{
         $params = NULL;
         for($i=0;$i<sizeof($req_route);$i++){
             $param_key = $defined_route[$i];
-            if(strpos($param_key,':')===0){
+            if($param_key[0]===':'){
                 $param_key = str_replace(':', '', $param_key);
                 $params[$param_key] = $req_route[$i];
             }
