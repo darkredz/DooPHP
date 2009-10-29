@@ -164,7 +164,7 @@ class DooMailer {
 	/**
 	* Add attachment to email
 	*
-	* @var string $file absolute path to the file for example /var/web/mywebsite/files/attachment.zip
+	* @var string $file
 	*/
 
 	public function addAttachment($file) {
@@ -174,7 +174,11 @@ class DooMailer {
 			$data = fread( $tmpFile, filesize($file) );
 			fclose($tmpFile);
 			// add to array
-			array_push($this->_attachments, array('file_name' => @end(explode('/', $file)), 'file_type' => filetype($file), 'file_data' => $data));
+			array_push(
+               $this->_attachments,
+               array('file_name' => @end(explode('/', $file)),
+               'file_type' => filetype($file), 'file_data' => $data)
+			);
 			$this->hasAttachments = true;
 		}
 	}
@@ -247,11 +251,12 @@ class DooMailer {
 				$header .= chunk_split(base64_encode($a['file_data'])) . "\r\n";
 				$header .= "--".$uid."\n";
 			}
-
 		}
 		// mail it
-		if (mail($this->getTo(), $this->_subject, $body, $header)) return true;
-			else return false;
+		if (mail($this->getTo(), $this->_subject, $body, $header)) {
+			return true;
+		}
+		return false;
 	}
 
 
