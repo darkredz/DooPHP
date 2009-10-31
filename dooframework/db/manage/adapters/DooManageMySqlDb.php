@@ -67,6 +67,16 @@ class DooManageMySqlDb extends DooManageDb {
 		return $statement;
 	}
 
+	/**
+	 * Drops an index from a table and specifically implemented for each db engine
+	 * @param string $table Name of the table the index is for
+	 * @param string $name Name of the index to be removed
+	 */
+	protected function _dropIndex($table, $name) {
+		$table = $this->quote($table);
+		$name = $this->quote($name);
+		return $this->query("DROP INDEX $name ON $table");
+	}
 
 	/**
 	 * Adds SQL DB Engine specific auto increment and primary key clauses inplace to the column definition

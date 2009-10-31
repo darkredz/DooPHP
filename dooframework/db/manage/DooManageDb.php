@@ -436,6 +436,75 @@ abstract class DooManageDb {
 	}
 
 	/**
+	 * Creates an index on a table.
+	 *
+	 * It is recommended you check when and how you should use indexes for your database engine
+	 * before you create indexes or you may hurt the performance of your application
+	 * @param string $table Name of the table to create the index on
+	 * @param string $name Name for the index
+	 * @param bool $unique Should the index be unique (eg no two rows have the same values in index columns)
+	 * @param array $colNames The names of the columsn to be indexed. If null use the index name
+	 * @return void
+	 */
+	public function createIndex($table, $name, $unique, $colNames = null) {
+
+		if ($colNames == null || empty($colNames)) {
+			$colNames = $name;
+		}
+
+		$this->checkIdentifier('table', $table);
+		$this->checkIdentifier('index', $name);
+
+		// Mod Index name
+		$name = $this->modifyIndexName($table, $name);
+
+		$table = $this->quote($table);
+		$name = $this->quote($name);
+		$colNames = $this->quote($colNames);
+
+		if (is_array($colNames)) {
+			$colNames = implode(', ', $colNames);
+		}
+
+		if ($unique) {
+			return $this->query("CREATE UNIQUE INDEX $name ON $table ($colNames)");
+		} else {
+			return $this->query("CREATE INDEX $name ON $table ($colNames)");
+		}
+	}
+
+
+	/**
+	 * Drops a database from a table in the database
+	 * @param string $table Name of the table the index belongs to
+	 * @param string $name Name of the index to be dropped
+	 * @return mixed
+	 */
+	public function dropIndex($table, $name) {
+		$name = $this->modifyIndexName($table, $name);
+		return $this->_dropIndex($table, $name);
+	}
+
+
+	/**
+	 * Used to allow an index name to be modified if required by a specific db engine
+	 * @param string $table Name of the table
+	 * @param string $name  Name of the index
+	 */
+	protected function modifyIndexName($table, $name) {
+		return $name;
+	}
+
+	
+	/**
+	 * Drops an index from a table and specifically implemented for each db engine
+	 * @param string $table Name of the table the index is for
+	 * @param string $name Name of the index to be removed
+	 */
+	abstract protected function _dropIndex($table, $name);
+
+
+	/**
 	 * Adds SQL DB Engine specific auto increment and primary key clauses inplace to the column definition
 	 * @param string $columnDefinition Reference to the columnDefention to append to
 	 * @param bool $autoinc True if this column should be a primary key
