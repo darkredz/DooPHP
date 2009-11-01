@@ -231,14 +231,16 @@ class DooMailer {
 		$header .= "--".$uid."\r\n";
 		$header .= "Content-Type: multipart/alternative; boundary=\"".$uid2 . "\"\r\n";
 		$header .= "--".$uid2. "\r\n";
-		if (isset($this->_bodyText) && (!isset($this->_bodyHtml))) {
+		if (isset($this->_bodyText) && (!isset($this->_bodyHtml))) {			
 			$header .= "Content-Type: text/plain; charset=".$this->_charset."\r\n";
-			$header .= "Content-Transfer-Encoding: 7bit\r\n";
+			//$header .= "Content-Transfer-Encoding: 7bit\r\n";
 			$header .= $this->_bodyText."\r\n";
+			$body = $this->_bodyText;
 		} else if (isset($this->_bodyHtml)) {
 			$header .= "Content-Type: text/html; charset=".$this->_charset."\r\n";
-			$header .= "Content-Transfer-Encoding: 7bit\r\n";
+			//$header .= "Content-Transfer-Encoding: 7bit\r\n";
 			$header .= $this->_bodyHtml."\r\n";
+			$body = $this->_bodyHtml;
 		}
 		$header .= "--" . $uid2 . "--\r\n";
 		// add attachments if there are any
