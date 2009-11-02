@@ -216,8 +216,7 @@ class DooMailer {
 		$from = $this->_from;
 		$fromName = (isset($from['name']))?$from['name']:'';
 		$fromEmail = (isset($from['email']))?$from['email']:'';
-		$uid = md5(uniqid(time()));
-		$uid2 = md5(time());
+		$mime_boundary = 'Multipart_Boundary_x'.md5(time()).'x';		
 		$header = "From: ".$fromName." <".$fromEmail.">\r\n";
 		// add to
 		$header .= "To: " . $this->getTo(true);
@@ -227,31 +226,32 @@ class DooMailer {
 		if ($this->_recipients)
 		$header .= "Reply-To: ".$replyto."\r\n";
 		$header .= "MIME-Version: 1.0\r\n";
-		$header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"\r\n\r\n";
-		$header .= "--".$uid."\r\n";
-		$header .= "Content-Type: multipart/alternative; boundary=\"".$uid2 . "\"\r\n";
-		$header .= "--".$uid2. "\r\n";
-		if (isset($this->_bodyText) && (!isset($this->_bodyHtml))) {			
-			$header .= "Content-Type: text/plain; charset=".$this->_charset."\r\n";
-			//$header .= "Content-Transfer-Encoding: 7bit\r\n";
-			$header .= $this->_bodyText."\r\n";
-			$body = $this->_bodyText;
+		$header .= "Content-Type: multipart/alternative; boundary=\"$mime_boundary\"\r\n";
+		$header .= "--".$mime_boundary."\n";
+		// add content
+		if (isset($this->_bodyText) && (!isset($this->_bodyHtml))) {
+			$body.= "--$mime_boundary\n";
+			$body.= "Content-Type: text/plain; charset=\"charset=".$this->_charset."\"\n";
+			$body.= "Content-Transfer-Encoding: 7bit\n\n";
+			$body.= $this->_bodyText;
+			$body.= "\n\n";
 		} else if (isset($this->_bodyHtml)) {
-			$header .= "Content-Type: text/html; charset=".$this->_charset."\r\n";
-			//$header .= "Content-Transfer-Encoding: 7bit\r\n";
-			$header .= $this->_bodyHtml."\r\n";
-			$body = $this->_bodyHtml;
+			$body.= "--$mime_boundary\n";
+			$body.= "Content-Type: text/html; charset=\"UTF-8\"\n";
+			$body.= "Content-Transfer-Encoding: 7bit\n\n";
+			$body.= $this->_bodyHtml;
+			$body.= "\n\n";
 		}
-		$header .= "--" . $uid2 . "--\r\n";
+		$body .= "--" . $mime_boundary . "--\r\n";
 		// add attachments if there are any
 		if ($this->hasAttachments == true) {
-			$header .= "--" . $uid . "\r\n";
+			$header .= "--" . $mime_boundary . "\r\n";
 			foreach ($this->_attachments as $attachment => $a) {
 				$header .= 'Content-Type: "'.$a['file_type'].'"; name="'.$a['file_name']."\r\n";
 				$header .= 'Content-Disposition: attachment; filename="'.$a['file_name'].'"'. "\r\n";
 				$header .= "Content-Transfer-Encoding: base64\r\n";
 				$header .= chunk_split(base64_encode($a['file_data'])) . "\r\n";
-				$header .= "--".$uid."\n";
+				$header .= "--".$mime_boundary."\n";
 			}
 		}
 		// mail it
@@ -260,6 +260,4 @@ class DooMailer {
 		}
 		return false;
 	}
-
-
 }
