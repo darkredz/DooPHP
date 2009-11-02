@@ -52,7 +52,7 @@ class DooTranslator {
 	* Supported cache types
 	*/
 
-	private $_supportedCacheTypes = array('apc', 'php', 'xcache', 'eaccelerator');
+	private $_supportedCacheTypes = array('apc', 'php', 'xcache', 'eaccelerator', 'file');
 
 	/**
 	* Options
@@ -112,6 +112,13 @@ class DooTranslator {
 						break;
 					case "eaccelerator":
 						$this->_cache = Doo::cache('eaccelerator');
+						break;
+					case "file":
+						if (isset($this->_options['path'])) {
+							$this->_cache = new DooFileCache($this->_options['path']);
+						} else {
+							throw new DooTranslatorException("Cache directory is not set, please add path in options.");
+						}
 						break;
 				}
 				$this->_cachedName = md5($data);
