@@ -225,7 +225,7 @@ class DooForm extends DooValidator {
 
 			$elementHtml = "";
 			$elementAttributes = "";
-			$elementRequred = (isset($k[1]['required']) && ($k[1]['required'] == 1))?'requred="true"':'';
+			$elementRequred = (isset($k[1]['required']) && ($k[1]['required'] == 1))?'required="true"':'';
 
 			// add element values
 			 if (isset($k[1]['value'])) {
