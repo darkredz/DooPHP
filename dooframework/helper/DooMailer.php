@@ -229,7 +229,7 @@ class DooMailer {
 		$header .= "Content-Type: multipart/alternative; boundary=\"$mime_boundary\"\r\n";
 		$header .= "--".$mime_boundary."\n";
 		// add content
-		if (isset($this->_bodyText) && (!isset($this->_bodyHtml))) {
+		if (isset($this->_bodyText) && ($this->_bodyText != "") && ($this->_bodyHtml == "")) {			
 			$body.= "--$mime_boundary\n";
 			$body.= "Content-Type: text/plain; charset=\"charset=".$this->_charset."\"\n";
 			$body.= "Content-Transfer-Encoding: 7bit\n\n";
