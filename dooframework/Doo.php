@@ -200,13 +200,17 @@ class Doo{
     		require_once($path . "$class_name.php");
             if($createObj)
                 return new $class_name;
-        }else{
+        }else if(is_array($class_name)){
             //if not string, then a list of Class name, require them all.
+            //make sure the class_name has array with is_array
             if($createObj)
                 $obj=array();
 
-            foreach ($class_name as $one) {
-            	require_once($path . "$one.php");
+            //Loop optimization micro-bechmarks
+            $class_nameSz = sizeOf($class_name);
+            for($i=0;$i<$class_nameSz;$i++) {
+                $one = &$class_name[$i];
+            	require_once($path . $one .'.php');
                 if($createObj)
                     $obj[] = new $one;
             }
@@ -231,7 +235,7 @@ class Doo{
      * @param string $class_name Name of the class to be imported
      */
     public static function loadController($class_name){
-        require_once(self::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/$class_name.php");
+        require_once(self::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'controller/'.$class_name.'.php');
     }
 
     /**
