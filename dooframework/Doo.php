@@ -207,10 +207,8 @@ class Doo{
                 $obj=array();
 
             //Loop optimization micro-bechmarks
-            $class_nameSz = sizeOf($class_name);
-            for($i=0;$i<$class_nameSz;$i++) {
-                $one = &$class_name[$i];
-            	require_once($path . $one .'.php');
+            foreach ($class_name as $one) {
+                require_once($path . "$one.php");
                 if($createObj)
                     $obj[] = new $one;
             }
@@ -276,6 +274,7 @@ class Doo{
         $class['DooWebApp'] = 'app/DooWebApp';
         $class['DooConfig'] = 'app/DooConfig';
         $class['DooDigestAuth'] = 'auth/DooDigestAuth';
+        $class['DooAuth'] = 'auth/DooAuth';
         $class['DooAcl'] = 'auth/DooAcl';
         $class['DooFileCache'] = 'cache/DooFileCache';
         $class['DooPhpCache'] = 'cache/DooPhpCache';
@@ -328,7 +327,7 @@ class Doo{
     }
 
     public static function version(){
-        return '1.2';
+        return '1.3';
     }
 }
 
