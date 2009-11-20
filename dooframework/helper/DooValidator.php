@@ -185,7 +185,7 @@ class DooValidator {
 
     /**
      * Validate the data with the defined rules.
-     * 
+     *
      * @param array $data Data to be validate. One dimension assoc array, eg. array('user'=>'leng', 'email'=>'abc@abc.com')
      * @param string|array $rules Validation rule. Pass in a string to load the predefined rules in SITE_PATH/protected/config/forms
      * @return array Returns an array of errors if errors exist.
@@ -196,8 +196,8 @@ class DooValidator {
         if(is_string($rules)){
             $rules = include(Doo::conf()->SITE_PATH .  Doo::conf()->PROTECTED_FOLDER . 'config/forms/'.$rules.'.php');
         }
-        
-        if($missingKey = array_diff_key($rules, $data) ){    
+
+        if($missingKey = array_diff_key($rules, $data) ){
             foreach($missingKey as $opt){
                 foreach($opt as $oo=>$o){
                     if($o[0]=='optional'){
@@ -262,7 +262,7 @@ class DooValidator {
                         if($this->checkMode==DooValidator::CHECK_ALL)
                             $errors[$k][$v2[0]] = $err;
                         else if($this->checkMode==DooValidator::CHECK_SKIP && !empty($v) && $v2[0]!='optional'){
-                            return $err;                        
+                            return $err;
                         }else if($this->checkMode==DooValidator::CHECK_ALL_ONE)
                             $errors[$k] = $err;
                     }
@@ -417,7 +417,7 @@ class DooValidator {
 
     /**
      * Validate password format
-     * 
+     *
      * @param string $value Value of data to be validated
      * @param int $minLength Minimum length
      * @param int $maxLength Maximum length
@@ -433,7 +433,7 @@ class DooValidator {
 
     /**
      * Validate against a complex password format
-     * 
+     *
      * @param string $value Value of data to be validated
      * @param string $msg Custom error message
      * @return string
@@ -447,7 +447,7 @@ class DooValidator {
 
     /**
      * Validate email address
-     * 
+     *
      * @param string $value Value of data to be validated
      * @param string $msg Custom error message
      * @return string
@@ -463,7 +463,7 @@ class DooValidator {
 
     /**
      * Validate a URL
-     * 
+     *
      * @param string $value Value of data to be validated
      * @param string $msg Custom error message
      * @return string
@@ -601,7 +601,7 @@ class DooValidator {
      */
     public function testDateTime($value, $msg=null){
         $rs = strtotime($value);
-        
+
         if ($rs===false || $rs===-1){
             if($msg!==null) return $msg;
             return 'Invalid date time format!';
@@ -651,7 +651,7 @@ class DooValidator {
 
     /**
      * Validate if given date is between 2 dates.
-     * 
+     *
      * @param string $value Value of data to be validated
      * @param string $dateStart Starting date
      * @param string $dateEnd Ending date
@@ -1078,6 +1078,30 @@ class DooValidator {
             return 'Unmatched value.';
         }
     }
+
+	/**
+	* Validate field if it is equal with some other field from $_GET or $_POST method
+	* This method is used for validating form
+	*
+	* @param string $value Value of data to be validated
+	* @param string $method Method (get or post), default $_POST
+	* @param string $field Name of field that you want to check
+	* @return string
+	*/
+
+	public function testEqualAs($value, $method, $field, $msg=null) {
+		if ($method == "get") {
+		  $method = $_GET;
+		} else if ($method == "post") {
+		  $method = $_POST;
+		} else {
+		  $method = $_POST;
+		}
+		if (!isset($method[$field]) || $value != $method[$field]) {
+		    if($msg!==null) return $msg;
+            return 'Value '.$value.' is not equal with "'.$field.'".';
+		}
+	}
 
 }
 
