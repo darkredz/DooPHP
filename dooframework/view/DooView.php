@@ -215,16 +215,150 @@ class DooView {
         }
     }
 
+	public function renderLayout($layoutName, $viewFile, $data=NULL, $process=NULL, $forceCompile=false) {
+
+		$compiledViewFile = $layoutName . DIRECTORY_SEPARATOR . $viewFile;
+
+		if(isset(Doo::conf()->TEMPLATE_COMPILE_ALWAYS) && Doo::conf()->TEMPLATE_COMPILE_ALWAYS==true){
+            $process = $forceCompile = true;
+        }
+        //if process not set, then check the app mode, if production mode, skip the process(false) and just include the compiled files
+        else if($process===NULL){
+            $process = (Doo::conf()->APP_MODE!='prod');
+        }
+
+        //just include the compiled file if process is false
+        if($process!=true){
+            //includes user defined template tags for template use
+            include_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'plugin/template_tags.php';
+            include Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "viewc/$compiledViewFile.php";
+        }
+        else{
+			$lfilename = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "layout/$layoutName.html";
+            $vfilename = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "view/$viewFile.html";
+			$cfilename = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "viewc/$compiledViewFile.php";
+
+            //if file exist and is not older than the html template file AND layout file, include the compiled php instead and exit the function
+            if(!$forceCompile){
+                if(file_exists($cfilename)){
+                    if(filemtime($cfilename)>=filemtime($vfilename) && filemtime($cfilename)>=filemtime($lfilename)){
+                        include_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'plugin/template_tags.php';
+                        if(!isset(Doo::conf()->TEMPLATE_TAGS)){
+                            foreach($template_tags as $k=>$v ){
+                                $template_tags[$k] = strtolower($v);
+                            }
+                            Doo::conf()->add('TEMPLATE_TAGS', $template_tags);
+                        }
+                        include $cfilename;
+                        return;
+                    }
+                }
+            }
+            $this->data = $data;
+            $this->compileLayout($viewFile, $lfilename, $vfilename, $cfilename);
+            include $cfilename;
+        }
+
+	}
+
+	/**
+	 * Contains the contents of view blocks used with layouts
+	 * @var array
+	 */
+	private $viewBlocks = null;
+
+	/**
+	 * Parses and compiled a view into a layout to fill in placeholders and
+	 * stores the resulting view file to then be processed as normal by DooView::compile
+	 * @param string $viewFile The original location of the view without extension .html
+	 * @param string $lfilename Full path to the layout file
+	 * @param string $vfilename Full path to the view to be merged into the layout
+	 * @param string $cfilename Full path of the compiled file to be saved 
+	 */
+	protected function compileLayout($viewFile, $lfilename, $vfilename, $cfilename) {
+
+		$layout = file_get_contents($lfilename);
+		$view = file_get_contents($vfilename);
+
+		// Identify the blocks within a view file
+		// <!-- block:NAME -->CONTENT<!-- endblock -->
+		$this->viewBlocks = array();
+		// We use \s\S to get ANY character including newlines etc as '.' will not get new lines
+		// Also use +? and *? so as to use non greedy matching
+        preg_replace_callback('/<!-- block:([^\t\r\n]+?) -->([\s\S]*?)<!-- endblock -->/', array( &$this, 'storeViewBlock'), $view);
+		$compiledLayoutView = preg_replace_callback('/<!-- placeholder:([^\t\r\n]+?) -->([\s\S]*?)<!-- endplaceholder -->/', array( &$this, 'replacePlaceholder'), $layout);
+
+
+		$this->mainRenderFolder = $viewFile;
+
+		//--------------------------- Parsing -----------------------------
+        //if no compiled file exist or compiled file is older, generate new one
+        $str = $this->compileTags($compiledLayoutView);
+
+        //-------------------- Compiling -------------------------
+        //write to compiled file in viewc and include that file in.
+        $folders = explode('/', $cfilename);
+        array_splice($folders, -1);
+
+        //if a subfolder is specified, search for it, if not exist then create the folder
+        $pathsize = sizeof($folders);
+		$path = '/';
+        if($pathsize>0){
+            for($i=0;$i<$pathsize;$i++){
+                $path .= $folders[$i] .'/';
+                if(!file_exists($path)){
+                    mkdir($path);
+                }
+            }
+        }
+        $fh = fopen($cfilename, 'w+');
+        fwrite($fh, $str);
+        fclose($fh);
+	}
+
+
     /**
      * Parse and compile the template file. Templates generated in protected/viewc folder
      * @param string $file Template file name without extension .html
      * @param string $vfilename Full path of the template file
      * @param string $cfilename Full path of the compiled file to be saved
      */
-    protected function compile($file, $vfilename, $cfilename){
+	protected function compile($file, $vfilename, $cfilename){
         $this->mainRenderFolder = $file;
-        
-        //includes user defined template tags and checks for the tag and compile.
+
+        //--------------------------- Parsing -----------------------------
+        //if no compiled file exist or compiled file is older, generate new one
+        $str = $this->compileTags(file_get_contents($vfilename));
+
+        //-------------------- Compiling -------------------------
+        //write to compiled file in viewc and include that file in.
+        $folders = explode('/', $file);
+        array_splice($folders, -1);
+
+        //if a subfolder is specified, search for it, if not exist then create the folder
+        $pathsize = sizeof($folders);
+        if($pathsize>0){
+            $path = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "viewc/";
+            for($i=0;$i<$pathsize;$i++){
+                $path .= $folders[$i] .'/';
+                if(!file_exists($path)){
+                    mkdir($path);
+                }
+            }
+        }
+        $fh = fopen($cfilename, 'w+');
+        fwrite($fh, $str);
+        fclose($fh);
+    }
+
+	/**
+	 * Processes a string containing DooPHP Template tags and replaces them with the relevant PHP code required
+	 * @param string $str This is the html template markup from View files
+	 * @return string The PHP markedup version of the View file
+	 */
+	private function compileTags($str) {
+
+		//includes user defined template tags and checks for the tag and compile.
         if($this->tags===NULL){
             if(!isset(Doo::conf()->TEMPLATE_TAGS)){
                 include_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'plugin/template_tags.php';
@@ -237,10 +371,6 @@ class DooView {
                 $this->tags = Doo::conf()->TEMPLATE_TAGS;
             }
         }
-
-        //--------------------------- Parsing -----------------------------
-        //if no compiled file exist or compiled file is older, generate new one
-        $str = file_get_contents($vfilename);
 
         //convert end loop
         $str = str_replace('<!-- endloop -->', '<?php endforeach; ?>', $str);
@@ -272,7 +402,7 @@ class DooView {
 
         //convert end if
         $str = str_replace('<!-- endif -->', '<?php endif; ?>', $str);
-		
+
         //convert if and else if condition <!-- if expression --> <!-- elseif expression -->  only functions in template_tags are allowed
         $str = preg_replace_callback('/<!-- (if|elseif) ([^\t\r\n}]+) -->/', array( &$this, 'convertCond'), $str);
 
@@ -293,27 +423,27 @@ class DooView {
             $str = str_replace('<!-- comment -->', '<?php /** ', $str);
             $str = str_replace('<!-- endcomment -->', ' */ ?>', $str);
         }
-        
-        //-------------------- Compiling -------------------------
-        //write to compiled file in viewc and include that file in.
-        $folders = explode('/', $file);
-        array_splice($folders, -1);
 
-        //if a subfolder is specified, search for it, if not exist then create the folder
-        $pathsize = sizeof($folders);
-        if($pathsize>0){
-            $path = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "viewc/";
-            for($i=0;$i<$pathsize;$i++){
-                $path .= $folders[$i] .'/';
-                if(!file_exists($path)){
-                    mkdir($path);
-                }
-            }
-        }
-        $fh = fopen($cfilename, 'w+');
-        fwrite($fh, $str);
-        fclose($fh);
-    }
+		return $str;
+	}
+
+
+	private function storeViewBlock($matches){
+		// Store blocks as blockName => blockContent
+		$this->viewBlocks[$matches[1]] = $matches[2];
+		return '';
+	}
+
+	private function replacePlaceholder($matches) {
+		$blockName = $matches[1];
+		// If the block has been defined in the view then use it otherwise
+		// use the default from the layout
+		if (isset( $this->viewBlocks[$matches[1]] )) {
+			return $this->viewBlocks[$matches[1]];
+		} else {
+			return $matches[2];
+		}
+	}
 
     private function convertCache($matches){
 		$data = explode(',', $matches[1]);
