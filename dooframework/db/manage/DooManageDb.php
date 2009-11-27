@@ -385,6 +385,7 @@ abstract class DooManageDb {
         $require = (bool) $attributes['require'];
 		$autoinc = (bool) $attributes['autoinc'];
 		$primary = (bool) $attributes['primary'];
+		$default = $attributes['default'];
 
 		$columnDefinition = '';
 
