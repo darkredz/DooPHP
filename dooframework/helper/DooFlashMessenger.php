@@ -41,12 +41,14 @@
 class DooFlashMessenger {
 
 	/**
-	* Namespace for DooSession, default is doo
+	* Namespace for session, default is dooFlashMessenger
+	* @var string namespace
 	*/
 	protected $_namespace = 'dooFlashMessenger';
 
 	/**
 	* Array of messages
+	* @var array messages
 	*/
 	static protected $_messages = array();
 
@@ -63,7 +65,6 @@ class DooFlashMessenger {
 		if (!isset($_SESSION[$this->_namespace])) {
 			$_SESSION[$this->_namespace] = array();
 		}
-		//var_dump($_SESSION[$this->_namespace]);
 
 		if (count($_SESSION[$this->_namespace]) > 0) {
 			foreach ($_SESSION[$this->_namespace] as $k => $message) {
