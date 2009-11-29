@@ -197,7 +197,7 @@ class DooModel{
      * @param array $opt Associative array of options to generate the UPDATE statement. Supported: <i>where, limit, field, param</i>
      */
     public function update_attributes($data, $opt=NULL){
-        return Doo::db()->update($this, $data, $opt);
+        return Doo::db()->update_attributes($this, $data, $opt);
     }
 
     /**
