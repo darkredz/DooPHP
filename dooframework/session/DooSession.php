@@ -199,7 +199,7 @@ class DooSession {
 	*/
 	public function getAll() {
 		$sessionData  = (isset($_SESSION[$this->_namespace]) && is_array($_SESSION[$this->_namespace])) ?
-			$_SESSION[$namespace] : array();
+			$_SESSION[$this->_namespace] : array();
 		return $sessionData;
 	}
 
