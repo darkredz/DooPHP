@@ -274,7 +274,6 @@ class DooUriRouter{
                 if($uri_parts[0]!==$uparts[0])
                     continue;
 
-
                 //if extension is set, remove the part of the extension from the URI if found
                 if(isset($udata['extension'])){
                     $lpindex = sizeof($uri_parts)-1;
@@ -296,9 +295,9 @@ class DooUriRouter{
                         continue;
                     if($lastpart[$lplength-1]!=='')
                         continue;
-                    if($lplength===2)
-                        $uri_parts[$lpindex] = $lastpart[0];
-                    else
+                    if($lplength===2){
+                        $lpart = array($lpindex, $lastpart[0]);
+                    }else
                         $uri_parts[$lpindex] = $lastpart[0] . str_repeat($udata['extension'], $lplength-2);
                 }
 
@@ -317,6 +316,9 @@ class DooUriRouter{
                         if($upart!=$uri_parts[$i])
                             continue 2;
                     }
+                }
+                if(isset($lpart)){
+                    $uri_parts[$lpart[0]] = $lpart[1];
                 }
     #			echo '<h1>MATCHED found!</h1><hr/><br/>';
 
