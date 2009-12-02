@@ -252,6 +252,78 @@ class DooGdImage {
     }
 
     /**
+     * Create a square thumbnail (resize adaptively)
+     *
+     * @param string $file The image file name.
+     * @param int $size Width/height of the thumbnail
+     * @return bool|string Returns the generated image file name. Return false if failed.
+     */
+    public function createSquare($file, $size){
+        return $this->adaptiveResize($file, $size, $size);
+    }
+
+    /**
+     * Adaptively Resizes the Image
+     *
+     * Resize the image to as close to the provided dimensions as possible, and then crops the
+     * remaining overflow (from the center) to get the image to be the size specified
+     *
+     * @param string $file The image file name.
+     * @param int $width
+     * @param int $height
+     * @return bool|string Returns the generated image file name. Return false if failed.
+     */
+    public function adaptiveResize($file, $width, $height) {
+        $file = $this->uploadPath . $file;
+        $imginfo = $this->getInfo($file);
+        $newName = substr($imginfo['name'], 0, strrpos($imginfo['name'], '.')) . $this->thumbSuffix .'.'. $this->generatedType;
+
+        //create image object based on the image file type, gif, jpeg or png
+        $this->createImageObject($img, $imginfo['type'], $file);
+
+        if(!$img) return false;
+
+        if($imginfo['height'] == $imginfo['width']){
+            $resizeWidth = $width;
+            $resizeHeight = $height;
+        }
+        else if($imginfo['height'] > $imginfo['width']){
+            $resizeWidth = $width;
+            $resizeHeight = ($imginfo['height']/$imginfo['width'])*$resizeWidth;
+        }else{
+            $resizeHeight = $height;
+            $resizeWidth = ($imginfo['width']/$imginfo['height'])*$resizeHeight;
+        }
+
+        //For GD version 2.0.1 only
+        if (function_exists('imagecreatetruecolor')){
+            $newImg = imagecreatetruecolor($width, $height);
+            imagecopyresampled($newImg, $img, ($width-$resizeWidth)/2, ($height-$resizeHeight)/2, 0, 0, $resizeWidth, $resizeHeight, $imginfo['width'], $imginfo['height']);
+        }
+        else{
+            $newImg = imagecreate($width, $height);
+            imagecopyresampled($newImg, $img, ($width-$resizeWidth)/2, ($height-$resizeHeight)/2, 0, 0, $resizeWidth, $resizeHeight, $imginfo['width'], $imginfo['height']);
+        }
+
+        if($this->saveFile){
+            //delete if exist
+            if(file_exists($this->processPath . $newName))
+                unlink($this->processPath . $newName);
+            $this->generateImage($newImg, $this->processPath . $newName);
+            imagedestroy($newImg);
+            imagedestroy($img);
+            return $this->processPath . $newName;
+        }
+        else{
+            $this->generateImage($newImg);
+            imagedestroy($newImg);
+            imagedestroy($img);
+        }
+
+        return true;
+    }
+
+    /**
      * Add water mark text to an image.
      * 
      * @param string $file Image file name
