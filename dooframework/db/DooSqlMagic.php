@@ -1268,7 +1268,7 @@ class DooSqlMagic {
             }
         }
         
-        $this->query($sql, $values)->rowCount();
+        return $this->query($sql, $values)->rowCount();
     }
 
     /**
@@ -1332,7 +1332,7 @@ class DooSqlMagic {
                 $sql ="UPDATE {$model->_table} SET {$field_and_value} WHERE {$where}";
             }
         }
-        $this->query($sql, $values)->rowCount();
+        return $this->query($sql, $values)->rowCount();
     }
 
     /**
