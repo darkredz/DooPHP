@@ -406,6 +406,11 @@ class DooView {
         //convert if and else if condition <!-- if expression --> <!-- elseif expression -->  only functions in template_tags are allowed
         $str = preg_replace_callback('/<!-- (if|elseif) ([^\t\r\n}]+) -->/', array( &$this, 'convertCond'), $str);
 
+        //convert else
+        $str = str_replace('<!-- continue -->', '<?php continue; ?>', $str);
+
+        //convert else
+        $str = str_replace('<!-- break -->', '<?php break; ?>', $str);
 
         //convert end cache <!-- endcache -->
         $str = str_replace('<!-- endcache -->', "\n<?php Doo::cache('front')->end(); ?>\n<?php endif; ?>", $str);
