@@ -187,6 +187,7 @@ class DooModel{
     /**
      * Update an existing record. (Prepares and execute the UPDATE statements)
      * @param array $opt Associative array of options to generate the UPDATE statement. Supported: <i>where, limit, field, param</i>
+     * @return int Number of rows affected
      */
     public function update($opt=NULL){
         return Doo::db()->update($this, $opt);
@@ -195,6 +196,7 @@ class DooModel{
     /**
      * Update an existing record with a list of keys & values (assoc array). (Prepares and execute the UPDATE statements)
      * @param array $opt Associative array of options to generate the UPDATE statement. Supported: <i>where, limit, field, param</i>
+     * @return int Number of rows affected
      */
     public function update_attributes($data, $opt=NULL){
         return Doo::db()->update_attributes($this, $data, $opt);

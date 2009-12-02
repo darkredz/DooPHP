@@ -1213,7 +1213,8 @@ class DooSqlMagic {
     /**
      * Update an existing record. (Prepares and execute the UPDATE statements)
      * @param mixed $model The model object to be updated.
-     * @param array $opt Associative array of options to generate the UPDATE statement. Supported: <i>where, limit, field, param</i>
+     * @param array $opt Associative array of options to generate the UPDATE statement. Supported: <i>where, limit, field, param</i
+     * @return int Number of rows affected
      */
     public function update($model, $opt=NULL){
         //add values to fields where the model propertie(s) are/is set
@@ -1267,13 +1268,14 @@ class DooSqlMagic {
             }
         }
         
-        $this->query($sql, $values);
+        $this->query($sql, $values)->rowCount();
     }
 
     /**
      * Update an existing record with a list of keys & values (assoc array). (Prepares and execute the UPDATE statements)
      * @param mixed $model The model object to be updated.
      * @param array $opt Associative array of options to generate the UPDATE statement. Supported: <i>where, limit, field, param</i>
+     * @return int Number of rows affected
      */
     public function update_attributes($model, $data, $opt=NULL){
         if(is_string($model)){
@@ -1330,7 +1332,7 @@ class DooSqlMagic {
                 $sql ="UPDATE {$model->_table} SET {$field_and_value} WHERE {$where}";
             }
         }
-        $this->query($sql, $values);
+        $this->query($sql, $values)->rowCount();
     }
 
     /**
