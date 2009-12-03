@@ -244,14 +244,27 @@ class DooSession {
 		if (!$this->_sessionStarted) {
 			throw new DooSessionException("Session not started, use DooSession::start()");
 		}
-		if ($name == '') {
-			throw new DooSessionException("Name should not be empty");
-		}
 		if (isset($_SESSION[$this->_namespace][$name])) {
 			return true;
         } else {
             return false;
         }
+	}
+
+	/**
+	* Unset dooSession variable
+	* @return bool
+	*/
+
+	public function __unset($name) {
+		if (!$this->_sessionStarted) {
+			throw new DooSessionException("Session not started, use DooSession::start()");
+		}
+		if (isset($_SESSION[$this->_namespace][$name])) {
+			unset($_SESSION[$this->_namespace][$name]);
+			return true;
+		}
+		return false;
 	}
 
 }
