@@ -236,6 +236,24 @@ class DooSession {
 		return $this->get($name);
 	}
 
+	/**
+	* Check if DooSession variable is stored
+	* @return bool
+	*/
+	public function __isset($name) {
+		if (!$this->_sessionStarted) {
+			throw new DooSessionException("Session not started, use DooSession::start()");
+		}
+		if ($name == '') {
+			throw new DooSessionException("Name should not be empty");
+		}
+		if (isset($_SESSION[$this->_namespace][$name])) {
+			return true;
+        } else {
+            return false;
+        }
+	}
+
 }
 
 class DooSessionException extends Exception {
