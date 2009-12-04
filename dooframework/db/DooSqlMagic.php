@@ -282,7 +282,11 @@ class DooSqlMagic {
                                 preg_match('/^LIKE[ ]{1,}[\'\"]{1}(.+)[\'\"]{1}[ ]{1,}$/i', $v, $matches);
                                 $wheresql .= " AND {$obj['_table']}.$o LIKE ?";
                                 $where_values[] = $matches[1];
-                            }else{
+                            }
+                            else if(strpos(strtoupper($v), 'IS')===0){
+                                $wheresql .= " AND {$obj['_table']}.$o $v";                                
+                            }
+                            else{
                                 $wheresql .= " AND {$obj['_table']}.$o=?";
                                 $where_values[] = $v;
                             }
@@ -421,7 +425,11 @@ class DooSqlMagic {
                                 preg_match('/^LIKE[ ]{1,}[\'\"]{1}(.+)[\'\"]{1}[ ]{1,}$/i', $v, $matches);
                                 $wheresql .= " AND {$obj['_table']}.$o LIKE ?";
                                 $where_values[] = $matches[1];
-                            }else{
+                            }
+                            else if(strpos(strtoupper($v), 'IS')===0){
+                                $wheresql .= " AND {$obj['_table']}.$o $v";                                
+                            }
+                            else{
                                 $wheresql .= " AND {$obj['_table']}.$o=?";
                                 $where_values[] = $v;
                             }
