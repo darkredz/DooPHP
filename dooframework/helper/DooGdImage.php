@@ -157,12 +157,17 @@ class DooGdImage {
      * @param int $cropHeight Height to be cropped
      * @param int $cropStartX Position x to start cropping
      * @param int $cropStartY Position y to start cropping
+     * @param string $rename New file name for the processed image file to be saved.
      * @return bool|string Returns the generated image file name. Return false if failed.
      */
-    public function crop($file, $cropWidth, $cropHeight, $cropStartX=0, $cropStartY=0){
+    public function crop($file, $cropWidth, $cropHeight, $cropStartX=0, $cropStartY=0, $rename=''){
         $file = $this->uploadPath . $file;
         $imginfo = $this->getInfo($file);
-        $newName = substr($imginfo['name'], 0, strrpos($imginfo['name'], '.')) . $this->cropSuffix .'.'. $this->generatedType;
+
+        if($rename=='')
+            $newName = substr($imginfo['name'], 0, strrpos($imginfo['name'], '.')) . $this->cropSuffix .'.'. $this->generatedType;
+        else
+            $newName = $rename .'.'. $this->generatedType;
 
         //create image object based on the image file type, gif, jpeg or png
         $this->createImageObject($img, $imginfo['type'], $file);
@@ -200,12 +205,17 @@ class DooGdImage {
      * @param string $file The image file name.
      * @param int $width Width of the thumbnail
      * @param int $height Height of the thumbnail
+     * @param string $rename New file name for the processed image file to be saved.
      * @return bool|string Returns the generated image file name. Return false if failed.
      */
-    public function createThumb($file, $width=128, $height=128){
+    public function createThumb($file, $width=128, $height=128, $rename=''){
         $file = $this->uploadPath . $file;
         $imginfo = $this->getInfo($file);
-        $newName = substr($imginfo['name'], 0, strrpos($imginfo['name'], '.')) . $this->thumbSuffix .'.'. $this->generatedType;
+        
+        if($rename=='')
+            $newName = substr($imginfo['name'], 0, strrpos($imginfo['name'], '.')) . $this->thumbSuffix .'.'. $this->generatedType;
+        else
+            $newName = $rename .'.'. $this->generatedType;
 
         //create image object based on the image file type, gif, jpeg or png
         $this->createImageObject($img, $imginfo['type'], $file);
@@ -256,10 +266,11 @@ class DooGdImage {
      *
      * @param string $file The image file name.
      * @param int $size Width/height of the thumbnail
+     * @param string $rename New file name for the processed image file to be saved.
      * @return bool|string Returns the generated image file name. Return false if failed.
      */
-    public function createSquare($file, $size){
-        return $this->adaptiveResize($file, $size, $size);
+    public function createSquare($file, $size, $rename=''){
+        return $this->adaptiveResize($file, $size, $size, $rename);
     }
 
     /**
@@ -271,12 +282,17 @@ class DooGdImage {
      * @param string $file The image file name.
      * @param int $width
      * @param int $height
+     * @param string $rename New file name for the processed image file to be saved.
      * @return bool|string Returns the generated image file name. Return false if failed.
      */
-    public function adaptiveResize($file, $width, $height) {
+    public function adaptiveResize($file, $width, $height, $rename='') {
         $file = $this->uploadPath . $file;
         $imginfo = $this->getInfo($file);
-        $newName = substr($imginfo['name'], 0, strrpos($imginfo['name'], '.')) . $this->thumbSuffix .'.'. $this->generatedType;
+        
+        if($rename=='')
+            $newName = substr($imginfo['name'], 0, strrpos($imginfo['name'], '.')) . $this->thumbSuffix .'.'. $this->generatedType;
+        else
+            $newName = $rename .'.'. $this->generatedType;
 
         //create image object based on the image file type, gif, jpeg or png
         $this->createImageObject($img, $imginfo['type'], $file);
@@ -330,12 +346,17 @@ class DooGdImage {
      * @param string $text Text to be added as water mark
      * @param int $maxWidth Maximum width of the processed image
      * @param int $maxHeight Maximum height of the processed image
+     * @param string $rename New file name for the processed image file to be saved.
      * @return bool|string Returns the generated image file name. Return false if failed.
      */
-    public function waterMark($file, $text, $maxWidth, $maxHeight){
+    public function waterMark($file, $text, $maxWidth, $maxHeight, $rename=''){
         $file = $this->uploadPath . $file;
         $imginfo = $this->getInfo($file);
-        $newName = substr($imginfo['name'], 0, strrpos($imginfo['name'], '.')) . $this->thumbSuffix .'.'. $this->generatedType;
+
+        if($rename=='')
+            $newName = substr($imginfo['name'], 0, strrpos($imginfo['name'], '.')) . $this->waterSuffix .'.'. $this->generatedType;
+        else
+            $newName = $rename .'.'. $this->generatedType;
 
         //create image object based on the image file type, gif, jpeg or png
         $this->createImageObject($img, $imginfo['type'], $file);
