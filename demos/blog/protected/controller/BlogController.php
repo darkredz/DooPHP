@@ -86,13 +86,13 @@ class BlogController extends DooController {
 	function getArticle() {
         Doo::loadModel('Post');
         $p = new Post();
-        $p->status = 1;
         $p->id = $this->params['postId'];
 
 		$this->data['post'] = $p->relateTag(
 									array(
 										'limit'=>'first',
 										'asc'=>'tag.name',
+										'where'=>'status=1',
 										'match'=>false      //Post with no tags should be displayed too
 									)
 							);
@@ -134,7 +134,6 @@ class BlogController extends DooController {
         Doo::loadHelper('DooPager');
         
         $p = new Post();
-        $p->status = 1; //published post only
         
         $totalArchive = $p->countArchive($year, $month);
 
