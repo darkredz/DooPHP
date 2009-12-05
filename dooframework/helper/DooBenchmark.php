@@ -84,7 +84,23 @@ class DooBenchmark {
     
     public static function saveAllMarks(){
         list($em, $es) = explode(' ', microtime());
-        $mmus = memory_get_usage();
+		
+		if(function_exists('memory_get_usage')){
+			$mmus =  memory_get_usage();
+        }
+        else{
+			$output=array();
+			if(strncmp(PHP_OS,'WIN',3)===0){
+				exec('tasklist /FI "PID eq ' . getmypid() . '" /FO LIST',$output);
+				$mmus =  isset($output[5])?preg_replace('/[\D]/','',$output[5])*1024 : 0;
+			}
+			else{
+				$pid=getmypid();
+				exec("ps -eo%mem,rss,pid | grep $pid", $output);
+				$output=explode("  ",$output[0]);
+				$mmus =  isset($output[1]) ? $output[1]*1024 : 0;
+			}
+		}
         
         foreach(DooBenchmark::$memoArr as $k => &$val){
             if( !isset(DooBenchmark::$savedPoints[$k]) ){
