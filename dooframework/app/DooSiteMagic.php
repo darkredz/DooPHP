@@ -42,19 +42,18 @@ class DooSiteMagic{
 	 * Display logs/profiles message from the XML log files.
 	 */
 	public static function showDebug($filename){
-		if(isset(Doo::conf()->LOG_PATH)){
-			header('Content-Type: text/xml');
-			header('Expires: 0');
-			header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-			header('Pragma: public');
-			echo '<xml>';
-			if(isset($filename))
-				include Doo::conf()->LOG_PATH . $filename .'.xml';
-			else
-				include Doo::conf()->LOG_PATH . 'log.xml';
-			echo '</xml>';
-			exit;	
-		}
+		$path = isset(Doo::conf()->LOG_PATH) ? Doo::conf()->LOG_PATH : Doo::conf()->SITE_PATH;
+        header('Content-Type: text/xml');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+        header('Pragma: public');
+        echo '<xml>';
+        if(isset($filename))
+            include $path . $filename .'.xml';
+        else
+            include $path . 'log.xml';
+        echo '</xml>';
+        exit;
 	}
 	
 	/**
