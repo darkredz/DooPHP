@@ -47,8 +47,8 @@ class DooBenchmark {
     */
     
     public static function mark($name){
-        DooBenchmark::$timeArr[$name] = microtime();
-        DooBenchmark::$memoArr[$name] = memory_get_usage();
+        self::$timeArr[$name] = microtime();
+        self::$memoArr[$name] = self::getMemUsage();
     }
     
     /**
@@ -60,18 +60,49 @@ class DooBenchmark {
     * @return Object (time and memory containing elapsed values)
     */
     public static function get($name){
-        list($startMic, $startSec) = explode(' ', DooBenchmark::$timeArr[$name]);
+        list($startMic, $startSec) = explode(' ', self::$timeArr[$name]);
         list($endMic, $endSec) = explode(' ', microtime());
-        $tm = (float)($endMic + $endSec) - (float)($startMic + $startSec);
         
-        $total = memory_get_usage() - DooBenchmark::$memoArr[$name];
-        $mem = $total;
+        $mem = null;
+        if(isset(self::$memoArr[$name]) && self::$memoArr[$name])
+            $mem = self::getMemUsage() - self::$memoArr[$name];
+        
+        $tm = (float)($endMic + $endSec) - (float)($startMic + $startSec);
         
         $ret=new DooBenchmark();
         $ret->memory = $mem;
         $ret->time = $tm;
         
         return $ret;
+    }
+    
+    /**
+    * Function to return memory usage, it checks for availability of memory_get_usage
+    * If not awaliable according to OS type exec the command and gets memory usage
+    * 
+    * @returns false incase of any failure to bechmark memory
+    * @return int bytes of memory consumed currently
+    */
+    private static function getMemUsage(){
+        $mmus = false;
+        if(function_exists('memory_get_usage')){
+            $mmus =  memory_get_usage();
+        }
+        else{
+            $output=array();
+            if(strncmp(PHP_OS,'WIN',3)===0){
+                exec('tasklist /FI "PID eq ' . getmypid() . '" /FO LIST',$output);
+                $mmus =  isset($output[5])?preg_replace('/[\D]/','',$output[5])*1024 : 0;
+            }
+            else{
+                $pid=getmypid();
+                exec("ps -eo%mem,rss,pid | grep $pid", $output);
+                $output=explode("  ",$output[0]);
+                $mmus =  isset($output[1]) ? $output[1]*1024 : 0;
+            }
+        }
+        
+        return $mmus;
     }
     
     /**
@@ -85,37 +116,22 @@ class DooBenchmark {
     public static function saveAllMarks(){
         list($em, $es) = explode(' ', microtime());
 		
-		if(function_exists('memory_get_usage')){
-			$mmus =  memory_get_usage();
-        }
-        else{
-			$output=array();
-			if(strncmp(PHP_OS,'WIN',3)===0){
-				exec('tasklist /FI "PID eq ' . getmypid() . '" /FO LIST',$output);
-				$mmus =  isset($output[5])?preg_replace('/[\D]/','',$output[5])*1024 : 0;
-			}
-			else{
-				$pid=getmypid();
-				exec("ps -eo%mem,rss,pid | grep $pid", $output);
-				$output=explode("  ",$output[0]);
-				$mmus =  isset($output[1]) ? $output[1]*1024 : 0;
-			}
-		}
+		$mmus = self::getMemUsage();
         
-        foreach(DooBenchmark::$memoArr as $k => &$val){
-            if( !isset(DooBenchmark::$savedPoints[$k]) ){
-                list($sm, $ss) = explode(' ', DooBenchmark::$timeArr[$k]);
+        foreach(self::$memoArr as $k => &$val){
+            if( !isset(self::$savedPoints[$k]) ){
+                list($sm, $ss) = explode(' ', self::$timeArr[$k]);
                 $tm = (float)($em + $es) - (float)($sm + $ss);
                 
-                
-                $total =  $mmus - DooBenchmark::$memoArr[$k];
-                $mem = $total;
+                $mem = null;
+                if(isset(self::$memoArr[$k]) && self::$memoArr[$k])
+                    $mem =  $mmus - self::$memoArr[$k];
                 
                 $ret=new DooBenchmark();
                 $ret->memory = $mem;
                 $ret->time = $tm;
                 
-                DooBenchmark::$savedPoints[$k] = $ret;
+                self::$savedPoints[$k] = $ret;
                 
             }
         }
@@ -128,7 +144,7 @@ class DooBenchmark {
     */
     
     public static function saveMark($name){
-        DooBenchmark::$savedPoints[$name] = DooBenchmark::get($name, $decimal);
+        self::$savedPoints[$name] = self::get($name, $decimal);
     }
     
     /**
@@ -137,7 +153,7 @@ class DooBenchmark {
     */
     
     public static function getAll(){
-        return DooBenchmark::$savedPoints;
+        return self::$savedPoints;
     }
 }
 
