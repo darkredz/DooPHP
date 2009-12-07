@@ -255,7 +255,7 @@ class DooView {
                 }
             }
             $this->data = $data;
-            $this->compileLayout($viewFile, $lfilename, $vfilename, $cfilename);
+            $this->compileLayout($compiledViewFile, $lfilename, $vfilename, $cfilename);
             include $cfilename;
         }
 
@@ -297,13 +297,13 @@ class DooView {
 
         //-------------------- Compiling -------------------------
         //write to compiled file in viewc and include that file in.
-        $folders = explode('/', $cfilename);
+		$folders = explode('/', $viewFile);
         array_splice($folders, -1);
 
         //if a subfolder is specified, search for it, if not exist then create the folder
         $pathsize = sizeof($folders);
-		$path = '/';
         if($pathsize>0){
+            $path = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "viewc/";
             for($i=0;$i<$pathsize;$i++){
                 $path .= $folders[$i] .'/';
                 if(!file_exists($path)){
@@ -311,9 +311,11 @@ class DooView {
                 }
             }
         }
+
         $fh = fopen($cfilename, 'w+');
         fwrite($fh, $str);
         fclose($fh);
+
 	}
 
 
