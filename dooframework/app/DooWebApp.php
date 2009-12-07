@@ -53,22 +53,22 @@ class DooWebApp{
                 $clsname = explode('/', $routeRs[0]);
                 $routeRs[0] = $clsname[ sizeof($clsname)-1 ];
             }
-			
+
 			//if defined class name, use the class name to create the Controller object
 			$clsnameDefined = (sizeof($routeRs)===4);
 			if($clsnameDefined)
-				$controller = new $routeRs[3];			
+				$controller = new $routeRs[3];
 			else
 				$controller = new $routeRs[0];
             $controller->params = $routeRs[2];
-            
+
             if(isset($controller->params['__extension'])){
                 $controller->extension = $controller->params['__extension'];
                 unset($controller->params['__extension']);
             }
             if($_SERVER['REQUEST_METHOD']==='PUT')
                 $controller->init_put_vars();
-				
+
 			//before run, normally used for ACL auth
 			if($clsnameDefined){
 				if($rs = $controller->beforeRun($routeRs[3], $routeRs[1])){
@@ -77,14 +77,14 @@ class DooWebApp{
 			}else{
 				if($rs = $controller->beforeRun($routeRs[0], $routeRs[1])){
 					return $rs;
-				}			
+				}
 			}
-			
+
             return $controller->$routeRs[1]();
         }
         //if auto route is on, then auto search Controller->method if route not defined by user
         else if(Doo::conf()->AUTOROUTE){
-            
+
             list($controller_name, $method_name, $params )= $router->auto_connect(Doo::conf()->SUBFOLDER);
             $controller_file = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/{$controller_name}.php";
 
@@ -98,7 +98,7 @@ class DooWebApp{
 
                 if($params!=NULL)
                     $controller->params = $params;
-                
+
                 if($_SERVER['REQUEST_METHOD']==='PUT')
                     $controller->init_put_vars();
 
@@ -106,7 +106,7 @@ class DooWebApp{
                     //before run, normally used for ACL auth
                     if($rs = $controller->beforeRun($controller_name, $method_name)){
                         return $rs;
-                    }			
+                    }
                     return $controller->$method_name();
                 }else
                     $this->throwHeader(404);
@@ -240,6 +240,8 @@ class DooWebApp{
      */
     public function getModule($moduleName, $moduleUri, $action=null, $params=null){
         $tmp = Doo::conf()->PROTECTED_FOLDER;
+        if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===False)
+            Doo::conf()->PROTECTED_FOLDER_ORI = $tmp;
         Doo::conf()->PROTECTED_FOLDER = $tmp . 'module/'.$moduleName.'/';
         $result = $this->module($moduleUri, $action, $params);
         Doo::conf()->PROTECTED_FOLDER = $tmp;
@@ -304,7 +306,7 @@ class DooWebApp{
                 elseif($code[1]===302){
                     DooUriRouter::redirect($code[0],true, $code[1], array("HTTP/1.1 302 Moved Temporarily"));
                 }
-                //else redirect with the http status defined,eg. 307 
+                //else redirect with the http status defined,eg. 307
                 else{
                     DooUriRouter::redirect($code[0],true, $code[1]);
                 }

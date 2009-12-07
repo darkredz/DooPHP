@@ -266,6 +266,43 @@ class Doo{
     }
 
     /**
+     * Imports the definition of Model class(es) in a certain module or from the main app.
+     *
+     * @param string|array $class_name Name(s) of the Model class to be imported
+     * @param string $path module folder name. Default is the main app folder.
+     * @param bool $createObj Determined whether to create object(s) of the class
+     * @return mixed returns NULL by default. If $createObj is TRUE, it creates and return the Object(s) of the class name passed in.
+     */
+    public static function loadModelAt($class_name, $moduleFolder=Null, $createObj=FALSE){
+        $moduleFolder = ($moduleFolder===Null) ? Doo::conf()->PROTECTED_FOLDER_ORI : Doo::conf()->PROTECTED_FOLDER_ORI . 'module/' . $moduleFolder;
+        return self::load($class_name, self::conf()->SITE_PATH . $moduleFolder . "/model/", $createObj);
+    }
+
+    /**
+     * Imports the definition of Controller class(es) in a certain module or from the main app.
+     *
+     * @param string|array $class_name Name(s) of the Controller class to be imported
+     * @param string $path module folder name. Default is the main app folder.
+     */
+    public static function loadControllerAt($class_name, $moduleFolder=Null){
+        $moduleFolder = ($moduleFolder===Null) ? Doo::conf()->PROTECTED_FOLDER_ORI : Doo::conf()->PROTECTED_FOLDER_ORI . 'module/' . $moduleFolder;
+        require_once(self::conf()->SITE_PATH . $moduleFolder . '/controller/'.$class_name.'.php');
+    }
+
+    /**
+     * Imports the definition of User defined class(es) in a certain module or from the main app.
+     *
+     * @param string|array $class_name Name(s) of the class to be imported
+     * @param string $path module folder name. Default is the main app folder.
+     * @param bool $createObj Determined whether to create object(s) of the class
+     * @return mixed returns NULL by default. If $createObj is TRUE, it creates and return the Object(s) of the class name passed in.
+     */
+    public static function loadClassAt($class_name, $moduleFolder=Null, $createObj=FALSE){
+        $moduleFolder = ($moduleFolder===Null) ? Doo::conf()->PROTECTED_FOLDER_ORI : Doo::conf()->PROTECTED_FOLDER_ORI . 'module/' . $moduleFolder;
+        return self::load($class_name, self::conf()->SITE_PATH . $moduleFolder. "/class/", $createObj);
+    }
+
+    /**
      * Provides auto loading feature. To be used with the Magic method __autoload
      * @param string $classname Class name to be loaded.
      */
