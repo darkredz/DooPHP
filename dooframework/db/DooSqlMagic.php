@@ -1087,11 +1087,12 @@ class DooSqlMagic {
      *
      * @param mixed $model The model class name or object to be select.
      * @param array $rmodel The related models class names.
+     * @param array $opt Array of options for each related model to generate the SELECT statement. Supported: <i>where, limit, select, param, joinType, match, asc, desc, custom, asArray, include, includeWhere, includeParam</i>
      * @return mixed A list of model objects of the queried result
      */
-    public function relateMany($model, $rmodel){
+    public function relateMany($model, $rmodel, $opt=null){
         //---------------------Model has many other rmodels (has_many, has_one & belongs_to relationship only) ----------------
-        $mainR = Doo::db()->relate($model, $rmodel[0]);
+        $mainR = Doo::db()->relate($model, $rmodel[0], (isset($opt[$rmodel[0]])) ? $opt[$rmodel[0]] : null );
         
         if($mainR===Null)
             return;
@@ -1107,8 +1108,14 @@ class DooSqlMagic {
             foreach($rmodel as $rm){
                 if($rm==$rmodel[0])continue;
                 Doo::loadModel($rm);
-                $newrm = new $rm;        
-                $r[] = Doo::db()->relate($model, $rm, array('select'=>"$mdl_tbl.$mdl_pk, {$newrm->_table}.*") );        
+                $newrm = new $rm;
+                $rOpt = (isset($opt[$rm])) ? $opt[$rm] : null;
+                if(isset($rOpt['select'])){
+                    $rOpt['select'] = "$mdl_tbl.$mdl_pk, " . $rOpt['select'];
+                }else{
+                    $rOpt['select'] = "$mdl_tbl.$mdl_pk, {$newrm->_table}.*";
+                }
+                $r[] = Doo::db()->relate($model, $rm, $rOpt);
             }
         }else{
             $mdl_pk = $model->_primarykey;
@@ -1117,8 +1124,14 @@ class DooSqlMagic {
             foreach($rmodel as $rm){
                 if($rm==$rmodel[0])continue;
                 Doo::loadModel($rm);
-                $newrm = new $rm;        
-                $r[] = Doo::db()->relate($model, $rm, array('select'=>"$mdl_tbl.$mdl_pk, {$newrm->_table}.*") );        
+                $newrm = new $rm;
+                $rOpt = (isset($opt[$rm])) ? $opt[$rm] : null;
+                if(isset($rOpt['select'])){
+                    $rOpt['select'] = "$mdl_tbl.$mdl_pk, " . $rOpt['select'];
+                }else{
+                    $rOpt['select'] = "$mdl_tbl.$mdl_pk, {$newrm->_table}.*";
+                }
+                $r[] = Doo::db()->relate($model, $rm, $rOpt);
             }        
         }
 
