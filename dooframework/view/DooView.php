@@ -217,7 +217,7 @@ class DooView {
 
 	public function renderLayout($layoutName, $viewFile, $data=NULL, $process=NULL, $forceCompile=false) {
 
-		$compiledViewFile = $layoutName . DIRECTORY_SEPARATOR . $viewFile;
+		$compiledViewFile = $layoutName . '/' . $viewFile;
 
 		if(isset(Doo::conf()->TEMPLATE_COMPILE_ALWAYS) && Doo::conf()->TEMPLATE_COMPILE_ALWAYS==true){
             $process = $forceCompile = true;
