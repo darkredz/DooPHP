@@ -1076,6 +1076,69 @@ class DooSqlMagic {
 
     }
 
+    
+    /**
+     * Combine relational search results (combine multiple relates).
+     * 
+     * Example: 
+     * <code>
+     * Doo::db()->relateMany('Food',array('Recipe','Article','FoodType'))
+     * </code>
+     *
+     * @param mixed $model The model class name or object to be select.
+     * @param array $rmodel The related models class names.
+     * @return mixed A list of model objects of the queried result
+     */
+    public function relateMany($model, $rmodel){
+        //---------------------Model has many other rmodels (has_many, has_one & belongs_to relationship only) ----------------
+        $mainR = Doo::db()->relate($model, $rmodel[0]);
+        
+        if($mainR===Null)
+            return;
+            
+        $r=array();
+        
+        if(is_string($model)){
+            Doo::loadModel($model);
+            $newm = new $model;
+            $mdl_pk = $newm->_primarykey;
+            $mdl_tbl = $newm->_table;
+            
+            foreach($rmodel as $rm){
+                if($rm==$rmodel[0])continue;
+                Doo::loadModel($rm);
+                $newrm = new $rm;        
+                $r[] = Doo::db()->relate($model, $rm, array('select'=>"$mdl_tbl.$mdl_pk, {$newrm->_table}.*") );        
+            }
+        }else{
+            $mdl_pk = $model->_primarykey;
+            $mdl_tbl = $model->_table;
+            
+            foreach($rmodel as $rm){
+                if($rm==$rmodel[0])continue;
+                Doo::loadModel($rm);
+                $newrm = new $rm;        
+                $r[] = Doo::db()->relate($model, $rm, array('select'=>"$mdl_tbl.$mdl_pk, {$newrm->_table}.*") );        
+            }        
+        }
+
+        $relatedClass = $rmodel;
+
+        foreach($mainR as $k1=>$v1){
+            foreach($r as $k2=>$v2){
+                $cls = $relatedClass[$k2+1];
+                foreach($v2 as $k3=>$v3){
+                    if( $v3->{$mdl_pk} == $v1->{$mdl_pk}){
+                        $mainR[$k1]->{$cls} = $v3->{$cls};
+                    }
+                }
+            }
+        }
+        //-----------------------------------------------
+        return $mainR;
+    }
+
+    
     /**
      * Adds a new record. (Prepares and execute the INSERT statements)
      * @param object $model The model object to be insert.
