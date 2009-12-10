@@ -796,6 +796,7 @@ class DooSqlMagic {
                         }else if(isset($where_values) && !empty($where_values) && !empty($whrLimit)){
                             $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$limitstr}", $where_values);
                         }else{
+                            if($orderLimit=='ORDER BY  ') $orderLimit = '';
                             $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} $orderLimit LIMIT {$limitstr}");
                         }
 
@@ -1151,7 +1152,80 @@ class DooSqlMagic {
         return $mainR;
     }
 
-    
+
+    /**
+     * Expand related models (Tree Relationships).
+     *
+     * Example:
+     * <code>
+     * Doo::db()->relateExpand('Recipe', array('Food','Article'))
+     * </code>
+     *
+     * @param mixed $model The model class name or object to be select.
+     * @param array $rmodel The related models class names.
+     * @param array $opt Array of options for each related model to generate the SELECT statement. Supported: <i>where, limit, select, param, joinType, match, asc, desc, custom, asArray, include, includeWhere, includeParam</i>
+     * @return mixed A list of model objects of the queried result
+     */
+    public function relateExpand($model, $rmodel, $opt=null){
+        $rm = $rmodel[0];
+        $mainR = Doo::db()->relate($model, $rm, (isset($opt[$rm])) ? $opt[$rm] : null );
+        $id = array();
+
+        foreach($mainR as $mr){
+            if($m = $mr->{$rm}){
+                if(is_array($m)){
+                    foreach($m as $m2){
+                        $id[] = $m2->{$m2->_primarykey};
+                    }
+                }else{
+                    $id[] = $m->{$m->_primarykey};
+                }
+            }
+        }
+
+        Doo::loadModel($rm);
+        $newrm = new $rm;
+
+        $rm2 = $rmodel[1];
+        Doo::loadModel($rm2);
+        $newrm2 = new $rm2;
+
+        $rOpt = (isset($opt[$rm])) ? $opt[$rm] : null;
+        if(isset($rOpt['select'])){
+            $rOpt['select'] = $newrm->_table .".". $newrm->_primarykey .", " . $rOpt['select'];
+        }else{
+            $rOpt['select'] = $newrm->_table .".". $newrm->_primarykey .", {$newrm2->_table}.*";
+        }
+
+        if(isset($rOpt['where'])){
+           $rOpt['where'] = $newrm->_table.'.id IN ('. implode(',', $id) .') AND ( ' . $rOpt['where'] .' )';
+        }else{
+           $rOpt['where'] = $newrm->_table.'.id IN ('. implode(',', $id) .') ';
+        }
+
+        $r = Doo::db()->relate($rm, $rm2, $rOpt);
+
+        foreach($mainR as $k=>$v){
+            foreach($r as $k2=>$v2){
+                $rml = $v->{$rm};
+                if( is_array($rml) ){
+                    foreach($rml as $k3=>$v3){
+                        if($v3->id == $v2->{$v2->_primarykey}){
+                            $mainR[$k]->{$rml}[$k3]->{$rm2} = $v2->{$rm2};
+                        }
+                    }
+                }else{
+                    if($v->{$rm}->id == $v2->id){
+                        $mainR[$k]->{$rm}->{$rm2} = $v2->{$rm2};
+                    }
+                }
+            }
+        }
+
+        return $mainR;
+    }
+
+
     /**
      * Adds a new record. (Prepares and execute the INSERT statements)
      * @param object $model The model object to be insert.
