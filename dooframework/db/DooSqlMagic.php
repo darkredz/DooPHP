@@ -1211,7 +1211,7 @@ class DooSqlMagic {
                 if( is_array($rml) ){
                     foreach($rml as $k3=>$v3){
                         if($v3->id == $v2->{$v2->_primarykey}){
-                            $mainR[$k]->{$rml}[$k3]->{$rm2} = $v2->{$rm2};
+                            $mainR[$k]->{$rm}[$k3]->{$rm2} = $v2->{$rm2};
                         }
                     }
                 }else{
