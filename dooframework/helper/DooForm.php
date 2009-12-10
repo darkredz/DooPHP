@@ -537,6 +537,20 @@ class DooForm extends DooValidator {
 		}
 		return $valid;
 	}
+
+	/**
+	* Return array of errors or false if there is no errors
+	* Please be aware that you must call isValid() function before calling getErrors() method
+	* @return mixed
+	*/
+
+	public function getErrors() {
+		if (count($this->_errors)) {
+			return $this->_errors;
+		} else {
+			return false;
+		}
+	}
 }
 
 class DooFormException extends Exception {
