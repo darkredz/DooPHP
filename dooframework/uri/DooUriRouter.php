@@ -377,6 +377,28 @@ class DooUriRouter{
                     return array($r, $param);
                 }
             }
+
+            if(isset($route['*']['catchall'])){
+                $routes = $route['*']['catchall'];
+
+                foreach($routes as $k=>$r){
+                    $uparts = explode('/', $k);
+                    $uparts = array_slice($uparts, 1);
+
+                    //convert into param with keys
+                    $param = $this->parse_params_catch($uri_parts, $uparts);
+
+                    if(isset($r['match'])){
+                        foreach($r['match'] as $var_name=>$pattern){
+                            if( preg_match($pattern, $param[$var_name])==0 ){
+                                continue 2;
+                            }
+                        }
+                    }
+                    return array($r, $param);
+                }
+            }
+
         }
     }
 
@@ -463,6 +485,29 @@ class DooUriRouter{
             if($param_key[0]===':'){
                 $param_key = str_replace(':', '', $param_key);
                 $params[$param_key] = $req_route[$i];
+            }
+        }
+        return $params;
+    }
+
+    /**
+     * Get the parameter list found in the URI (unlimited)
+     *
+     * @param array $req_route The requested route
+     * @param array $defined_route Route defined by the user
+     * @return array An array of parameters found in the requested URI
+     */
+    protected function parse_params_catch($req_route, $defined_route){
+        $params = NULL;
+        for($i=0;$i<sizeof($req_route);$i++){
+            if(isset($defined_route[$i])){
+                $param_key = $defined_route[$i];
+                if($param_key[0]===':'){
+                    $param_key = str_replace(':', '', $param_key);
+                    $params[$param_key] = $req_route[$i];
+                }
+            }else{
+                $params[] = $req_route[$i];
             }
         }
         return $params;
