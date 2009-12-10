@@ -217,6 +217,9 @@ class DooUriRouter{
         //strip out the GET variable part if start with /?
         if($pos = strpos($uri, '/?')){
             $uri = substr($uri,0,$pos);
+        }else if($pos = strpos($uri, '?')) {
+            $tmp = explode('?', $uri);
+            $uri = $tmp[0];
         }
 
         //strip slashes at the end
@@ -408,6 +411,9 @@ class DooUriRouter{
         //strip out the GET variable part if start with /?
         if($pos = strpos($uri, '/?')){
             $uri = substr($uri,0,$pos);
+        }else if($pos = strpos($uri, '?')) {
+            $tmp = explode('?', $uri);
+            $uri = $tmp[0];
         }
 
         if($uri!='/')
