@@ -380,13 +380,15 @@ class DooView {
         //convert variables {{username}}
         $str = preg_replace('/{{([^ \t\r\n\(\)\.}]+)}}/', "<?php echo \$data['$1']; ?>", $str);
 
+		$str = preg_replace_callback('/{{(.+?)\((.*?)\)}}/', array( &$this, 'convertFunction'), $str);
+
         //convert function with variables passed in {{upper(username)}}
         /*$str = preg_replace('/{{([^ \t\r\n\(\)}]+)\(([^ \t\r\n\(\)}]+)\)}}/', "<?php echo $1(\$data['$2']); ?>", $str);
         */
-        $str = preg_replace_callback('/{{([^ \t\r\n\(\)}]+)\(([^\t\r\n\(\)}@]+)\)}}/', array( &$this, 'convertFuncWithVar'), $str);
+        //$str = preg_replace_callback('/{{([^ \t\r\n\(\)}]+)\(([^\t\r\n\(\)}@]+)\)}}/', array( &$this, 'convertFuncWithVar'), $str);
 
         //convert function with Object variables passed in {{upper(user.@gender)}}
-        $str = preg_replace_callback('/{{([^ \t\r\n\(\)}]+)\(([^\t\r\n\(\)}]+)\)}}/', array( &$this, 'convertFuncWithObjectVar'), $str);
+        //$str = preg_replace_callback('/{{([^ \t\r\n\(\)}]+)\(([^\t\r\n\(\)}]+)\)}}/', array( &$this, 'convertFuncWithObjectVar'), $str);
 
         //convert key variables {{user.john}} {{user.total.male}}
         /*$str = preg_replace('/{{([^ \t\r\n\(\)\.}]+)\.([^ \t\r\n\(\)\.}]+)}}/', "<?php echo \$data['$1']['$2']; ?>", $str);
@@ -500,7 +502,7 @@ class DooView {
                 $varBck ='';
                 foreach($param as $pa){
                     if(strpos($pa, '@')===0){
-                        $varBck .= '->' . substr($pa, 1);
+						$varBck .= '->' . substr($pa, 1);
                     }else{
                         $varBck .= "['$pa']";
                     }
@@ -579,6 +581,112 @@ class DooView {
         return '<?php include Doo::conf()->SITE_PATH .  Doo::conf()->PROTECTED_FOLDER . "viewc/'.$file.'.php"; ?>';
     }
 
+	private function convertFunction($matches) {
+
+		if(!in_array(strtolower($matches[1]), $this->tags)) {
+            return '<span style="color:#ff0000;">Function Denied</span>';
+		}
+
+		$functionName = $matches[1];
+		$parameters = explode(',', $matches[2]);
+
+		$args = '';
+
+		foreach ($parameters as $param) {
+			$param = trim($param);
+			if (strlen($args) > 0) {
+				$args .= ', ';
+			}
+			// Is a number
+			if (preg_match('/^[0-9]*\\.?[0-9]{0,}$/', $param)) {
+				$args .= $param;
+			}
+			// Is a string 'anything' OR "anything"
+			elseif (preg_match('/^[\'\"].*[\'\"]$/', $param)) {
+				$args .= $param;
+			}
+			// Got parameter values to handel
+			else {
+				$args .= $this->extractObjectVariables($param);
+			}
+		}
+		
+		return "<?php echo {$functionName}($args); ?>";
+
+	}
+
+	private function extractObjectVariables($str) {
+
+		$varname = '';
+        $args = '';
+
+        if(strpos($str, '.@')!==FALSE){
+			$properties = explode('.@', $str);
+			
+			if(strpos($properties[0], "' ")!==FALSE){
+                $looplevel = sizeof(explode('\' ', $properties[0]));
+
+                //if ' key found that it's a key $k1
+                if(strpos($properties[0],"' key")!==FALSE || strpos($properties[0],"' k")!==FALSE){
+                    $varname = '$k' . ($looplevel-1);
+                }else{
+                    $varname = '$v' . ($looplevel-1);
+
+                    //remove the variable part with the ' key or  ' value
+                    array_splice($properties, 0, 1);
+
+                    //join it up as array $v1['attachment']['pdf']   from  {{upper(msgdetails' value.attachment.pdf)}}
+                    $varname .= "->". implode("->", $properties);
+                }
+            }else{
+                $objname = $properties[0];
+                array_splice($properties, 0, 1);
+                $varname .= "\$data['$objname']->". implode("->", $properties);
+            }
+
+		} else if(strpos($str, '.')!==FALSE){
+			$properties = explode('.', $str);
+			if(strpos($properties[0], "' ")!==FALSE){
+                $looplevel = sizeof(explode('\' ', $properties[0]));
+
+                //if ' key found that it's a key $k1
+                if(strpos($properties[0],"' key")!==FALSE || strpos($properties[0],"' k")!==FALSE){
+                    $varname = '$k' . ($looplevel-1);
+                }else{
+                    $varname = '$v' . ($looplevel-1);
+
+                    //remove the variable part with the ' key or  ' value
+                    array_splice($properties, 0, 1);
+
+                    //join it up as array $v1['attachment']['pdf']   from  {{upper(msgdetails' value.attachment.pdf)}}
+                    $varname .= "['". implode("']['", $properties) ."']";
+                }
+            }else{
+                $varname .= "\$data['". implode("']['", $properties) ."']";
+            }
+		} else {
+			//if the function found used with a key or value in a loop, then use $k1,$k2 or $v1,$v2 instead of $data
+            if(strpos($str, "' ")!==FALSE){
+                $looplevel = sizeof(explode('\' ', $str));
+
+                //if ' key found that it's a key $k1
+                if(strpos($str,"' key")!==FALSE || strpos($str,"' k")!==FALSE){
+                    $varname = '$k' . ($looplevel-1);
+                }else{
+                    $varname = '$v' . ($looplevel-1);
+                }
+            }else{
+                $varname = "\$data['".$str."']";
+            }
+
+		}
+
+		$varname = str_replace("\$data[''", "'", $varname);
+        $varname = str_replace("'']", "'", $varname);
+
+        return $varname;
+
+	}
 
     private function convertFuncWithVar($matches){
         if(!in_array(strtolower($matches[1]), $this->tags))
