@@ -374,6 +374,8 @@ class DooView {
             }
         }
 
+		$str = preg_replace_callback('/<\?(php)?([\S|\s]*)\?>/i', array( &$this, 'convertPhpFunction'), $str);
+        
         //convert end loop
         $str = str_replace('<!-- endloop -->', '<?php endforeach; ?>', $str);
 
@@ -436,6 +438,24 @@ class DooView {
 		return $str;
 	}
 
+    private function convertPhpFunction($matches){
+        $str = preg_replace_callback('/([^ \t\r\n\(\)}]+)([\s\t]*?)\(/', array( &$this, 'parseFunc'), $matches[2]);
+        return '<?php ' . $str .' ?>';
+    }
+
+    private function parseFunc($matches){
+        //matches and check function name against template tag
+        if(!empty($matches[1])){
+            $funcname = trim(strtolower($matches[1]));
+            $controls = array('if','elseif','else if','while','switch','for','foreach');
+            if(!in_array($funcname, $controls)){
+                if(!in_array($funcname, $this->tags)) {
+                    return 'function_deny(';
+                }
+            }
+        }
+        return $matches[1].'(';
+    }
 
 	private function storeViewBlock($matches){
 		// Store blocks as blockName => blockContent
