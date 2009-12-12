@@ -380,7 +380,7 @@ class DooView {
         //convert variables {{username}}
         $str = preg_replace('/{{([^ \t\r\n\(\)\.}]+)}}/', "<?php echo \$data['$1']; ?>", $str);
 
-		$str = preg_replace_callback('/{{(.+?)\((.*?)\)}}/', array( &$this, 'convertFunction'), $str);
+		$str = preg_replace_callback('/{{([^ \t\r\n\(\)}]+?)\((.*?)\)}}/', array( &$this, 'convertFunction'), $str);
 
         //convert function with variables passed in {{upper(username)}}
         /*$str = preg_replace('/{{([^ \t\r\n\(\)}]+)\(([^ \t\r\n\(\)}]+)\)}}/', "<?php echo $1(\$data['$2']); ?>", $str);
