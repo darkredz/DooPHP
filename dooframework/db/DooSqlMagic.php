@@ -1190,7 +1190,7 @@ class DooSqlMagic {
         Doo::loadModel($rm2);
         $newrm2 = new $rm2;
 
-        $rOpt = (isset($opt[$rm])) ? $opt[$rm] : null;
+        $rOpt = (isset($opt[$rm2])) ? $opt[$rm2] : null;
         if(isset($rOpt['select'])){
             $rOpt['select'] = $newrm->_table .".". $newrm->_primarykey .", " . $rOpt['select'];
         }else{
