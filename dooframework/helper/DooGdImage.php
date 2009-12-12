@@ -48,6 +48,11 @@ class DooGdImage {
      */
     public $cropSuffix = '_crop';
 
+	/**
+	 * Suffix name for the rotate image files, eg 203992029_rotated.jpg
+	 */
+	public $rotateSuffix = '_rotated';
+
     /**
      * Determine whether to save the processed images
      * @var bool
@@ -198,6 +203,51 @@ class DooGdImage {
 
         return true;
     }
+
+	/**
+	 * Rotate an image Clockwise by specified amount
+	 *
+	 * @param string $file Image file name
+	 * @param int $rotateBy Amount to rotate the image by in clockwise direction
+	 * @param string $rename New file name for the processed image file to be saved
+	 * @return bool|string Returns the generated image file name. Return false if failed
+	 */
+	public function rotate($file, $rotateBy, $rename='') {
+
+		$file = $this->uploadPath . $file;
+		$imginfo = $this->getInfo($file);
+
+		if($rename=='') {
+            $newName = substr($imginfo['name'], 0, strrpos($imginfo['name'], '.')) . $this->rotateSuffix .'.'. $this->generatedType;
+		} else {
+            $newName = $rename .'.'. $this->generatedType;
+		}
+
+		// create image object based on the image file type, gif, jpeg or png
+        $this->createImageObject($img, $imginfo['type'], $file);
+
+        if(!$img) return false;
+
+		// Rotate the image. We take roation away from 360 as image rotate rotates Counter Clockwise
+		$img = imagerotate($img, (360 - intval($rotateBy)), 0);
+
+		if($this->saveFile){
+            //delete if exist
+            if(file_exists($this->processPath . $newName)) {
+                unlink($this->processPath . $newName);
+			}
+            $this->generateImage($img, $this->processPath . $newName);
+            imagedestroy($img);
+            return $this->processPath . $newName;
+        }
+        else{
+            $this->generateImage($img);
+            imagedestroy($img);
+        }
+
+        return true;
+	}
+
 
     /**
      * Resize/Generates thumbnail from an existing image file.
