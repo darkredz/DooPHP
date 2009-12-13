@@ -608,6 +608,12 @@ class DooView {
 		}
 
 		$functionName = $matches[1];
+
+        //replace , to something else if it's in a string parameter
+        if(strpos($matches[2], ',')!==False){
+            $matches[2] = preg_replace('/\"([^\',]*?)\,([^\',]*?)\"/', '\'$1\/\.\;$2\'', $matches[2]);
+        }
+
 		$parameters = explode(',', $matches[2]);
 
 		$args = '';
@@ -623,7 +629,7 @@ class DooView {
 			}
 			// Is a string 'anything' OR "anything"
 			elseif (preg_match('/^[\'\"].*[\'\"]$/', $param)) {
-				$args .= $param;
+                $args .= str_replace('\/\.\;', ',', $param);
 			}
 			// Got parameter values to handel
 			else {
