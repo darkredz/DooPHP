@@ -374,7 +374,12 @@ class DooView {
             }
         }
 
-		$str = preg_replace_callback('/<\?(php)?([\S|\s]*)\?>/i', array( &$this, 'convertPhpFunction'), $str);
+        if( Doo::conf()->TEMPLATE_ALLOW_PHP === False ){
+    		$str = preg_replace('/<\?(php)?([\S|\s]*)\?>/i', '', $str);
+        }
+        else if( Doo::conf()->TEMPLATE_ALLOW_PHP === NULL ){
+    		$str = preg_replace_callback('/<\?(php)?([\S|\s]*)\?>/i', array( &$this, 'convertPhpFunction'), $str);
+        }
         
         //convert end loop
         $str = str_replace('<!-- endloop -->', '<?php endforeach; ?>', $str);
@@ -631,7 +636,10 @@ class DooView {
 			elseif (preg_match('/^[\'\"].*[\'\"]$/', $param)) {
                 $args .= str_replace('\/\.\;', ',', $param);
 			}
-			// Got parameter values to handel
+            elseif (strtolower($param)=='true' || strtolower($param)=='false') {
+                $args .= $param;
+            }
+			// Got parameter values to handle
 			else {
 				$args .= $this->extractObjectVariables($param);
 			}

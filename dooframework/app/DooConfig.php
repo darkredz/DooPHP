@@ -123,6 +123,12 @@ class DooConfig{
     public $TEMPLATE_SHOW_COMMENT;
 
     /**
+     * Allow, deny or parse native PHP usage in templates.
+     * @var bool
+     */
+    public $TEMPLATE_ALLOW_PHP;
+
+    /**
      * Always compile template files if true
      * @var bool
      */
