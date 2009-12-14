@@ -380,7 +380,7 @@ class DooView {
         else if( Doo::conf()->TEMPLATE_ALLOW_PHP === NULL ){
     		$str = preg_replace_callback('/<\?(php)?([\S|\s]*)\?>/i', array( &$this, 'convertPhpFunction'), $str);
         }
-        
+
         //convert end loop
         $str = str_replace('<!-- endloop -->', '<?php endforeach; ?>', $str);
 
@@ -389,17 +389,7 @@ class DooView {
 
 		$str = preg_replace_callback('/{{([^ \t\r\n\(\)}]+?)\((.*?)\)}}/', array( &$this, 'convertFunction'), $str);
 
-        //convert function with variables passed in {{upper(username)}}
-        /*$str = preg_replace('/{{([^ \t\r\n\(\)}]+)\(([^ \t\r\n\(\)}]+)\)}}/', "<?php echo $1(\$data['$2']); ?>", $str);
-        */
-        //$str = preg_replace_callback('/{{([^ \t\r\n\(\)}]+)\(([^\t\r\n\(\)}@]+)\)}}/', array( &$this, 'convertFuncWithVar'), $str);
-
-        //convert function with Object variables passed in {{upper(user.@gender)}}
-        //$str = preg_replace_callback('/{{([^ \t\r\n\(\)}]+)\(([^\t\r\n\(\)}]+)\)}}/', array( &$this, 'convertFuncWithObjectVar'), $str);
-
         //convert key variables {{user.john}} {{user.total.male}}
-        /*$str = preg_replace('/{{([^ \t\r\n\(\)\.}]+)\.([^ \t\r\n\(\)\.}]+)}}/', "<?php echo \$data['$1']['$2']; ?>", $str);
-        */
         $str = preg_replace_callback('/{{([^ \t\r\n\(\)\.}]+)\.([^ \t\r\n\(\)}]+)}}/', array( &$this, 'convertVarKey'), $str);
 
         //convert start loop <!--# loop users --> <!--# loop users' value --> <!--# loop users' value' value -->
@@ -413,6 +403,9 @@ class DooView {
 
         //convert end if
         $str = str_replace('<!-- endif -->', '<?php endif; ?>', $str);
+
+		// convert set
+		$str = preg_replace_callback('/<!-- set ([^ \t\r\n\(\)\.}]+) as (.*?) -->/', array( &$this, 'convertSet'), $str);
 
         //convert if and else if condition <!-- if expression --> <!-- elseif expression -->  only functions in template_tags are allowed
         $str = preg_replace_callback('/<!-- (if|elseif) ([^\t\r\n}]+) -->/', array( &$this, 'convertCond'), $str);
@@ -489,7 +482,7 @@ class DooView {
 		}
     }
 
-    private function checkCondFunc($matches){
+    private function checkFuncAllowed($matches){
         //print_r( $matches );
         if(!in_array(strtolower($matches[1]), $this->tags))
             return 'function_deny('. $matches[2] .')';
@@ -504,7 +497,7 @@ class DooView {
 
         //prevent malicious HTML designers to use function with spaces
         //eg. unlink        ( 'allmyfiles.file'  ), php allows this to happen!!
-        $stmt = preg_replace_callback('/([a-z0-9\-_]+)[ ]*\([ ]*([^ \t\r\n}]+)\)/i', array( &$this, 'checkCondFunc'), $stmt);
+        $stmt = preg_replace_callback('/([a-z0-9\-_]+)[ ]*\([ ]*([^ \t\r\n}]+)\)/i', array( &$this, 'checkFuncAllowed'), $stmt);
 
         //echo '<h1>'.$stmt.'</h1>';
         switch($matches[1]){
@@ -605,6 +598,16 @@ class DooView {
             
         return '<?php include Doo::conf()->SITE_PATH .  Doo::conf()->PROTECTED_FOLDER . "viewc/'.$file.'.php"; ?>';
     }
+
+
+	private function convertSet($matches) {
+
+		$expr = str_replace('<?php echo ', '', $matches[2]);
+        $expr = str_replace('; ?>', '', $expr);
+		$expr = preg_replace_callback('/([a-z0-9\-_]+)[ ]*\([ ]*([^ \t\r\n}]+)\)/i', array( &$this, 'checkFuncAllowed'), $expr);
+		
+		return '<?php $data[\'' . $matches[1] . '\'] = ' . $expr . '; ?>';
+	}
 
 	private function convertFunction($matches) {
 
@@ -722,197 +725,7 @@ class DooView {
 
 	}
 
-    private function convertFuncWithVar($matches){
-        if(!in_array(strtolower($matches[1]), $this->tags))
-            return '<span style="color:#ff0000;">Function Denied</span>';
-
-        $varname = '';
-        $args = '';
-
-        //if using dots, got variables, eg. users.name, users.total.pdf, users' value' value.something, , users' value.something.some
-        if(strpos($matches[2], '.')!==FALSE){
-            //remove , for the section to be passed into the function as another argument
-            if(strpos($matches[2], ',')!==FALSE){
-                $params = explode(',', $matches[2]);
-                //first part is the variable to be passed in, removed it from parameter
-                $matches[2] = array_splice($params, 0, 1);
-                $properties = explode('.', $matches[2][0]);
-
-                //join arguments back ,'hihi', 100
-                $args = '';
-                foreach ($params as $p) {
-                   $k = trim($p);
-                   if (preg_match('/^[0-9]*\\.?[0-9]{0,}$/', $k)){
-                        $args .= "$k,";
-                        continue;
-                   }
-                   else if (preg_match('/^([a-z0-9_\.\@]+)$/i', $k)) {
-                       //if more than 1 dots, eg. users.total.pdf
-                       $vname='';
-                        if(strpos($k, '@')!==FALSE){
-                            $properties = explode('.@', $k);
-                            $vname .= "['". $properties[0] ."']->" . implode("->", array_slice($properties,1) );
-                        }
-                        else if(strpos($k, '.')!==FALSE){
-                            $properties = explode('.', $k);
-                            $vname .= "['". implode("']['", $properties) ."']";
-                        }
-                        //only 1 dot, users.john
-                        else{
-                            if(intval($k)==$k && strlen(intval($k))==strlen($k)){
-                                $args .= "$k,";
-                                continue;
-                            }else
-                                $vname = "['".$k."']";
-                        }
-                       $args .= "\$data$vname,";
-                   } else {
-                      $args .= $p.',';
-                   }
-                }
-                $args = substr($args, 0, strlen($args) - 1);
-                //$args = implode(',', $params);
-            }else{
-                $properties = explode('.', $matches[2]);
-            }
-
-            //if the function found used with a key or value in a loop, then use $k1,$k2 or $v1,$v2 instead of $data
-            if(strpos($properties[0], "' ")!==FALSE){
-                $looplevel = sizeof(explode('\' ', $properties[0]));
-
-                //if ' key found that it's a key $k1
-                if(strpos($properties[0],"' key")!==FALSE || strpos($properties[0],"' k")!==FALSE){
-                    $varname = '$k' . ($looplevel-1);
-                }else{
-                    $varname = '$v' . ($looplevel-1);
-
-                    //remove the variable part with the ' key or  ' value
-                    array_splice($properties, 0, 1);
-
-                    //join it up as array $v1['attachment']['pdf']   from  {{upper(msgdetails' value.attachment.pdf)}}
-                    $varname .= "['". implode("']['", $properties) ."']";
-                }
-            }else{
-                $varname .= "\$data['". implode("']['", $properties) ."']";
-            }
-        }
-        //no dots, only variable or key or value, users.john,  users' value, users' key, users' value' value
-        else{
-
-            //remove , for the section to be passed into the function as another argument
-            if(strpos($matches[2], ',')!==FALSE){
-                $params = explode(',', $matches[2]);
-                $matches[2] = implode(',', array_splice($params, 0, 1));
-                $args = implode(',', $params);
-            }
-
-            //if the function found used with a key or value in a loop, then use $k1,$k2 or $v1,$v2 instead of $data
-            if(strpos($matches[2], "' ")!==FALSE){
-                $looplevel = sizeof(explode('\' ', $matches[2]));
-
-                //if ' key found that it's a key $k1
-                if(strpos($matches[2],"' key")!==FALSE || strpos($matches[2],"' k")!==FALSE){
-                    $varname = '$k' . ($looplevel-1);
-                }else{
-                    $varname = '$v' . ($looplevel-1);
-                }
-            }else{
-                $varname = "\$data['".$matches[2]."']";
-            }
-        }
-        
-        $varname = str_replace("\$data[''", "'", $varname);
-        $varname = str_replace("'']", "'", $varname);
-        
-        if($args==='')
-            return "<?php echo {$matches[1]}($varname); ?>";
-        else
-            return "<?php echo {$matches[1]}($varname,$args); ?>";
-    }
-
-    private function convertFuncWithObjectVar($matches){
-        if(!in_array(strtolower($matches[1]), $this->tags))
-            return '<span style="color:#ff0000;">Function Denied</span>';
-
-        $varname = '';
-        $args = '';
-
-        //if using dots, got variables, eg. users.@name, users.@total.@pdf, users' value' value.@something, , users' value.@something.@some
-        if(strpos($matches[2], '.@')!==FALSE){
-            //remove , for the section to be passed into the function as another argument
-            if(strpos($matches[2], ',')!==FALSE){
-                $params = explode(',', $matches[2]);
-                //first part is the variable to be passed in, removed it from parameter
-                $matches[2] = array_splice($params, 0, 1);
-                $properties = explode('.@', $matches[2][0]);
-
-                //join arguments back ,'hihi', 100
-                $args = '';
-                foreach ($params as $p) {
-                   $k = trim($p);
-                   if (preg_match('/^[0-9]*\\.?[0-9]{0,}$/', $k)){
-                        $args .= "$k,";
-                        continue;
-                   }
-                   else if (preg_match('/^([a-z0-9_\.\@]+)$/i', $k)) {
-                       //if more than 1 dots, eg. users.total.pdf
-                       $vname='';
-                        if(strpos($k, '@')!==FALSE){
-                            $properties = explode('.@', $k);
-                            $vname .= "['". $properties[0] ."']->" . implode("->", array_slice($properties,1) );
-                        }
-                        else if(strpos($k, '.')!==FALSE){
-                            $properties = explode('.', $k);
-                            $vname .= "['". implode("']['", $properties) ."']";
-                        }
-                        //only 1 dot, users.john
-                        else{
-                            if(intval($k)==$k && strlen(intval($k))==strlen($k)){
-                                $args .= "$k,";
-                                continue;
-                            }else
-                                $vname = "['".$k."']";
-                        }
-                       $args .= "\$data$vname,";
-                   } else {
-                      $args .= $p.',';
-                   }
-                }
-                $args = substr($args, 0, strlen($args) - 1);
-                //$args = implode(',', $params);
-            }else{
-                $properties = explode('.@', $matches[2]);
-            }
-
-            //if the function found used with a key or value in a loop, then use $k1,$k2 or $v1,$v2 instead of $data
-            if(strpos($properties[0], "' ")!==FALSE){
-                $looplevel = sizeof(explode('\' ', $properties[0]));
-
-                //if ' key found that it's a key $k1
-                if(strpos($properties[0],"' key")!==FALSE || strpos($properties[0],"' k")!==FALSE){
-                    $varname = '$k' . ($looplevel-1);
-                }else{
-                    $varname = '$v' . ($looplevel-1);
-
-                    //remove the variable part with the ' key or  ' value
-                    array_splice($properties, 0, 1);
-
-                    //join it up as array $v1['attachment']['pdf']   from  {{upper(msgdetails' value.attachment.pdf)}}
-                    $varname .= "->". implode("->", $properties);
-                }
-            }else{
-                $objname = $properties[0];
-                array_splice($properties, 0, 1);
-                $varname .= "\$data['$objname']->". implode("->", $properties);
-            }
-        }
-
-        if($args==='')
-            return "<?php echo {$matches[1]}($varname); ?>";
-        else
-            return "<?php echo {$matches[1]}($varname,$args); ?>";
-    }
-
+    
     private function convertVarKey($matches){
         $varname = '';
         //if more than 1 dots, eg. users.total.pdf
