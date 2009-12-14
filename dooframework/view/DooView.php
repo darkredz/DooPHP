@@ -510,6 +510,7 @@ class DooView {
 
     private function convertLoop($matches){
         $looplevel = sizeof(explode('\' ', $matches[0]));
+		$loopName = substr($matches[1], 0, strpos($matches[1], '\''));
         if(strpos($matches[0], "' ")!==FALSE){
             $strValue = str_repeat("' value", $looplevel-1);
             $loopStr = "<!-- loop {$matches[1]}$strValue.";
@@ -526,9 +527,9 @@ class DooView {
                     }
                 }
                 $thislvl = $looplevel-1;
-                $loopname = "\$v$thislvl$varBck";
+                $loopname = "\$" . $loopName . "v$thislvl$varBck";
             }else{
-                $loopname = ($looplevel<2)? '$data[\''.$matches[1].'\']' : '$v'. ($looplevel-1);
+                $loopname = ($looplevel<2)? '$data[\''.$matches[1].'\']' : '$'. $loopName . 'v'. ($looplevel-1);
             }
         }
         else if(strpos($matches[1], '.@')!==FALSE){
@@ -547,7 +548,7 @@ class DooView {
         else{
             $loopname = ($looplevel<2)? '$data[\''.$matches[1].'\']' : '$v'. ($looplevel-1);
         }
-        return '<?php foreach('.$loopname.' as $k'.$looplevel.'=>$v'.$looplevel.'): ?>';
+        return '<?php foreach('.$loopname.' as $' . $matches[1] . '_k'.$looplevel.'=>$' . $matches[1] . '_v'.$looplevel.'): ?>';
     }
 
 
@@ -662,12 +663,12 @@ class DooView {
 			
 			if(strpos($properties[0], "' ")!==FALSE){
                 $looplevel = sizeof(explode('\' ', $properties[0]));
-
+				$loopName = substr($properties[0], 0, strpos($properties[0], '\''));
                 //if ' key found that it's a key $k1
                 if(strpos($properties[0],"' key")!==FALSE || strpos($properties[0],"' k")!==FALSE){
-                    $varname = '$k' . ($looplevel-1);
+                    $varname = '$' . $loopName . '_k' . ($looplevel-1);
                 }else{
-                    $varname = '$v' . ($looplevel-1);
+                    $varname = '$' . $loopName . '_v' . ($looplevel-1);
 
                     //remove the variable part with the ' key or  ' value
                     array_splice($properties, 0, 1);
@@ -685,12 +686,12 @@ class DooView {
 			$properties = explode('.', $str);
 			if(strpos($properties[0], "' ")!==FALSE){
                 $looplevel = sizeof(explode('\' ', $properties[0]));
-
+				$loopName = substr($properties[0], 0, strpos($properties[0], '\''));
                 //if ' key found that it's a key $k1
                 if(strpos($properties[0],"' key")!==FALSE || strpos($properties[0],"' k")!==FALSE){
-                    $varname = '$k' . ($looplevel-1);
+                    $varname = '$' . $loopName . '_k' . ($looplevel-1);
                 }else{
-                    $varname = '$v' . ($looplevel-1);
+                    $varname = '$' . $loopName . '_v' . ($looplevel-1);
 
                     //remove the variable part with the ' key or  ' value
                     array_splice($properties, 0, 1);
@@ -705,12 +706,12 @@ class DooView {
 			//if the function found used with a key or value in a loop, then use $k1,$k2 or $v1,$v2 instead of $data
             if(strpos($str, "' ")!==FALSE){
                 $looplevel = sizeof(explode('\' ', $str));
-
+				$loopName = substr($str, 0, strpos($str, '\''));
                 //if ' key found that it's a key $k1
                 if(strpos($str,"' key")!==FALSE || strpos($str,"' k")!==FALSE){
-                    $varname = '$k' . ($looplevel-1);
+                    $varname = '$' . $loopName . '_k' . ($looplevel-1);
                 }else{
-                    $varname = '$v' . ($looplevel-1);
+                    $varname = '$' . $loopName . '_v' . ($looplevel-1);
                 }
             }else{
                 $varname = "\$data['".$str."']";
@@ -746,12 +747,15 @@ class DooView {
 
     private function convertVarLoop($matches){
         $looplevel = sizeof(explode('\' ', $matches[0]));
-        
+
+        $loopName = $matches[1];
         //if ' key found that it's a key $k1
         if(strpos($matches[0],"' key")!==FALSE || strpos($matches[0],"' k")!==FALSE)
-            $varname = 'k' . ($looplevel-1);
+            $varname = $loopName . '_k' . ($looplevel-1);
         else{
-            $varname = 'v' . ($looplevel-1);
+            $varname = $loopName . '_v' . ($looplevel-1);
+			$matches[2] = str_replace('<?php echo ', '', $matches[2]);
+			$matches[2] = str_replace('; ?>', '', $matches[2]);
             //remove the first variable if the ' is found, we dunwan the loop name
             if(strpos($matches[2], "' ")!==FALSE){
                 $matches[2] = explode("' ", $matches[2]);
