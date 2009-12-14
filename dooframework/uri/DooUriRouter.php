@@ -364,6 +364,23 @@ class DooUriRouter{
                     $uparts = array_slice($uparts, 1);
                     #print_r($uparts);
 
+                    //if the static part doesn't match any existing routes' static part... skip, continue the search
+                    if(isset($_GET)){
+                        foreach($uparts as $i=>$upart){
+                            if($upart[0]===':')
+                                continue;
+                            if($upart!=$uri_parts[$i] && strpos($uri_parts[$i], $upart.'?')===False)
+                                continue 2;
+                        }
+                    }else{
+                        foreach($uparts as $i=>$upart){
+                            if($upart[0]===':')
+                                continue;
+                            if($upart!=$uri_parts[$i])
+                                continue 2;
+                        }
+                    }
+
                     //convert into param with keys
                     $param = $this->parse_params($uri_parts, $uparts);
 
@@ -385,22 +402,22 @@ class DooUriRouter{
                     $uparts = explode('/', $k);
                     $uparts = array_slice($uparts, 1);
 
-                //if the static part doesn't match any existing routes' static part... skip, continue the search
-                if(isset($_GET)){
-                    foreach($uparts as $i=>$upart){
-                        if($upart[0]===':')
-                            continue;
-                        if($upart!=$uri_parts[$i] && strpos($uri_parts[$i], $upart.'?')===False)
-                            continue 2;
+                    //if the static part doesn't match any existing routes' static part... skip, continue the search
+                    if(isset($_GET)){
+                        foreach($uparts as $i=>$upart){
+                            if($upart[0]===':')
+                                continue;
+                            if($upart!=$uri_parts[$i] && strpos($uri_parts[$i], $upart.'?')===False)
+                                continue 2;
+                        }
+                    }else{
+                        foreach($uparts as $i=>$upart){
+                            if($upart[0]===':')
+                                continue;
+                            if($upart!=$uri_parts[$i])
+                                continue 2;
+                        }
                     }
-                }else{
-                    foreach($uparts as $i=>$upart){
-                        if($upart[0]===':')
-                            continue;
-                        if($upart!=$uri_parts[$i])
-                            continue 2;
-                    }
-                }
 
                     //convert into param with keys
                     $param = $this->parse_params_catch($uri_parts, $uparts);
