@@ -384,6 +384,9 @@ class DooView {
         //convert end loop
         $str = str_replace('<!-- endloop -->', '<?php endforeach; ?>', $str);
 
+		//convert end for
+		$str = str_replace('<!-- endfor -->', '<?php endforeach; ?>', $str);
+
         //convert variables {{username}}
         $str = preg_replace('/{{([^ \t\r\n\(\)\.}]+)}}/', "<?php echo \$data['$1']; ?>", $str);
 
@@ -397,6 +400,9 @@ class DooView {
 
         //convert variable in loop {{user' value}}  {{user' value' value}}
         $str = preg_replace_callback('/{{([^ \t\r\n\(\)\.}\']+)([^\t\r\n\(\)}{]+)}}/', array( &$this, 'convertVarLoop'), $str);
+
+		//convert start of for loop
+		$str = preg_replace_callback('/<!-- for ([^\t\r\n\(\)}{]+) -->/', array( &$this, 'convertFor'), $str);
 
         //convert else
         $str = str_replace('<!-- else -->', '<?php else: ?>', $str);
@@ -507,6 +513,23 @@ class DooView {
                 return '<?php elseif( '.$stmt.' ): ?>';
         }
     }
+
+	private function convertFor($matches) {
+		$expr = str_replace('<?php echo ', '', $matches[1]);
+        $expr = str_replace('; ?>', '', $expr);
+
+		//return $expr;
+
+		//i from 0 to 10
+		$expr = preg_replace_callback('/([a-z0-9\-_]+?) from ([^ \t\r\n\(\)}]+) to ([^ \t\r\n\(\)}]+)( step ([^ \t\r\n\(\)}]+))?/i', array( &$this, 'buildForLoop'), $expr);
+
+		return $expr;
+	}
+
+	private function buildForLoop($matches) {
+		$stepBy = isset($matches[5]) ? $matches[5] : 1;
+		return '<?php foreach(range(' . $matches[2] . ', ' . $matches[3] . ', ' . $stepBy . ') as $data[\'' . $matches[1] . '\']): ?>';
+	}
 
     private function convertLoop($matches){
         $looplevel = sizeof(explode('\' ', $matches[0]));
@@ -751,6 +774,9 @@ class DooView {
             $varname = 'k' . ($looplevel-1);
         else{
             $varname = 'v' . ($looplevel-1);
+			// This lets us use $data['key'] values as element indexes
+			$matches[2] = str_replace('<?php echo ', '', $matches[2]);
+			$matches[2] = str_replace('; ?>', '', $matches[2]);
             //remove the first variable if the ' is found, we dunwan the loop name
             if(strpos($matches[2], "' ")!==FALSE){
                 $matches[2] = explode("' ", $matches[2]);
