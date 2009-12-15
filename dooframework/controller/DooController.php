@@ -41,9 +41,11 @@
  * acl()
  * beforeRun()
  * isAjax()
+ * renderLayout()
+ * clientIP()
  * </code>
  *
- * You still have a lot of freedom to name your methods and properties other than the 17 names mentioned.
+ * You still have a lot of freedom to name your methods and properties other than names mentioned.
  *
  * @author Leng Sheng Hong <darkredz@gmail.com>
  * @version $Id: DooController.php 1000 2009-07-7 18:27:22
@@ -152,18 +154,18 @@ class DooController {
         $this->view()->render($file, $data, $process, $forceCompile);
     }
 
-	/**
-	 * Shorthand for $this->view()->renderLayout() Renders a view using a Layout file.
-	 * 
-	 * @param string $layoutName Layout file name (without extension name)
-	 * @param string $viewFile Template file name (without extension name)
+    /**
+     * Shorthand for $this->view()->renderLayout() Renders a view using a Layout file.
+     *
+     * @param string $layoutName Layout file name (without extension name)
+     * @param string $viewFile Template file name (without extension name)
      * @param array $data Associative array of the data to be used in the Template file. eg. <b>$data['username']</b>, you should use <b>{{username}}</b> in the template.
      * @param bool $process If TRUE, checks the template's last modified time against the compiled version. Regenerates if template is newer.
      * @param bool $forceCompile Ignores last modified time checking and force compile the template everytime it is visited.
-	 */
-	public function renderLayout($layoutName, $viewFile, $data=NULL, $process=NULL, $forceCompile=false) {
-		$this->view()->renderLayout($layoutName, $viewFile, $data, $process, $forceCompile);
-	}
+     */
+    public function renderLayout($layoutName, $viewFile, $data=NULL, $process=NULL, $forceCompile=false) {
+        $this->view()->renderLayout($layoutName, $viewFile, $data, $process, $forceCompile);
+    }
 
     /**
      * Short hand for $this->view()->renderc() Renders the view file(php) located in viewc.
@@ -297,17 +299,18 @@ class DooController {
      * Get client's IP
      * @return string
      */
-	public function clientIP(){
-		if(getenv('HTTP_CLIENT_IP') && strcasecmp(getenv('HTTP_CLIENT_IP'), 'unknown')) {
-		   return getenv('HTTP_CLIENT_IP');
-		} elseif(getenv('HTTP_X_FORWARDED_FOR') && strcasecmp(getenv('HTTP_X_FORWARDED_FOR'), 'unknown')) {
-		   return getenv('HTTP_X_FORWARDED_FOR');
-		} elseif(getenv('REMOTE_ADDR') && strcasecmp(getenv('REMOTE_ADDR'), 'unknown')) {
-		   return getenv('REMOTE_ADDR');
-		} elseif(isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR'] && strcasecmp($_SERVER['REMOTE_ADDR'], 'unknown')) {
-		   return $_SERVER['REMOTE_ADDR'];
-		}
-	}
+    public function clientIP(){
+        if(getenv('HTTP_CLIENT_IP') && strcasecmp(getenv('HTTP_CLIENT_IP'), 'unknown')) {
+            return getenv('HTTP_CLIENT_IP');
+        } elseif(getenv('HTTP_X_FORWARDED_FOR') && strcasecmp(getenv('HTTP_X_FORWARDED_FOR'), 'unknown')) {
+            return getenv('HTTP_X_FORWARDED_FOR');
+        } elseif(getenv('REMOTE_ADDR') && strcasecmp(getenv('REMOTE_ADDR'), 'unknown')) {
+            return getenv('REMOTE_ADDR');
+        } elseif(isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR'] && strcasecmp($_SERVER['REMOTE_ADDR'], 'unknown')) {
+            return $_SERVER['REMOTE_ADDR'];
+        }
+    }
+
     /**
      * Check if the request is an AJAX request usually sent with JS library such as JQuery/YUI/MooTools
      * @return bool
