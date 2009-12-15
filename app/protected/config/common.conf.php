@@ -13,7 +13,7 @@ date_default_timezone_set('Asia/Kuala_Lumpur');
 //$config['START_TIME'] = microtime(true);
 
 
-//framework use, must defined, user full absolute path and end with / eg. /var/www/project/
+//For framework use. Must be defined. Use full absolute paths and end them with '/'      eg. /var/www/project/
 $config['SITE_PATH'] = str_replace('protected\config', '', str_replace('protected/config', '', dirname(__FILE__)));
 $config['BASE_PATH'] = str_replace('app', 'dooframework', str_replace('app', 'dooframework', $config['SITE_PATH']));
 $config['APP_MODE'] = 'dev';    //for production mode use 'prod'
