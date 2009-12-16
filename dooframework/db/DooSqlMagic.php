@@ -193,9 +193,13 @@ class DooSqlMagic {
     * Execute a query and Fetch single row
     * @param string $query SQL query prepared statement
     * @param array $param Values used in the prepared SQL
+    * @param int $fetchMode  PDO Fetch mode for the statement 
+    * @return Returns an array a row from the result set 
     */
-    public function fetchRow($query, $param = null) {
+    public function fetchRow($query, $param = null, $fetchMode = null) {
         $stmt = $this->query($query, $param);
+		if($fetchMode!==null)
+			$stmt->setFetchMode($fetchMode);
         return $stmt->fetch();
     }
 
@@ -203,9 +207,13 @@ class DooSqlMagic {
     * Execute a query and Fetch multiple rows
     * @param string $query SQL query prepared statement
     * @param array $param Values used in the prepared SQL
+    * @param int $fetchMode  PDO Fetch mode for the statement 
+    * @return Returns an array containing all of the result set rows 
     */
-    public function fetchAll($query, $param = null) {
+    public function fetchAll($query, $param = null, $fetchMode = null) {
         $stmt = $this->query($query, $param);
+		if($fetchMode!==null)
+			$stmt->setFetchMode($fetchMode);
         return $stmt->fetchAll();
     }
 
