@@ -135,6 +135,12 @@ class DooConfig{
     public $TEMPLATE_COMPILE_ALWAYS;
 
     /**
+     * List of template tags to be used globally in DooView template engine ( global function names and PHP functions )
+     * @var array
+     */
+    public $TEMPLATE_GLOBAL_TAGS;
+	
+    /**
      * Set the configurations. SITE_PATH, BASE_PATH and APP_URL is required
      * @param array $confArr associative array of the configs.
      */
