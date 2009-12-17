@@ -20,7 +20,7 @@
  * @since 1.3
  */
 
-ini_set('html_errors', 0); 
+ini_set('html_errors', 0);
 set_error_handler('setErrorHandler');
 set_exception_handler('setExceptionHandler');
 register_shutdown_function('shutdown');
@@ -134,11 +134,8 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
 	}
 	
     $imgloader = Doo::conf()->SUBFOLDER . '?doodiagnostic_pic=';
-
-	if (count(ob_list_handlers()) > 0) {
-		ob_clean();
-	}
-
+	
+	ob_clean();
 	$confData = traceVar(Doo::conf());
 	$getData = traceVar($_GET);
 	$postData = traceVar($_POST);
@@ -210,7 +207,7 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
 			.back a:hover{background:#4370A4;}
 			.var a{color:#fff;text-decoration:none;display:inline;font-size:18px;}
 			.var a:hover{background:#8FD5E9;}
-			#panelConf,#panelGet,#panelPost,#panelSession,#goVar{display:none;}
+			#panelConf,#panelGet,#panelPost,#panelSession,#panelCookie,#goVar{display:none;}
         </style>';
 
     //script
@@ -227,14 +224,20 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
 		function code(n){
 			var arr = ["panelConf","panelGet","panelPost","panelSession","panelCookie"];
 			if(arr[n]==lastcode){
-				document.getElementById(arr[n]).style.display = "none";
-				document.getElementById("goVar").style.display = "none";						
+                var onOrOff = (document.getElementById(arr[n]).style.display == "none")?"block":"none";
+				document.getElementById(arr[n]).style.display = onOrOff;
+				document.getElementById("goVar").style.display = onOrOff;
+                if(onOrOff=="none")
+                    document.getElementById("b"+arr[n]).style.backgroundColor = "";
+                return;
 			}else{
 				document.getElementById(arr[n]).style.display = "block";
-				document.getElementById("goVar").style.display = "block";			
+				document.getElementById("goVar").style.display = "block";
+                document.getElementById("b"+arr[n]).style.backgroundColor = "#8FD5E9";
 			}
 			if(lastcode!=""){
-				document.getElementById(lastcode).style.display = "none";					
+				document.getElementById(lastcode).style.display = "none";
+                document.getElementById("b"+lastcode).style.backgroundColor = "";
 			}
 			lastcode = arr[n];
 		}
@@ -273,7 +276,7 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
 	    errorBacktrace();
 	}
     
-    echo '<br/><hr/><h2 class="var" style="background-color:#4370A4;color:#fff;width:680px;padding:5px;"> * Variables... <a href="javascript:code(0);">&nbsp;Conf </a> . <a href="javascript:code(1);">&nbsp;GET&nbsp;</a> . <a href="javascript:code(2);">&nbsp;POST&nbsp;</a> . <a href="javascript:code(3);">&nbsp;Session&nbsp;</a> . <a href="javascript:code(4);">&nbsp;Cookie&nbsp;</a></h2>';
+    echo '<br/><hr/><h2 class="var" style="background-color:#4370A4;color:#fff;width:680px;padding:5px;"> * Variables... <a id="bpanelConf" href="javascript:code(0);">&nbsp;Conf </a> . <a id="bpanelGet" href="javascript:code(1);">&nbsp;GET&nbsp;</a> . <a id="bpanelPost" href="javascript:code(2);">&nbsp;POST&nbsp;</a> . <a id="bpanelSession" href="javascript:code(3);">&nbsp;Session&nbsp;</a> . <a id="bpanelCookie" href="javascript:code(4);">&nbsp;Cookie&nbsp;</a></h2>';
 	
 	//config data
     echo '<pre id="goVar">';
