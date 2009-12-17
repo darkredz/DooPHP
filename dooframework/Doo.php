@@ -303,6 +303,23 @@ class Doo{
     }
 
     /**
+     * Loads template tag class from plugin directory for both main app and modules
+     * 
+     * @param string $class_name Template tag class name
+     * @param string $moduleFolder Folder name of the module. If Null, the class will be loaded from main app.
+     */
+    public static function loadPlugin($class_name, $moduleFolder=Null){
+        if($moduleFolder===Null){
+            if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===True)
+                require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER_ORI . 'plugin/'. $class_name .'.php';
+            else
+                require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'plugin/'. $class_name .'.php';
+        }else{
+            require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER_ORI .'module/'. $moduleFolder .'/plugin/'. $class_name .'.php';
+        }
+    }
+	
+    /**
      * Provides auto loading feature. To be used with the Magic method __autoload
      * @param string $classname Class name to be loaded.
      */
