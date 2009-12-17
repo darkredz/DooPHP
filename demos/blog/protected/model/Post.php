@@ -79,7 +79,7 @@ class Post extends DooModel{
     public function countArchive($year, $month){
         $startdate= "$year-$month-01";
 
-        $opt['where'] = 'status=1 AND createtime  BETWEEN ? AND DATE_ADD(?, INTERVAL 1 MONTH)';
+        $opt['where'] = 'createtime  BETWEEN ? AND DATE_ADD(?, INTERVAL 1 MONTH)';
         $opt['param'] = array($startdate,$startdate);
 
         return $this->count($opt);
@@ -91,7 +91,7 @@ class Post extends DooModel{
     public function getArchiveList($year, $month, $limit){
         $startdate= "$year-$month-01";
 
-        $opt['where'] = 'status=1 AND post.createtime  BETWEEN ? AND DATE_ADD(?, INTERVAL 1 MONTH)';
+        $opt['where'] = 'post.createtime  BETWEEN ? AND DATE_ADD(?, INTERVAL 1 MONTH)';
         $opt['param'] = array($startdate,$startdate);
         $opt['limit'] = $limit;
         $opt['desc'] = 'post.createtime';

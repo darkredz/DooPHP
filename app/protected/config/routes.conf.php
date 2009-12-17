@@ -17,6 +17,12 @@
  * 
  * If you need to reverse generate URL based on route ID with DooUrlBuilder in template view, please defined the id along with the routes
  * $route['*']['/'] = array('HomeController', 'index', 'id'=>'home');
+ *
+ * If you need dynamic routes on root domain, such as http://facebook.com/username
+ * Use the key 'root':  $route['*']['root']['/:username'] = array('UserController', 'showProfile');
+ *
+ * If you need to catch unlimited parameters at the end of the url, eg. http://localhost/paramA/paramB/param1/param2/param.../.../..
+ * Use the key 'catchall': $route['*']['catchall']['/:first'] = array('TestController', 'showAllParams');
  */
 $admin = array('admin'=>'1234');
  

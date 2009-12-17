@@ -1,7 +1,18 @@
 <?php
 
-//register functions to be used with your template files
-$template_tags = array('upper', 'tofloat', 'sample_with_args', 'debug', 't', 't2');
+//register global/PHP functions to be used with your template files
+//You can move this to common.conf.php   $config['TEMPLATE_GLOBAL_TAGS'] = array('isset', 'empty');
+//Every public static methods in TemplateTag class (or tag classes from modules) are available in templates without the need to define in TEMPLATE_GLOBAL_TAGS 
+Doo::conf()->TEMPLATE_GLOBAL_TAGS = array('upper', 'tofloat', 'sample_with_args', 'debug', 't', 't2');
+
+/**
+Define as class (optional)
+
+class TemplateTag {
+    public static test(){}
+    public static test2(){}
+}
+**/
 
 // the 1st argument must be the variable passed in from template, the other args should NOT be variables
 

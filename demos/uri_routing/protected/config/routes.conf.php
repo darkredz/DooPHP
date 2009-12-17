@@ -2,13 +2,27 @@
 /**
  * Define your URI routes here.
  *
- * $route[Request Method][Uri ] = array( Controller class, action method, other options, etc. )
+ * $route[Request Method][Uri] = array( Controller class, action method, other options, etc. )
  *
  * RESTful api support, *=any request method, GET PUT POST DELETE
  * POST 	Create
  * GET      Read
  * PUT      Update, Create
  * DELETE 	Delete
+ *
+ * Use lowercase for Request Method
+ *
+ * If you have your controller file name different from its class name, eg. home.php HomeController
+ * $route['*']['/'] = array('HomeController', 'index', 'className'=>'HomeController');
+ * 
+ * If you need to reverse generate URL based on route ID with DooUrlBuilder in template view, please defined the id along with the routes
+ * $route['*']['/'] = array('HomeController', 'index', 'id'=>'home');
+ *
+ * If you need dynamic routes on root domain, such as http://facebook.com/username
+ * Use the key 'root':  $route['*']['root']['/:username'] = array('UserController', 'showProfile');
+ *
+ * If you need to catch unlimited parameters at the end of the url, eg. http://localhost/paramA/paramB/param1/param2/param.../.../..
+ * Use the key 'catchall': $route['*']['catchall']['/:first'] = array('TestController', 'showAllParams');
  */
 $route['*']['/'] = array('MainController', 'index');
 $route['*']['/url'] = array('MainController', 'url');

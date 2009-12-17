@@ -30,6 +30,10 @@ $config['APP_URL'] = 'http://'.$_SERVER['HTTP_HOST'].$config['SUBFOLDER'];
 //$config['AUTOROUTE'] = TRUE;
 $config['DEBUG_ENABLED'] = TRUE;
 
+//$config['TEMPLATE_COMPILE_ALWAYS'] = TRUE;
+
+//register functions to be used with your template files
+//$config['TEMPLATE_GLOBAL_TAGS'] = array('url', 'url2', 'time', 'isset', 'empty');
 
 /**
  * Path to store logs/profiles when using with the logger tool. This is needed for writing log files and using the log viewer tool

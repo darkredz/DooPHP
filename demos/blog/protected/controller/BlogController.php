@@ -87,12 +87,12 @@ class BlogController extends DooController {
         Doo::loadModel('Post');
         $p = new Post();
         $p->id = $this->params['postId'];
+        $p->status = 1;
 
 		$this->data['post'] = $p->relateTag(
 									array(
 										'limit'=>'first',
 										'asc'=>'tag.name',
-										'where'=>'status=1',
 										'match'=>false      //Post with no tags should be displayed too
 									)
 							);
@@ -134,7 +134,8 @@ class BlogController extends DooController {
         Doo::loadHelper('DooPager');
         
         $p = new Post();
-        
+		$p->status = 1;
+		
         $totalArchive = $p->countArchive($year, $month);
 
         // Should display no post error here

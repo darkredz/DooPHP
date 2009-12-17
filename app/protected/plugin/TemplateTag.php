@@ -1,26 +1,29 @@
 <?php
 
-//register functions to be used with your template files
-$template_tags = array('links', 'shorten', 'month', 'formatDate', 'debug', 'url', 'url2', 'function_deny', 'isset', 'empty');
+//register global/PHP functions to be used with your template files
+//You can move this to common.conf.php   $config['TEMPLATE_GLOBAL_TAGS'] = array('isset', 'empty');
+//Every public static methods in TemplateTag class (or tag classes from modules) are available in templates without the need to define in TEMPLATE_GLOBAL_TAGS 
+Doo::conf()->TEMPLATE_GLOBAL_TAGS = array('upper', 'tofloat', 'sample_with_args', 'debug', 'url', 'url2', 'function_deny', 'isset', 'empty');
 
+/**
+Define as class (optional)
 
-function links($str){
-    Doo::loadHelper('DooTextHelper');
-    return DooTextHelper::convertUrl($str);
+class TemplateTag {
+    public static test(){}
+    public static test2(){}
+}
+**/
+
+function upper($str){
+    return strtoupper($str);
 }
 
-function month($str){
-    $months = array('January','February','March','April','May','Jun','July','August','September','October','November','December');
-    return $months[intval($str)-1];
+function tofloat($str){
+    return sprintf("%.2f", $str);
 }
 
-function formatDate($date, $format='jS F, Y h:i:s A'){
-    return date($format, strtotime($date));
-}
-
-function shorten($str, $limit=120){
-    Doo::loadHelper('DooTextHelper');
-    return DooTextHelper::limitWord($str, $limit);
+function sample_with_args($str, $prefix){
+    return $str .' with args: '. $prefix;
 }
 
 function debug($var){
@@ -37,8 +40,9 @@ function function_deny($var=null){
    exit;
 }
 
+
 //Build URL based on route id
-function url($addRootUrl, $id, $param=null){
+function url($id, $param=null, $addRootUrl=false){
     Doo::loadHelper('DooUrlBuilder');
     // param pass in as string with format
     // 'param1=>this_is_my_value, param2=>something_here'
@@ -58,7 +62,7 @@ function url($addRootUrl, $id, $param=null){
 
 
 //Build URL based on controller and method name
-function url2($addRootUrl, $controller, $method, $param=null){
+function url2($controller, $method, $param=null, $addRootUrl=false){
     Doo::loadHelper('DooUrlBuilder');
     // param pass in as string with format
     // 'param1=>this_is_my_value, param2=>something_here'

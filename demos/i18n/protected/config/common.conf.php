@@ -26,6 +26,10 @@ $config['APP_URL'] = 'http://'.$_SERVER['HTTP_HOST'].$config['SUBFOLDER'];
 //$config['AUTOROUTE'] = TRUE;
 $config['DEBUG_ENABLED'] = TRUE;
 
+//$config['TEMPLATE_COMPILE_ALWAYS'] = TRUE;
+
+//register functions to be used with your template files
+//$config['TEMPLATE_GLOBAL_TAGS'] = array('url', 'url2', 'time', 'isset', 'empty');
 
 /**
  * defined either Document or Route to be loaded/executed when requested page is not found

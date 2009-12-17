@@ -13,6 +13,7 @@ include $config['BASE_PATH'].'app/DooConfig.php';
 	Doo::autoload($classname);
 }*/
 Doo::conf()->set($config);
+include $config['BASE_PATH'].'diagnostic/debug.php';
 
 # database usage
 //Doo::useDbReplicate();	#for db replication master-slave usage
