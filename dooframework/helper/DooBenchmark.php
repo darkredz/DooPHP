@@ -77,13 +77,11 @@ class DooBenchmark {
     }
     
     /**
-    * Function to return memory usage, it checks for availability of memory_get_usage
-    * If not awaliable according to OS type exec the command and gets memory usage
+    * Retrieve memory usage. Use memory_get_usage() if available.
     * 
-    * @returns false incase of any failure to bechmark memory
-    * @return int bytes of memory consumed currently
+    * @return false|int Bytes of memory consumed. Returns False if failed to retrieve memory usage
     */
-    private static function getMemUsage(){
+    protected static function getMemUsage(){
         $mmus = false;
         if(function_exists('memory_get_usage')){
             $mmus =  memory_get_usage();
