@@ -19,7 +19,8 @@
  * @package doo.diagnostic
  * @since 1.3
  */
- 
+
+ini_set('html_errors', 0); 
 set_error_handler('setErrorHandler');
 set_exception_handler('setExceptionHandler');
 register_shutdown_function('shutdown');
