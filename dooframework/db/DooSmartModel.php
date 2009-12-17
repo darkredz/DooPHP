@@ -239,6 +239,7 @@ class DooSmartModel{
      * @param array $rmodels Related model names to be deleted from cache
      */
     public function purgeCache($rmodels=null){
+        self::$className = get_class($this);
         self::_purgeCache($rmodels);
     }
 
@@ -877,7 +878,7 @@ class DooSmartModel{
      * @return int The inserted record's Id
      */
     public function insert(){
-        self::_purgeCache();
+        $this->purgeCache();
         return Doo::db()->insert($this);
     }
 
@@ -887,7 +888,7 @@ class DooSmartModel{
      * @return int The inserted record's Id
      */
     public function insert_attributes($data){
-        self::_purgeCache();
+        $this->purgeCache();
         return Doo::db()->insert_attributes($this, $data);
     }
 
@@ -897,7 +898,7 @@ class DooSmartModel{
      * @return int The inserted record's Id
      */
     public function relatedInsert($rmodels){
-        self::_purgeCache($rmodels);
+        $this->purgeCache($rmodels);
         return Doo::db()->relatedInsert($this, $rmodels);
     }
 
@@ -907,7 +908,7 @@ class DooSmartModel{
      * @return int Number of rows affected	 
      */
     public function update($opt=NULL){
-        self::_purgeCache();
+        $this->purgeCache();
         return Doo::db()->update($this, $opt);
     }
 
@@ -917,7 +918,7 @@ class DooSmartModel{
      * @return int Number of rows affected	 
      */
     public function update_attributes($data, $opt=NULL){
-        self::_purgeCache();
+        $this->purgeCache();
         return Doo::db()->update_attributes($this, $data, $opt);
     }
 
@@ -927,7 +928,7 @@ class DooSmartModel{
      * @param array $opt Assoc array of options to update the main model. Supported: <i>where, limit, field, param</i>
      */
     public function relatedUpdate($rmodels, $opt=NULL){
-        self::_purgeCache($rmodels);
+        $this->purgeCache($rmodels);
         return Doo::db()->relatedUpdate($this, $rmodels, $opt);
     }
 
@@ -944,7 +945,7 @@ class DooSmartModel{
      * @param array $opt Associative array of options to generate the UPDATE statement. Supported: <i>where, limit, param</i>
      */
     public function delete($opt=NULL){
-        self::_purgeCache();
+        $this->purgeCache();
         return Doo::db()->delete($this, $opt);
     }
 
