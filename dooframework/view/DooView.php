@@ -152,10 +152,13 @@ class DooView {
      * @param string $file PHP template file name without extension .php
      * @param array $data Associative array of the data to be used in the template view.
      * @param object $controller The controller object, pass this in so that in views you can access the controller.
+     * @param bool $includeTagClass If true, DooView will determine which Template tag class to include. Else, no files will be loaded
      */
-    public function renderc($file, $data=NULL, $controller=NULL){
+    public function renderc($file, $data=NULL, $controller=NULL, $includeTagClass=TRUE){
         $this->data = $data;
         $this->controller = $controller;
+        if($includeTagClass===TRUE)
+            $this->loadTagClass();
         include Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "/viewc/$file.php";
     }
 

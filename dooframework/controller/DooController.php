@@ -173,12 +173,13 @@ class DooController {
      * @param string $file Template file name (without extension name)
      * @param array $data Associative array of the data to be used in the php template.
      * @param bool $enableControllerAccess Enable the view scripts to access the controller property and methods.
+     * @param bool $includeTagClass If true, DooView will determine which Template tag class to include. Else, no files will be loaded
      */
-    public function renderc($file, $data=NULL, $enableControllerAccess=False){
+    public function renderc($file, $data=NULL, $enableControllerAccess=False, $includeTagClass=True){
         if($enableControllerAccess===true){
-            $this->view()->renderc($file, $data, $this);
+            $this->view()->renderc($file, $data, $this, $includeTagClass);
         }else{
-            $this->view()->renderc($file, $data);
+            $this->view()->renderc($file, $data, null, $includeTagClass);
         }
     }
 
