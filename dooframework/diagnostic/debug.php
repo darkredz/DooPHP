@@ -134,8 +134,10 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
 	}
 	
     $imgloader = Doo::conf()->SUBFOLDER . '?doodiagnostic_pic=';
-	
-	ob_clean();
+
+	if (ob_get_level() !== 0) {
+		ob_clean();
+	}
 	$confData = traceVar(Doo::conf());
 	$getData = traceVar($_GET);
 	$postData = traceVar($_POST);
