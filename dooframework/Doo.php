@@ -196,19 +196,18 @@ class Doo{
      * @return mixed returns NULL by default. If $createObj is TRUE, it creates and return the Object of the class name passed in.
      */
     protected static function load($class_name, $path, $createObj=FALSE){
-        if(is_string($class_name)){
-    		require_once($path . "$class_name.php");
+        if(is_string($class_name)===True){
+            class_exists($class_name)===True || require_once($path . "$class_name.php");
             if($createObj)
                 return new $class_name;
-        }else if(is_array($class_name)){
+        }else if(is_array($class_name)===True){
             //if not string, then a list of Class name, require them all.
             //make sure the class_name has array with is_array
             if($createObj)
                 $obj=array();
 
-            //Loop optimization micro-bechmarks
             foreach ($class_name as $one) {
-                require_once($path . "$one.php");
+                class_exists($class_name)===True || require_once($path . "$one.php");
                 if($createObj)
                     $obj[] = new $one;
             }
@@ -233,7 +232,7 @@ class Doo{
      * @param string $class_name Name of the class to be imported
      */
     public static function loadController($class_name){
-        require_once(self::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'controller/'.$class_name.'.php');
+        require_once self::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'controller/'.$class_name.'.php';
     }
 
     /**
@@ -262,7 +261,7 @@ class Doo{
      * @param string $class_name Name of the class to be imported
      */
     public static function loadCore($class_name){
-        require_once(self::conf()->BASE_PATH ."$class_name.php");
+        require_once self::conf()->BASE_PATH ."$class_name.php";
     }
 
     /**
@@ -286,7 +285,7 @@ class Doo{
      */
     public static function loadControllerAt($class_name, $moduleFolder=Null){
         $moduleFolder = ($moduleFolder===Null) ? Doo::conf()->PROTECTED_FOLDER_ORI : Doo::conf()->PROTECTED_FOLDER_ORI . 'module/' . $moduleFolder;
-        require_once(self::conf()->SITE_PATH . $moduleFolder . '/controller/'.$class_name.'.php');
+        require_once self::conf()->SITE_PATH . $moduleFolder . '/controller/'.$class_name.'.php';
     }
 
     /**
@@ -324,9 +323,8 @@ class Doo{
      * @param string $classname Class name to be loaded.
      */
     public static function autoload($classname){
+        if(class_exists($classname)===True) return;
         $class['DooSiteMagic'] = 'app/DooSiteMagic';
-        $class['DooWebApp'] = 'app/DooWebApp';
-        $class['DooConfig'] = 'app/DooConfig';
         $class['DooDigestAuth'] = 'auth/DooDigestAuth';
         $class['DooAuth'] = 'auth/DooAuth';
         $class['DooAcl'] = 'auth/DooAcl';
@@ -337,7 +335,6 @@ class Doo{
         $class['DooMemCache'] = 'cache/DooMemCache';
         $class['DooXCache'] = 'cache/DooXCache';
         $class['DooEAcceleratorCache'] = 'cache/DooEAcceleratorCache';
-        $class['DooController'] = 'controller/DooController';
         $class['DooDbExpression'] = 'db/DooDbExpression';
         $class['DooModelGen'] = 'db/DooModelGen';
         $class['DooSqlMagic'] = 'db/DooSqlMagic';
@@ -348,11 +345,12 @@ class Doo{
         $class['DooUrlBuilder'] = 'helper/DooUrlBuilder';
         $class['DooTextHelper'] = 'helper/DooTextHelper';
         $class['DooValidator'] = 'helper/DooValidator';
+        $class['DooForm'] = 'helper/DooForm';
+        $class['DooMailer'] = 'helper/DooMailer';
         $class['DooPager'] = 'helper/DooPager';
         $class['DooGdImage'] = 'helper/DooGdImage';
-        $class['DooLog'] = 'helper/DooLog';
+        $class['DooLog'] = 'logging/DooLog';
         $class['DooLoader'] = 'uri/DooLoader';
-        $class['DooUriRouter'] = 'uri/DooUriRouter';
         $class['DooView'] = 'view/DooView';
 		$class['DooSession'] = 'session/DooSession';
 		$class['DooTranslator'] = 'translate/DooTranslator';
