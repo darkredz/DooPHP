@@ -102,6 +102,25 @@ class DooSqlMagic {
     }
 
     /**
+     * Append to DB relationship mapping
+     * @param array $dbmap Database relationship mapping
+     */
+    public function appendMap( $dbmap ){
+        if(is_array($this->map)===True)
+            $this->map = array_merge( $this->map, $dbmap );
+        else
+            $this->map = $dbmap;
+    }
+
+    /**
+     * Get DB relationship mapping
+     * @return array Database relationship mapping
+     */
+    public function getMap(){
+        return $this->map;
+    }
+
+    /**
      * Connects to the database with the default database connection configuration
      */
     public function connect(){
