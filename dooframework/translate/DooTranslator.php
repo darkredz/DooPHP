@@ -191,11 +191,11 @@ class DooTranslator {
 				if (!$this->_file) {
 					throw new DooTranslatorException('Error opening translation file "' . $filename . '".');
 				}
-				// set defualt options
-				$this->_options['delimiter'] = ";";
-				$this->_options['length']    = 0;
-				$this->_options['enclosure'] = '"';
-				$options = $this->_options;
+				// if user has specified options use these if not use the defaults
+				$options = array();
+				$options['delimiter'] = isset($this->_options['delimiter']) ? $this->_options['delimiter'] : ";";
+				$options['length']    = isset($this->_options['length']) ? $this->_options['length'] : 0;
+				$options['enclosure'] = isset($this->_options['length']) ? $this->_options['length'] : '"';
 
 				while(($data = fgetcsv($this->_file, $options['length'], $options['delimiter'], $options['enclosure'])) !== false) {
 					if (substr($data[0], 0, 1) === '#') {
