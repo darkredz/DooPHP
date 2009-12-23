@@ -88,7 +88,7 @@ class DooTranslator {
 
 	public function __construct($adapter, $data, $options=array()) {
 		if (!in_array($adapter, $this->_supportedAdapters)) {
-			throw new DooTranslatorExcepton($adapter . " is not supported by DooTranslator, supported types are: " . implode(', ', $this->_supportedAdapters));
+			throw new DooTranslatorException($adapter . " is not supported by DooTranslator, supported types are: " . implode(', ', $this->_supportedAdapters));
 		}
 		$this->_setAdapter($adapter);
 		if ($data == null) {
