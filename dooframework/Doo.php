@@ -93,7 +93,7 @@ class Doo{
     }
 
     /**
-     * @returns Doo Session
+     * @return DooSession
      */
     public static function session($namespace = null){
         if(self::$_session===NULL){
@@ -103,9 +103,9 @@ class Doo{
         return self::$_session;
     }
 
-	/**
-     * @returns Doo Translator
-     */
+	 /**
+	  * @return DooTranslator
+	  */
     public static function translator($adapter, $data, $options=array()) {
         if(self::$_translator===NULL){
             self::loadCore('translate/DooTranslator');
@@ -113,6 +113,14 @@ class Doo{
         }
         return self::$_translator;
     }
+
+	/**
+	 * Simple accessor to Doo Translator class. You must be sure you have initialised it before calling. See translator(...)
+	 * @return DooTranslator
+	 */
+	public static function getTranslator() {
+		return self::$_translator;
+	}
 
     /**
      * @return DooLog logging tool for logging, tracing and profiling, singleton, auto create if the singleton has not been created yet.
