@@ -456,8 +456,6 @@ class DooView {
         //convert variables {{username}}
         $str = preg_replace('/{{([^ \t\r\n\(\)\.}]+)}}/', "<?php echo \$data['$1']; ?>", $str);
 
-        $str = preg_replace_callback('/{{([^ \t\r\n\(\)}]+?)\((.*?)\)}}/', array( &$this, 'convertFunction'), $str);
-
         //convert key variables {{user.john}} {{user.total.male}}
         $str = preg_replace_callback('/{{([^ \t\r\n\(\)\.}]+)\.([^ \t\r\n\(\)}]+)}}/', array( &$this, 'convertVarKey'), $str);
 
@@ -466,6 +464,8 @@ class DooView {
 
         //convert variable in loop {{user' value}}  {{user' value' value}}
         $str = preg_replace_callback('/{{([^ \t\r\n\(\)\.}\']+)([^\t\r\n\(\)}{]+)}}/', array( &$this, 'convertVarLoop'), $str);
+
+		$str = preg_replace_callback('/{{([^ \t\r\n\(\)}]+?)\((.*?)\)}}/', array( &$this, 'convertFunction'), $str);
 
         //convert start of for loop
         $str = preg_replace_callback('/<!-- for ([^\t\r\n\(\)}{]+) -->/', array( &$this, 'convertFor'), $str);
@@ -543,7 +543,9 @@ class DooView {
             $matches[2] = preg_replace('/\"([^\',]*?)\,([^\',]*?)\"/', '\'$1\/\.\;$2\'', $matches[2]);
         }
 
-        $parameters = explode(',', $matches[2]);
+		$stmt = str_replace('<?php echo ', '', $matches[2]);
+        $stmt = str_replace('; ?>', '', $stmt);
+        $parameters = explode(',', $stmt);
 
         $args = '';
 
