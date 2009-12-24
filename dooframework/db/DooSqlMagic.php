@@ -1233,22 +1233,24 @@ class DooSqlMagic {
 
         $r = Doo::db()->relate($rm, $rm2, $rOpt);
 
-        foreach($mainR as $k=>$v){
-            foreach($r as $k2=>$v2){
-                $rml = $v->{$rm};
-                if( is_array($rml) ){
-                    foreach($rml as $k3=>$v3){
-                        if($v3->id == $v2->{$v2->_primarykey}){
-                            $mainR[$k]->{$rm}[$k3]->{$rm2} = $v2->{$rm2};
-                        }
-                    }
-                }else{
-                    if($v->{$rm}->id == $v2->id){
-                        $mainR[$k]->{$rm}->{$rm2} = $v2->{$rm2};
-                    }
-                }
-            }
-        }
+		if (!empty($r)) {
+			foreach($mainR as $k=>$v){
+				foreach($r as $k2=>$v2){
+					$rml = $v->{$rm};
+					if( is_array($rml) ){
+						foreach($rml as $k3=>$v3){
+							if($v3->id == $v2->{$v2->_primarykey}){
+								$mainR[$k]->{$rm}[$k3]->{$rm2} = $v2->{$rm2};
+							}
+						}
+					}else{
+						if($v->{$rm}->id == $v2->id){
+							$mainR[$k]->{$rm}->{$rm2} = $v2->{$rm2};
+						}
+					}
+				}
+			}
+		}
 
         return $mainR;
     }
