@@ -518,13 +518,24 @@ class DooView {
         if(!empty($matches[1])){
             $funcname = trim(strtolower($matches[1]));
             $controls = array('if','elseif','else if','while','switch','for','foreach');
-            if(!in_array($funcname, $controls)){
-                if(!in_array($funcname, $this->tags)) {
-                    return 'function_deny(';
+
+            //skip checking static method usage: TemplateTag::go(), Doo::conf()
+            if(stripos($funcname, $this->tags['_class'] . '::')===False && stripos($funcname, 'Doo')===False){
+                //$funcname = str_ireplace($this->tags['_class'] . '::', '', $funcname);
+                if(!in_array($funcname, $controls)){
+                    if(!in_array($funcname, $this->tags)) {
+                        return 'function_deny(';
+                    }
                 }
             }
         }
         return $matches[1].'(';
+    }
+
+    private function stripCommaStr($matches){
+        $str = implode('\/\.\;', explode(',', $matches[0]) );
+        $str = substr($str, 1, strlen($str)-2);
+        return "'".$str."'";
     }
 
     private function convertFunction($matches) {
@@ -540,7 +551,7 @@ class DooView {
 
         //replace , to something else if it's in a string parameter
         if(strpos($matches[2], ',')!==False){
-            $matches[2] = preg_replace('/\"([^\',]*?)\,([^\',]*?)\"/', '\'$1\/\.\;$2\'', $matches[2]);
+            $matches[2] = preg_replace_callback('/\"(.+)\"/', array( &$this, 'stripCommaStr'), $matches[2]);
         }
 
 		$stmt = str_replace('<?php echo ', '', $matches[2]);
@@ -554,6 +565,7 @@ class DooView {
             if (strlen($args) > 0) {
                 $args .= ', ';
             }
+
             // Is a number
             if (preg_match('/^[0-9]*\\.?[0-9]{0,}$/', $param)) {
                 $args .= $param;
