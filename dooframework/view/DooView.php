@@ -517,7 +517,7 @@ class DooView {
         //matches and check function name against template tag
         if(!empty($matches[1])){
             $funcname = trim(strtolower($matches[1]));
-            $controls = array('if','elseif','else if','while','switch','for','foreach');
+            $controls = array('if','elseif','else if','while','switch','for','foreach','switch','return','include','require','include_once','require_once','declare','define','defined','die','constant');
 
             //skip checking static method usage: TemplateTag::go(), Doo::conf()
             if(stripos($funcname, $this->tags['_class'] . '::')===False && stripos($funcname, 'Doo')===False){
