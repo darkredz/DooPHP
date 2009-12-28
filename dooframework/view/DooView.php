@@ -456,6 +456,9 @@ class DooView {
         //convert variables {{username}}
         $str = preg_replace('/{{([^ \t\r\n\(\)\.}]+)}}/', "<?php echo \$data['$1']; ?>", $str);
 
+		//convert non $data key variables {{$user.john}} {{$user.total.male}}
+        $str = preg_replace_callback('/{{\$([^ \t\r\n\(\)\.}]+)\.([^ \t\r\n\(\)}]+)}}/', array( &$this, 'convertNonDataVarKey'), $str);
+
         //convert key variables {{user.john}} {{user.total.male}}
         $str = preg_replace_callback('/{{([^ \t\r\n\(\)\.}]+)\.([^ \t\r\n\(\)}]+)}}/', array( &$this, 'convertVarKey'), $str);
 
@@ -643,18 +646,33 @@ class DooView {
         $expr = str_replace('<?php echo ', '', $matches[1]);
         $expr = str_replace('; ?>', '', $expr);
 
-        //return $expr;
-
-        //i from 0 to 10
-        $expr = preg_replace_callback('/([a-z0-9\-_]+?) from ([^ \t\r\n\(\)}]+) to ([^ \t\r\n\(\)}]+)( step ([^ \t\r\n\(\)}]+))?/i', array( &$this, 'buildForLoop'), $expr);
-
+        //for: i from 0 to 10
+		if (preg_match('/([a-z0-9\-_]+?) from ([^ \t\r\n\(\)}]+) to ([^ \t\r\n\(\)}]+)( step ([^ \t\r\n\(\)}]+))?/i', $expr)){
+			$expr = preg_replace_callback('/([a-z0-9\-_]+?) from ([^ \t\r\n\(\)}]+) to ([^ \t\r\n\(\)}]+)( step ([^ \t\r\n\(\)}]+))?/i', array( &$this, 'buildRangeForLoop'), $expr);
+		}
+		// for: 'myArray as key=>val'
+		else if (preg_match('/([a-z0-9\-_]+?) as ([a-z0-9\-_]+)[ ]?=>[ ]?([a-z0-9\-_]+)/i', $expr)) {
+			$expr = preg_replace_callback('/([a-z0-9\-_]+?) as ([a-z0-9\-_]+)[ ]?=>[ ]?([a-z0-9\-_]+)/i', array( &$this, 'buildKeyValForLoop'), $expr);
+		}
+		// for: 'myArray as val'
+		else if (preg_match('/([a-z0-9\-_]+?) as ([a-z0-9\-_]+)/i', $expr)) {
+			$expr = preg_replace_callback('/([a-z0-9\-_]+?) as ([a-z0-9\-_]+)/i', array( &$this, 'buildValForLoop'), $expr);
+		}
         return $expr;
     }
 
-    private function buildForLoop($matches) {
+    private function buildRangeForLoop($matches) {
         $stepBy = isset($matches[5]) ? $matches[5] : 1;
         return '<?php foreach(range(' . $matches[2] . ', ' . $matches[3] . ', ' . $stepBy . ') as $data[\'' . $matches[1] . '\']): ?>';
     }
+
+	private function buildKeyValForLoop($matches) {
+		return '<?php foreach($data[\''.$matches[1].'\'] as $'.$matches[2].'=>$'.$matches[3].'): ?>';
+	}
+
+	private function buildValForLoop($matches) {
+		return '<?php foreach($data[\''.$matches[1].'\'] as $'.$matches[2].'): ?>';
+	}
 
     private function convertLoop($matches){
         $looplevel = sizeof(explode('\' ', $matches[0]));
@@ -827,6 +845,25 @@ class DooView {
         return $varname;
     }
 
+	private function convertNonDataVarKey($matches) {
+
+		$varname = '';
+        //if more than 1 dots, eg. users.total.pdf
+        if(strpos($matches[2], '@')!==FALSE){
+            $varname = str_replace('@', '->', $matches[2]);
+            $varname = str_replace('.', '', $varname);
+        }
+        else if(strpos($matches[2], '.')!==FALSE){
+            $properties = explode('.', $matches[2]);
+            $varname .= "['". implode("']['", $properties) ."']";
+        }
+        //only 1 dot, users.john
+        else{
+            $varname = "['".$matches[2]."']";
+        }
+        return "<?php echo \${$matches[1]}{$varname}; ?>";
+
+	}
     
     private function convertVarKey($matches){
         $varname = '';
