@@ -218,6 +218,24 @@ class DooView {
             return $this->controller->{$name};
         }
     }
+
+    /**
+     * Writes the generated output produced by render() to file.
+     * @param string $path Path to save the generated HTML.
+     * @param string $templatefile Template file name (without extension name)
+     * @param array $data Associative array of the data to be used in the Template file. eg. <b>$data['username']</b>, you should use <b>{{username}}</b> in the template.
+     * @return The file name of the rendered output saved (html).
+     */
+    public function saveRendered($path, $templatefile, $data=NULL){
+        ob_start();
+        $this->render($templatefile, $data, null, true);
+        $data = ob_get_contents();
+        ob_end_clean();
+        if(file_put_contents($path, $data)>0){
+            $filename = explode('/',$path);
+            return $filename[sizeof($filename)-1];
+        }
+    }
     
     /**
      * Renders the view file, generates compiled version of the view template if necessary
