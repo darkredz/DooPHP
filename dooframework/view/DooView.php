@@ -444,7 +444,7 @@ class DooView {
                 $str = preg_replace('/<\?(php)?([\S|\s]*)\?>/i', '', $str);
             }
         }else{
-            $str = preg_replace_callback('/<\?(php)?([\S|\s]*)\?>/i', array( &$this, 'convertPhpFunction'), $str);
+            $str = preg_replace_callback('/<\?(php|\=)?([\S|\s]*)\?>/i', array( &$this, 'convertPhpFunction'), $str);
         }
 
         //convert end loop
@@ -513,6 +513,11 @@ class DooView {
 
     private function convertPhpFunction($matches){
         $str = preg_replace_callback('/([^ \t\r\n\(\)}]+)([\s\t]*?)\(/', array( &$this, 'parseFunc'), $matches[2]);
+
+        //if short tag <?=, convert to <?php echo
+        if(strpos($matches[0],'<?=')===0)
+            return '<?php echo ' . $str .' ?>';
+                
         return '<?php ' . $str .' ?>';
     }
 
