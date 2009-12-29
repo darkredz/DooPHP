@@ -43,6 +43,7 @@
  * isAjax()
  * renderLayout()
  * clientIP()
+ * saveRendered()
  * </code>
  *
  * You still have a lot of freedom to name your methods and properties other than names mentioned.
@@ -128,7 +129,18 @@ class DooController {
     public function cache($cacheType='file'){
         return Doo::cache($cacheType);
     }
-
+	
+    /**
+     * Writes the generated output produced by render() to file.
+     * @param string $path Path to save the generated HTML.
+     * @param string $templatefile Template file name (without extension name)
+     * @param array $data Associative array of the data to be used in the Template file. eg. <b>$data['username']</b>, you should use <b>{{username}}</b> in the template.
+     * @return The file name of the rendered output saved (html).
+     */
+	public function saveRendered($path, $templatefile, $data=NULL) {
+		$this->view()->saveRendered($path, $templatefile, $data);
+	}
+	
     /**
      * The view singleton, auto create if the singleton has not been created yet.
      * @return DooView
