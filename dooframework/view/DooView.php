@@ -221,10 +221,10 @@ class DooView {
 
     /**
      * Writes the generated output produced by render() to file.
-     * @param string $path Path to save the generated HTML.
+     * @param string $path Path to save the generated output.
      * @param string $templatefile Template file name (without extension name)
      * @param array $data Associative array of the data to be used in the Template file. eg. <b>$data['username']</b>, you should use <b>{{username}}</b> in the template.
-     * @return The file name of the rendered output saved (html).
+     * @return string|false The file name of the rendered output saved (html).
      */
     public function saveRendered($path, $templatefile, $data=NULL){
         ob_start();
@@ -235,6 +235,28 @@ class DooView {
             $filename = explode('/',$path);
             return $filename[sizeof($filename)-1];
         }
+        return false;
+    }
+
+    /**
+     * Writes the generated output produced by renderc() to file.
+     * @param string $path Path to save the generated output.
+     * @param string $templatefile Template file name (without extension name)
+     * @param array $data Associative array of the data to be used in the Template file. eg. <b>$data['username']</b>, you should use <b>{{username}}</b> in the template.
+     * @param object $controller The controller object, pass this in so that in views you can access the controller.
+     * @param bool $includeTagClass If true, DooView will determine which Template tag class to include. Else, no files will be loaded
+     * @return string|false The file name of the rendered output saved (html).
+     */
+    public function saveRenderedC($path, $templatefile, $data=NULL, $controller=NULL, $includeTagClass=TRUE){
+        ob_start();
+        $this->renderc($templatefile, $data, $controller, $includeTagClass);
+        $data = ob_get_contents();
+        ob_end_clean();
+        if(file_put_contents($path, $data)>0){
+            $filename = explode('/',$path);
+            return $filename[sizeof($filename)-1];
+        }
+        return false;
     }
     
     /**
