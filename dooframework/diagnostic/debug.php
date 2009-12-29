@@ -110,15 +110,15 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
 	
     $script = file_get_contents($errfile);
     $script = DooTextHelper::highlightPHP($script);
-	
+
+	$pre = '';
+    $Xpre = '';
+
 	if(!empty($script)){
         //if template file addon the <pre>
         if(strpos(str_replace('\\','/',$errfile), str_replace('\\','/',Doo::conf()->SITE_PATH.Doo::conf()->PROTECTED_FOLDER).'view')===0){
             $pre = '<pre>';
             $Xpre = '</pre>';
-        }else{
-            $pre = '';
-            $Xpre = '';
         }
 
         $lines = explode('<br />', $script);
