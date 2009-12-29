@@ -131,6 +131,12 @@
  *
  * //The compiled template will look like:
  * <p>www.doophp.com</p>
+ *
+ * //Used with function call
+ * {{+time(true)}}
+ *
+ * //compiled source
+ * 1262115252
  * </code>
  *
  * Short tags with native PHP is allowed
@@ -602,7 +608,10 @@ class DooView {
     }
 
     private function convertFunction($matches) {
-
+        if($matches[1][0]=='+'){
+            $matches[1] = substr($matches[1], 1);
+            $writeStaticValue = true;
+        }
         if(!in_array(strtolower($matches[1]), $this->tags)) {
             return '<span style="color:#ff0000;">Function '.$matches[1].'() Denied</span>';
         }
@@ -644,6 +653,11 @@ class DooView {
             else {
                 $args .= $this->extractObjectVariables($param);
             }
+        }
+
+        //if + in front, write the value of the function call
+        if(!empty($writeStaticValue)){
+            return eval("return {$functionName}($args);");
         }
 
         return "<?php echo {$functionName}($args); ?>";
