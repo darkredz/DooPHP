@@ -119,6 +119,37 @@
  * <code>
  * $this->inc('this_is_another_view_php');
  * </code>
+ *
+ * To write variable's value as static strings to the template, use a plus sign in front of the variable
+ * <code>
+ * //in controller
+ * $this->data['siteurl'] = 'www.doophp.com';
+ * $this->render('template', $this->data);
+ *
+ * //in template
+ * <p>{{+siteurl}}</p>
+ *
+ * //The compiled template will look like:
+ * <p>www.doophp.com</p>
+ * </code>
+ *
+ * Short tags with native PHP is allowed
+ * <code>
+ * <? echo $data; ?>
+ * <?=$data;?>
+ *
+ * //The code above will be converted to
+ * <?php echo $data; ?>
+ * </code>
+ *
+ * To write variable's value as static string (using native PHP), use a plus sign
+ * <code>
+ * //Example:
+ * <p><?+$data;?></p>
+ *
+ * //result:
+ * <p>www.doophp.com</p>
+ * </code>
  * 
  * @author Leng Sheng Hong <darkredz@gmail.com>
  * @version $Id: DooView.php 1000 2009-07-7 18:27:22
@@ -441,10 +472,10 @@ class DooView {
 
         if( isset(Doo::conf()->TEMPLATE_ALLOW_PHP) ){
             if( Doo::conf()->TEMPLATE_ALLOW_PHP === False ){
-                $str = preg_replace('/<\?(php)?([\S|\s]*)\?>/i', '', $str);
+                $str = preg_replace('/<\?(php|\=|\+)?([\S|\s]*)\?>/Ui', '', $str);
             }
         }else{
-            $str = preg_replace_callback('/<\?(php|\=)?([\S|\s]*)\?>/i', array( &$this, 'convertPhpFunction'), $str);
+            $str = preg_replace_callback('/<\?(php|\=|\+)?([\S|\s]*)\?>/Ui', array( &$this, 'convertPhpFunction'), $str);
         }
 
         //convert end loop
@@ -452,6 +483,9 @@ class DooView {
 
         //convert end for
         $str = str_replace('<!-- endfor -->', '<?php endforeach; ?>', $str);
+
+        //convert variables to static string <p>{{+username}}</p> becomes <p>myusernamevalue</p>
+        $str = preg_replace_callback('/{{\+([^ \t\r\n\(\)\.}]+)}}/', array( &$this, 'writeStaticVar'), $str);
 
         //convert variables {{username}}
         $str = preg_replace('/{{([^ \t\r\n\(\)\.}]+)}}/', "<?php echo \$data['$1']; ?>", $str);
@@ -511,13 +545,26 @@ class DooView {
         return $str;
     }
 
+    private function writeStaticVar($matches){
+        return $this->data[$matches[1]];
+    }
+
     private function convertPhpFunction($matches){
         $str = preg_replace_callback('/([^ \t\r\n\(\)}]+)([\s\t]*?)\(/', array( &$this, 'parseFunc'), $matches[2]);
+        if(strpos($str, 'php')===0)
+            $str = substr($str, 3);
 
         //if short tag <?=, convert to <?php echo
-        if(strpos($matches[0],'<?=')===0)
+        if($matches[2][0]=='='){
+            $str = substr($str, 1);
             return '<?php echo ' . $str .' ?>';
-                
+        }
+        //write the variable value
+        else if($matches[2][0]=='+'){
+            $str = substr($str, 1);
+            return eval('return ' . $str);
+        }
+
         return '<?php ' . $str .' ?>';
     }
 
@@ -525,7 +572,7 @@ class DooView {
         //matches and check function name against template tag
         if(!empty($matches[1])){
             $funcname = trim(strtolower($matches[1]));
-            $controls = array('if','elseif','else if','while','switch','for','foreach','switch','return','include','require','include_once','require_once','declare','define','defined','die','constant');
+            $controls = array('if','elseif','else if','while','switch','for','foreach','switch','return','include','require','include_once','require_once','declare','define','defined','die','constant','array');
 
             //skip checking static method usage: TemplateTag::go(), Doo::conf()
             if(stripos($funcname, $this->tags['_class'] . '::')===False && stripos($funcname, 'Doo')===False){
