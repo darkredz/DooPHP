@@ -256,6 +256,14 @@ class DooView {
         }
     }
 
+    /**
+     * Renders layouts
+     * @param string $layoutName Name of the layout
+     * @param string $viewFile View file name (without extension name .html)
+     * @param array $data Associative array of the data to be used in the Template file. eg. <b>$data['username']</b>, you should use <b>{{username}}</b> in the template.
+     * @param bool $process If TRUE, checks the template's last modified time against the compiled version. Regenerates if template is newer.
+     * @param bool $forceCompile Ignores last modified time checking and force compile the template everytime it is visited.
+     */
     public function renderLayout($layoutName, $viewFile, $data=NULL, $process=NULL, $forceCompile=false) {
 
         $compiledViewFile = $layoutName . '/' . $viewFile;
@@ -514,10 +522,10 @@ class DooView {
         $str = str_replace('<!-- endif -->', '<?php endif; ?>', $str);
 
         // convert set
-        $str = preg_replace_callback('/<!-- set ([^ \t\r\n\(\)\.}]+) as (.*?) -->/', array( &$this, 'convertSet'), $str);
+        $str = preg_replace_callback('/<!-- set ([^ \t\r\n\(\)\.}]+) as (.*?) -->/U', array( &$this, 'convertSet'), $str);
 
         //convert if and else if condition <!-- if expression --> <!-- elseif expression -->  only functions in template_tags are allowed
-        $str = preg_replace_callback('/<!-- (if|elseif) ([^\t\r\n}]+) -->/', array( &$this, 'convertCond'), $str);
+        $str = preg_replace_callback('/<!-- (if|elseif) ([^\t\r\n}]+) -->/U', array( &$this, 'convertCond'), $str);
 
         //convert else
         $str = str_replace('<!-- continue -->', '<?php continue; ?>', $str);
