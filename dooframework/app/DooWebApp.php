@@ -239,12 +239,11 @@ class DooWebApp{
      * @return string Output of the module
      */
     public function getModule($moduleName, $moduleUri, $action=null, $params=null){
-        $tmp = Doo::conf()->PROTECTED_FOLDER;
-        if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===False)
-            Doo::conf()->PROTECTED_FOLDER_ORI = $tmp;
+        Doo::conf()->PROTECTED_FOLDER_ORI = $tmp = Doo::conf()->PROTECTED_FOLDER;
         Doo::conf()->PROTECTED_FOLDER = $tmp . 'module/'.$moduleName.'/';
         $result = $this->module($moduleUri, $action, $params);
         Doo::conf()->PROTECTED_FOLDER = $tmp;
+        Doo::conf()->PROTECTED_FOLDER_ORI = NULL;
         return $result;
     }
 
