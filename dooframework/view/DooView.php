@@ -604,6 +604,10 @@ class DooView {
     }
 
     private function convertPhpFunction($matches){
+        if(stripos($matches[0], '<?php')!==0 && strpos($matches[0], '<?=')!==0 && strpos($matches[0], '<?+')!==0  && strpos($matches[0], '<? ')!==0 ){
+            return $matches[0];
+        }
+
         $str = preg_replace_callback('/([^ \t\r\n\(\)}]+)([\s\t]*?)\(/', array( &$this, 'parseFunc'), $matches[2]);
         if(strpos($str, 'php')===0)
             $str = substr($str, 3);
