@@ -940,6 +940,14 @@ class DooSmartModel{
         return Doo::db()->lastInsertId();
     }
 
+	/**
+	 * Delete ALL existing records. (Prepares and executes the DELETE statement)
+	 */
+	public function deleteAll() {
+		$this->purgeCache();
+		return Doo::db()->deleteAll($this);
+	}
+
     /**
      * Delete an existing record. (Prepares and execute the DELETE statements)
      * @param array $opt Associative array of options to generate the UPDATE statement. Supported: <i>where, limit, param</i>
@@ -1020,6 +1028,14 @@ class DooSmartModel{
     public static function _lastInsertId(){
         return Doo::db()->lastInsertId();
     }
+
+	/**
+	 * Delete ALL existing records. (Prepares and executes the DELETE statement)
+	 */
+	public static function _delete($model, $opt) {
+		$model->purgeCache();
+		return Doo::db()->deleteAll($model);
+	}
 
     /**
      * Delete an existing record. (Prepares and execute the DELETE statements)

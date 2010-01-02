@@ -1590,6 +1590,20 @@ class DooSqlMagic {
         }
     }
 
+	/**
+	 * Delete all records from table (Prepares and executes the DELETE statement)
+	 * @param mixed $model The model object from which to delete all records 
+	 */
+	public function deleteAll($model) {
+		if (!is_object($model)) {
+			Doo::loadModel($model);
+			$model = new $model;
+		}
+
+		$sql = "DELETE FROM {$model->_table}";
+		$rs = $this->query($sql);
+	}
+
     /**
      * Delete an existing record. (Prepares and execute the DELETE statements)
      * @param mixed $model The model object to be deleted.

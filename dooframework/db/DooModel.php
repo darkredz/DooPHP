@@ -219,6 +219,13 @@ class DooModel{
         return Doo::db()->lastInsertId();
     }
 
+	/**
+	 * Delete ALL existing records. (Prepares and executes the DELETE statements)
+	 */
+	public function deleteAll() {
+		return Doo::db()->deleteAll($this);
+	}
+
     /**
      * Delete an existing record. (Prepares and execute the DELETE statements)
      * @param array $opt Associative array of options to generate the UPDATE statement. Supported: <i>where, limit, param</i>
@@ -315,6 +322,14 @@ class DooModel{
     public static function _lastInsertId(){
         return Doo::db()->lastInsertId();
     }
+
+	/**
+	 * Delete ALL existing records. (Prepares and executes the DELETE statement)
+	 * @param mixed $model The model object whos records should all be deleted
+	 */
+	public static function _deleteAll($model) {
+		return Doo::db()->deleteAll($model);
+	}
 
     /**
      * Delete an existing record. (Prepares and execute the DELETE statements)
