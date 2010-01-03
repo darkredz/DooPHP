@@ -144,7 +144,8 @@ class DooFlashMessenger {
 		if ($this->hasMessages()) {
 			$output = '<div class="'.$this->_namespace.'_flashm">';
 			if ($this->countMessages() == 1) {
-				$output .= self::$_messages[0];
+				$output .= '<span class="'.$this->_namespace . '_inner">'
+				. self::$_messages[0] . '</span>';
 			} else {
 			$output .= '<ul>';
 				foreach (self::$_messages as $message) {
@@ -157,6 +158,10 @@ class DooFlashMessenger {
 			// clear messages
 			$this->clearMessages();
 		}
+	}
+
+	public function addWrapper() {
+
 	}
 }
 ?>

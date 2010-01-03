@@ -239,7 +239,7 @@ class DooForm extends DooValidator {
 				}
 			}
 			// handle values for all fields except select, multicheckbox, checkbox, radio...
-			if (($k[0] != 'select') && ($k[0] != 'MultiCheckbox') && ($k[0] != 'MultiRadio') && ($k[0] != 'checkbox') && ($k[0] != 'textarea')) {
+			if (($k[0] != 'select') && ($k[0] != 'MultiCheckbox') && ($k[0] != 'MultiRadio')  && ($k[0] != 'MultiSelect') && ($k[0] != 'checkbox') && ($k[0] != 'textarea')) {
 				if (isset($elementValues[$element])) {
 					$elementAttributes .= ' value="'.htmlspecialchars($elementValues[$element]).'"';
 				}
@@ -329,7 +329,6 @@ class DooForm extends DooValidator {
 							$elementHtml .= '<label for="'.$element.'-'.$optionValue.'">' . $optionName;
 							$elementHtml .= '<input type="checkbox" value="'.$optionValue.'" name="'.$element.'[]" '.$checked.'/>';
 							$elementHtml .= '</label>';
-							$elementHtml .= '<br/>';
 						}
 					}
 					$elementHtml .= '</'.$elementWrapper.'>';
@@ -347,10 +346,29 @@ class DooForm extends DooValidator {
 							$elementHtml .= '<label for="'.$element.'-'.$optionValue.'">' . $optionName;
 							$elementHtml .= '<input type="radio" value="'.$optionValue.'" name="'.$element.'" '.$checked.'/>';
 							$elementHtml .= '</label>';
-							$elementHtml .= '<br/>';
 						}
 					}
 					break;
+				//MultiSelect, a hybrid of select and MultiCheckbox for mulitple select lists
+				case 'MultiSelect':
+				   $elementHtml = '<'.$elementWrapper.' id="'.$element.'-element" '.$elementRequred.'><select '.$elementAttributes.' multiple="multiple" name="'.$element.'[]">';
+				   if (isset($k[1]['multioptions']) && (count($k[1]['multioptions'] > 0))) {
+					  foreach ($k[1]['multioptions'] as $optionValue => $optionName) {
+						 if (is_array($optionName)) { // if its array make option groups
+							$elementHtml .= '<optgroup label="'.$optionValue.'">';
+							foreach ($optionName as $v => $n) {
+							   $selected = (isset($k[1]['value']) && (in_array($v, $k[1]['value'])))?'selected="selected"':'';
+							   $elementHtml .= '<option value="'.$v.'" '.$selected.'>'.$n.'</option>';
+							}
+							$elementHtml .= '</optgroup>';
+						 } else {
+							$selected = (isset($k[1]['value']) && (in_array($optionValue, $k[1]['value'])))?'selected="selected"':'';
+							$elementHtml .= '<option value="'.$optionValue.'" '.$selected.'>'.$optionName.'</option>';
+						 }
+					  }
+				   }
+				   $elementHtml .= '</select></'.$elementWrapper.'>';
+				   break;
 				// captcha
 				case 'captcha':
 					if (!isset($_SESSION)) {
