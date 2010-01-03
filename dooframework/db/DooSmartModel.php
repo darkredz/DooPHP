@@ -1032,7 +1032,7 @@ class DooSmartModel{
 	/**
 	 * Delete ALL existing records. (Prepares and executes the DELETE statement)
 	 */
-	public static function _delete($model, $opt) {
+	public static function _deleteAll($model, $opt) {
 		$model->purgeCache();
 		return Doo::db()->deleteAll($model);
 	}
