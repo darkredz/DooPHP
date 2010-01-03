@@ -18,8 +18,11 @@ class DooFileManager {
 	 * @param string $path Absolute path to folder to be created
 	 * @param int Chmod code used for new folders
 	 */
-	public static function createFolder($path, $mode = 0777) {
-		$result = mkdir($path, $mode, true);
+	public static function createFolder($path, $mode = Null) {
+		if($mode!=Null)
+			$result = mkdir($path, $mode, true);
+		else
+			$result = mkdir($path);
 		if ($result === false) {
 			throw new DooFileManagerException('Could not create folder: ' . $path);
 		}
