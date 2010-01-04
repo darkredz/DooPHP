@@ -6,7 +6,7 @@
  * Every public static method in this class can be used in the templates
  */
 class ExampleTag {
-    public static test(){
+    public static function test(){
 	    return 'Module tag class';
 	}
 }
