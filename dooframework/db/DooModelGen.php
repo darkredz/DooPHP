@@ -207,9 +207,10 @@ class DooModelGen{
      * Generates Model class files from a SQLite database
      * @param string $extends make Model class to extend DooModel or DooSmartModel
      * @param bool $createBase Generate base model class, will not rewrite/replace model classes if True.
-     * @param string $addmaps Writes table relation map in Model class analyze with foreign keys available (You do not need to define in the maps in db.conf.php) 
+     * @param bool $addmaps Writes table relation map in Model class analyze with foreign keys available (You do not need to define in the maps in db.conf.php) 
+     * @param string $filenameModelPrefix Add a prefix for the model class name
      */
-    public static function gen_sqlite($extends='', $createBase=false, $addmaps=false){
+    public static function gen_sqlite($extends='', $createBase=false, $addmaps=false, $filenameModelPrefix = ''){
         // get database info
         $dbconf = Doo::db()->getDefaultDbConfig();
         $dbname = $dbconf[0];
@@ -261,6 +262,8 @@ class DooModelGen{
                     $classname .= $temptbl[$i];
                 }
             }           
+			
+			$classname = $filenameModelPrefix . $classname
            
             // start model filename content
             $filestr  = "<?php\n\n";
