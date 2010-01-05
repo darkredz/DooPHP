@@ -27,9 +27,7 @@
  * @since 1.1
  */
 
-Doo::loadCore('cache/DooCache');
-
-class DooMemCache extends DooCache{
+class DooMemCache{
     /**
      * Memcached connection
      * @var Memcache
