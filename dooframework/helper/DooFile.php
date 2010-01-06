@@ -197,7 +197,7 @@ class DooFile {
      *
      * @param string $path Path to get the list of files/folders
      * @param string $listOnly List only files or folders. Use value DooFile::LIST_FILE or DooFile::LIST_FOLDER
-     * @return array Returns an assoc array with keys: name(file name), path(full path to file/folder), folder(boolean), extension, type
+     * @return array Returns an assoc array with keys: name(file name), path(full path to file/folder), folder(boolean), extension, type, size(KB)
      */
 	public function getList($path, $listOnly=null){
         $path = str_replace('\\', '/', $path);
@@ -312,7 +312,9 @@ class DooFile {
                                     'path' => $val,
                                     'folder' => is_dir($val),
                                     'extension' => strtolower($ext[sizeof($ext)-1]),
-                                    'type' => mime_content_type($val));
+                                    'type' => mime_content_type($val),
+                                    'size' => round(filesize($val)/1024)
+                                );
             }else{
                 $fileInfo[] = array('name' => $filename,
                                     'path' => $val,
