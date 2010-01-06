@@ -134,6 +134,9 @@ class DooFrontCache{
 				$isMatched = true;
 				$url = str_replace('/','-',$url).'.html';
 				$this->_cachefile = $this->_directory.str_replace('/','-',$uri).'.html';
+                if(strncmp(PHP_OS,'WIN',3)===0){
+                    $this->_cachefile = str_replace('?', '_q.', $this->_cachefile);
+                }
 
 				// If the cache has not expired, include it.
 				if (file_exists($this->_cachefile) && time() - $secondsCache < filemtime($this->_cachefile)) {
@@ -162,6 +165,9 @@ class DooFrontCache{
 
 				$isMatched = true;
 				$this->_cachefile = $this->_directory.str_replace('/','-',$subfolder.$index.$uri).'.html';
+                if(strncmp(PHP_OS,'WIN',3)===0){
+                    $this->_cachefile = str_replace('?', '_q.', $this->_cachefile);
+                }
 
 				// If the cache has not expired, include it.
 				if (file_exists($this->_cachefile) && time() - $secondsCache < filemtime($this->_cachefile)) {
@@ -228,7 +234,10 @@ class DooFrontCache{
 				$isMatched = true;
 				$url = str_replace('/','-',$url).'.html';
 				$this->_cachefile = $this->_directory.str_replace('/','-',$uri).'.html';
-
+                if(strncmp(PHP_OS,'WIN',3)===0){
+                    $this->_cachefile = str_replace('?', '_q.', $this->_cachefile);
+                }
+                
 				// If the cache has not expired, include it.
 				if (file_exists($this->_cachefile) && time() - $secondsCache < filemtime($this->_cachefile)) {
 					include $this->_cachefile;
@@ -255,6 +264,9 @@ class DooFrontCache{
 
 				$isMatched = true;
 				$this->_cachefile = $this->_directory.str_replace('/','-',$subfolder.$index.$uri).'.html';
+                if(strncmp(PHP_OS,'WIN',3)===0){
+                    $this->_cachefile = str_replace('?', '_q.', $this->_cachefile);
+                }
 
 				// If the cache has not expired, include it.
 				if (file_exists($this->_cachefile) && time() - $secondsCache < filemtime($this->_cachefile)) {
