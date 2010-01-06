@@ -102,6 +102,15 @@ class Doo{
         }
         return self::$_session;
     }
+	
+	/**
+     * @return true/false according to cache system being installed
+     */
+    public static function cacheSession($prefix = 'dooSession/', $type='file'){
+		$cache = self::cache($type);
+		self::loadCore('session/DooCacheSession');
+		return DooCacheSession::installOnCache($cache, $prefix);
+    }
 
 	 /**
 	  * @return DooTranslator
@@ -357,6 +366,7 @@ class Doo{
         $class['DooMailer'] = 'helper/DooMailer';
         $class['DooPager'] = 'helper/DooPager';
         $class['DooGdImage'] = 'helper/DooGdImage';
+		$class['DooBenchmark'] = 'helper/DooBenchmark';
         $class['DooLog'] = 'logging/DooLog';
         $class['DooLoader'] = 'uri/DooLoader';
         $class['DooView'] = 'view/DooView';
