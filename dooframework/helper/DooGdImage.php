@@ -545,7 +545,7 @@ class DooGdImage {
      * 
      * @param string $filename The file field name in $_FILES HTTP File Upload variables
      * @param string $rename Rename the uploaded file (without extension)
-     * @return string The file name of the uploaded image.
+     * @return string|array The file name of the uploaded image.
      */
     public function uploadImage($filename, $rename=''){
         $img = !empty($_FILES[$filename]) ? $_FILES[$filename] : null;
@@ -553,7 +553,7 @@ class DooGdImage {
 
         if(is_array($img['name'])===False){
             $pic = strrpos($img['name'], '.');
-            $ext = substr($img['name'], $pic+1);
+            $ext = strtolower(substr($img['name'], $pic+1));
 
             if ($this->timeAsName){
                 $newName = time().'-'.mt_rand(1000,9999) . '.' . $ext;
@@ -576,7 +576,7 @@ class DooGdImage {
                 if(empty($img['name'][$k])) continue;
                 if ($error == UPLOAD_ERR_OK) {
                    $pic = strrpos($img['name'][$k], '.');
-                   $ext = substr($img['name'][$k], $pic+1);
+                   $ext = strtolower(substr($img['name'][$k], $pic+1));
 
                    if($this->timeAsName){
                        $newName = time().'-'.mt_rand(1000,9999) . '_' . $k . '.' . $ext;
@@ -643,6 +643,61 @@ class DooGdImage {
             return true;
         }
     }
+
+    /**
+     * Checks if image extension of the uploaded file(s) is in the allowed list.
+     *
+     * @param string $filename The file input field name in $_FILES HTTP File Upload variables
+     * @param array $allowExt Allowed file extensions. Default: jpg, jpeg, gif, png
+     * @return bool Returns true if file extension is in the allowed list.
+     */
+    public function checkImageExtension($filename, $allowExt=array('jpg','jpeg','gif','png')){
+        if(!empty($_FILES[$filename])){
+            $name = $_FILES[$filename]['name'];
+            if(is_array($name)===False){
+                $n = strrpos($name, '.');
+                $ext = strtolower(substr($name, $n+1));
+                return in_array($ext, $allowExt);
+            }
+            else{
+                foreach($name as $nm){
+                    $n = strrpos($nm, '.');
+                    $ext = strtolower(substr($nm, $n+1));
+                    if(!in_array($ext, $allowExt)){
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+    }
+
+    /**
+     * Checks if image file size does not exceed the max file size allowed.
+     *
+     * @param string $filename The file input field name in $_FILES HTTP File Upload variables
+     * @param int $maxSize Allowed max file size in kilo bytes.
+     * @return bool Returns true if file size does not exceed the max file size allowed.
+     */
+    public function checkImageSize($filename, $maxSize){
+        if(!empty($_FILES[$filename])){
+            $size = $_FILES[$filename]['size'];
+            if(is_array($size)===False){
+                if(($size/1024)>$maxSize){
+                    return false;
+                }
+            }
+            else{
+                foreach($size as $s){
+                    if(($s/1024)>$maxSize){
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+    }
+
 }
 
 ?>
