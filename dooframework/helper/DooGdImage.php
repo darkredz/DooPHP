@@ -541,45 +541,106 @@ class DooGdImage {
     }
 
     /**
-     * Save the uploaded images in HTTP File Upload variables
+     * Save the uploaded image(s) in HTTP File Upload variables
      * 
      * @param string $filename The file field name in $_FILES HTTP File Upload variables
+     * @param string $rename Rename the uploaded file (without extension)
      * @return string The file name of the uploaded image.
      */
     public function uploadImage($filename, $rename=''){
         $img = !empty($_FILES[$filename]) ? $_FILES[$filename] : null;
         if($img==Null)return;
 
-        $pic = strrpos($img['name'], '.');
-        $ext = substr($img['name'], $pic+1);
+        if(is_array($img['name'])===False){
+            $pic = strrpos($img['name'], '.');
+            $ext = substr($img['name'], $pic+1);
 
-        if ($this->timeAsName){
-            $newName = time().'-'.mt_rand(1000,9999) . '.' . $ext;
+            if ($this->timeAsName){
+                $newName = time().'-'.mt_rand(1000,9999) . '.' . $ext;
+            }else{
+                $newName = $img['name'];
+            }
+
+            if($rename=='')
+                $imgPath = $this->uploadPath . $newName;
+            else
+                $imgPath = $this->uploadPath . $rename . '.' . $ext;
+
+            if (move_uploaded_file($img['tmp_name'], $imgPath)){
+                return ($rename=='')? $newName : $rename. '.' . $ext;
+            }
         }
         else{
-            $newName = $img['name'];
-        }
+            $uploadImagesPath = array();
+            foreach($img['error'] as $k=>$error){
+                if(empty($img['name'][$k])) continue;
+                if ($error == UPLOAD_ERR_OK) {
+                   $pic = strrpos($img['name'][$k], '.');
+                   $ext = substr($img['name'][$k], $pic+1);
 
-        if($rename=='')
-            $imgPath = $this->uploadPath . $newName;
-        else
-            $imgPath = $this->uploadPath . $rename . '.' . $ext;
+                   if($this->timeAsName){
+                       $newName = time().'-'.mt_rand(1000,9999) . '_' . $k . '.' . $ext;
+                   }else{
+                       $newName = $img['name'][$k];
+                   }
 
-        if (move_uploaded_file($img['tmp_name'], $imgPath)){
-            return ($rename=='')? $newName : $rename. '.' . $ext;
+                   if($rename=='')
+                       $imgPath = $this->uploadPath . $newName;
+                   else
+                       $imgPath = $this->uploadPath . $rename . '_' . $k . '.' . $ext;
+
+                   if (move_uploaded_file($img['tmp_name'][$k], $imgPath)){
+                       $uploadImagesPath[] = $newName;
+                   }
+                }else{
+                   return false;
+                }
+            }
+            return $uploadImagesPath;
         }
     }
 
     /**
-     * Get the uploaded images format type
+     * Get the uploaded images' format type
      *
      * @param string $filename The file field name in $_FILES HTTP File Upload variables
-     * @return string The image format type of the uploaded image.
+     * @return string|array The image format type of the uploaded image.
      */
     public function getUploadFormat($filename){
         if(!empty($_FILES[$filename])){
-            if(!empty($_FILES[$filename]['type']))
-                return str_replace('image/', '', $_FILES[$filename]['type']);
+            $type = $_FILES[$filename]['type'];
+            if(is_array($type)===False){
+                if(!empty($type))
+                    return str_replace('image/', '', $type);
+            }
+            else{
+                $typelist = array();
+                foreach($type as $t){
+                    $typelist[] = str_replace('image/', '', $t);
+                }
+                return $typelist;
+            }
+        }
+    }
+
+    /**
+     * Checks if image mime type of the uploaded file(s) is in the allowed list
+     * @param string $filename The file field name in $_FILES HTTP File Upload variables
+     * @param array $allowType Allowed image format type. Default: JPEGs, GIFs and PNGs
+     * @return bool Returns true if image mime type is in the allowed list.
+     */
+    public function checkImageType($filename, $allowType=array('jpg','jpeg','pjpeg','gif','png','x-png')){
+        $type = $this->getUploadFormat($filename);
+        if(is_array($type)===False)
+            return in_array($type, $allowType);
+        else{
+            foreach($type as $t){
+                if($t===Null || $t==='') continue;
+                if(!in_array($t, $allowType)){
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }
