@@ -383,8 +383,21 @@ class DooFrontCache{
 
 	/**
 	 * Frontend cache ending. Cache the output to a file in the defined cache folder.
+     * @param bool $cascade Enable cascading cache (partial cache in full page cache)
 	 */
-	public function end(){
+	public function end($cascade=false){
+        if($cascade!==false){
+            $uri = $_SERVER['REQUEST_URI'];
+
+            if($uri[strlen($uri)-1]=='/'){
+                $uri = substr($uri,0,strlen($uri)-1);
+            }
+
+            $this->_cachefile = $this->_directory.str_replace('/','-',$uri).'.html';
+            if(strncmp(PHP_OS,'WIN',3)===0){
+                $this->_cachefile = str_replace('?', '_q.', $this->_cachefile);
+            }
+        }
 		file_put_contents($this->_cachefile, ob_get_contents(), LOCK_EX);
 		ob_end_flush();
 	}
