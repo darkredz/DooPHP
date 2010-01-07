@@ -205,20 +205,20 @@ class DooFile {
             $dir .= '/';
         }
 
-        $totalCopy = 0;
+        $totalSize = 0;
 		$handle = opendir($dir);
 
 		while(false !== ($file = readdir($handle))){
 			if($file != '.' && $file != '..'){
                 if (is_dir($dir.$file)){
-					$totalCopy += $this->getSize($dir.$file);
+					$totalSize += $this->getSize($dir.$file);
 				}else{
-                    $totalCopy += filesize($dir.$file);
+                    $totalSize += filesize($dir.$file);
 				}
 			}
 		}
 		closedir($handle);
-        return $totalCopy;
+        return $totalSize;
     }
 
 
