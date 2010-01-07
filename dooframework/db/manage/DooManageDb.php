@@ -444,7 +444,7 @@ abstract class DooManageDb {
 	 * @param string $table Name of the table to create the index on
 	 * @param string $name Name for the index
 	 * @param bool $unique Should the index be unique (eg no two rows have the same values in index columns)
-	 * @param array $colNames The names of the columsn to be indexed. If null use the index name
+	 * @param array $colNames The names of the columns to be indexed. If null use the index name
 	 * @return void
 	 */
 	public function createIndex($table, $name, $unique, $colNames = null) {
@@ -459,9 +459,9 @@ abstract class DooManageDb {
 		// Mod Index name
 		$name = $this->modifyIndexName($table, $name);
 
-		$table = $this->quote($table);
-		$name = $this->quote($name);
-		$colNames = $this->quote($colNames);
+		$table = $this->quoteName($table);
+		$name = $this->quoteName($name);
+		$colNames = $this->quoteName($colNames);
 
 		if (is_array($colNames)) {
 			$colNames = implode(', ', $colNames);
@@ -520,12 +520,19 @@ abstract class DooManageDb {
      * Quotes a string for use in a query.
      *
      * Places quotes around the input string and escapes and single quotes within the input string, using a quoting style appropriate to the underlying driver.
-     * @param string $string The string to be quoted.
+     * @param string|array $string The string to be quoted. Or if an array itterate over each element and quote it
      * @param int $type Provides a data type hint for drivers that have alternate quoting styles
      * @return string Returns a quoted string that is theoretically safe to pass into an SQL statement. Returns FALSE if the driver does not support quoting in this way.
      */
 	public function quote($value, $type=null) {
-		return $this->pdo->quote($value, $type);
+		if (is_array($value)) {
+			for($i = 0; $i < count($value); $i++) {
+				$value[$i] = $this->quote($value[$i], $type);
+			}
+			return $value;
+		} else {
+			return $this->pdo->quote($value, $type);
+		}
 	}
 
 	/**
@@ -535,13 +542,19 @@ abstract class DooManageDb {
 	 */
 	public function quoteName($name) {
 
-		$name = trim($name);
-
-		if ($name == '*') {
-            return $name;
-        } else {
-            return $this->identifer_quote_prefix . $name . $this->identifer_quote_suffix;
-        }
+		if (is_array($name)) {
+			for($i=0; $i < count($name); $i++) {
+				$name[$i] = $this->quoteName($name[$i]);
+			}
+			return $name;
+		} else {
+			$name = trim($name);
+			if ($name == '*') {
+				return $name;
+			} else {
+				return $this->identifer_quote_prefix . $name . $this->identifer_quote_suffix;
+			}
+		}
 	}
 
 
