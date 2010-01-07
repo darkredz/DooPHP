@@ -196,9 +196,11 @@ class DooFile {
     /**
      * Get the space used up by a folder recursively.
      * @param string $dir Directory path.
-     * @return int total space used up by the folder (bytes)
+     * @param string $unit Case insensitive units: B, KB, MB, GB or TB
+     * @param int $precision 
+     * @return float total space used up by the folder (KB)
      */
-    public function getSize($dir){
+    public function getSize($dir, $unit='KB', $precision=2){
         if(!is_dir($dir)) return filesize($dir);
         $dir = str_replace('\\', '/', $dir);
         if($dir[strlen($dir)-1] != '/'){
@@ -218,18 +220,33 @@ class DooFile {
 			}
 		}
 		closedir($handle);
-        return $totalSize;
+        return self::formatBytes($totalSize, $unit, $precision);
     }
 
+    /**
+     * Convert bytes into KB, MB, GB or TB.
+     * @param int $bytes
+     * @param string $unit Case insensitive units: B, KB, MB, GB or TB
+     * @param int $precision
+     * @return float
+     */
+    public static function formatBytes($bytes, $unit='KB', $precision=2) {
+        $unit = strtoupper($unit);
+        $unitPow = array('B'=>0, 'KB'=>1, 'MB'=>2, 'GB'=>3, 'TB'=>4);
+        $bytes /= pow(1024, $unitPow[$unit]);
+        return round($bytes, $precision);
+    }
 
     /**
      * Get a list of folders or files or both in a given path.
      *
      * @param string $path Path to get the list of files/folders
      * @param string $listOnly List only files or folders. Use value DooFile::LIST_FILE or DooFile::LIST_FOLDER
-     * @return array Returns an assoc array with keys: name(file name), path(full path to file/folder), folder(boolean), extension, type, size(bytes)
+     * @param string $unit Unit for the size of files. Case insensitive units: B, KB, MB, GB or TB
+     * @param int $precision Number of decimal digits to round the file size to
+     * @return array Returns an assoc array with keys: name(file name), path(full path to file/folder), folder(boolean), extension, type, size(KB)
      */
-	public function getList($path, $listOnly=null){
+	public function getList($path, $listOnly=null, $unit='KB', $precision=2){
         $path = str_replace('\\', '/', $path);
         if($path[strlen($path)-1] != '/'){
             $path .= '/';
