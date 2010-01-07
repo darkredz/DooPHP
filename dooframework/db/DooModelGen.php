@@ -263,7 +263,7 @@ class DooModelGen{
                 }
             }           
 			
-			$classname = $filenameModelPrefix . $classname
+			$classname = $filenameModelPrefix . $classname;
            
             // start model filename content
             $filestr  = "<?php\n\n";
