@@ -84,17 +84,25 @@ class DooModelGen{
                }
            }
 
-           if($extends==DooModelGen::EXTEND_MODEL || $extends==DooModelGen::EXTEND_SMARTMODEL ){
-               if($createBase!=True)
-                   $filestr = "<?php\nDoo::loadCore('db/$extends');\n\nclass $classname extends $extends{\n";
-               else
-                   $filestr = "<?php\nDoo::loadCore('db/$extends');\n\nclass {$classname}Base extends $extends{\n";
+           if( !empty($extends) ){
+               if($createBase!=True){
+                   if($extends==DooModelGen::EXTEND_MODEL || $extends==DooModelGen::EXTEND_SMARTMODEL)
+                       $filestr = "<?php\nDoo::loadCore('db/$extends');\n\nclass $classname extends $extends{\n";
+                   else
+                       $filestr = "<?php\nDoo::loadClass('$extends');\n\nclass $classname extends $extends{\n";
+               }else{
+                   if($extends==DooModelGen::EXTEND_MODEL || $extends==DooModelGen::EXTEND_SMARTMODEL)
+                       $filestr = "<?php\nDoo::loadCore('db/$extends');\n\nclass {$classname}Base extends $extends{\n";
+                   else
+                       $filestr = "<?php\nDoo::loadClass('$extends');\n\nclass {$classname}Base extends $extends{\n";
+               }
            }else{
                if($createBase!=True)
                    $filestr = "<?php\nclass $classname{\n";
                else
                    $filestr = "<?php\nclass {$classname}Base{\n";
            }
+
            $pkey = '';
            $ftype = '';
            $fieldnames = array();
@@ -160,7 +168,7 @@ class DooModelGen{
 
            if($vrules && !empty ($rules)){
                $filestr .= "\n    public function getVRules() {\n        return ". self::exportRules($rules) ."\n    }\n\n";
-               if(!($extends==DooModelGen::EXTEND_MODEL || $extends==DooModelGen::EXTEND_SMARTMODEL )){
+               if(empty($extends)){
                    $filestr .="    public function validate(\$checkMode='all'){
         //You do not need this if you extend DooModel or DooSmartModel
         //MODE: all, all_one, skip
@@ -281,11 +289,18 @@ class DooModelGen{
                 $filestr .= '$dbmap = array();' . "\n" . implode( "\n", $dbmaps ) . "\n" . 'Doo::db()->appendMap( $dbmap );' . "\n\n";
             }
             
-            if($extends==DooModelGen::EXTEND_MODEL || $extends==DooModelGen::EXTEND_SMARTMODEL ){
-               if($createBase!=True)
-                   $filestr .= "Doo::loadCore('db/$extends');\n\nclass $classname extends $extends{\n";
-               else
-                   $filestr .= "Doo::loadCore('db/$extends');\n\nclass {$classname}Base extends $extends{\n";
+            if(!empty($extends)){
+               if($createBase!=True){
+                   if($extends==DooModelGen::EXTEND_MODEL || $extends==DooModelGen::EXTEND_SMARTMODEL)
+                       $filestr .= "Doo::loadCore('db/$extends');\n\nclass $classname extends $extends{\n";
+                   else
+                       $filestr .= "Doo::loadClass('$extends');\n\nclass $classname extends $extends{\n";
+               }else{
+                   if($extends==DooModelGen::EXTEND_MODEL || $extends==DooModelGen::EXTEND_SMARTMODEL)
+                       $filestr .= "Doo::loadCore('db/$extends');\n\nclass {$classname}Base extends $extends{\n";
+                   else
+                       $filestr .= "Doo::loadClass('$extends');\n\nclass {$classname}Base extends $extends{\n";
+               }
             }else{
                if($createBase!=True)
                    $filestr .= "class $classname{\n";
