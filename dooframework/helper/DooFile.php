@@ -192,12 +192,42 @@ class DooFile {
         return $totalCopy;
 	}
 
+
+    /**
+     * Get the space used up by a folder recursively.
+     * @param string $dir Directory path.
+     * @return int total space used up by the folder (bytes)
+     */
+    public function getSize($dir){
+        if(!is_dir($dir)) return filesize($dir);
+        $dir = str_replace('\\', '/', $dir);
+        if($dir[strlen($dir)-1] != '/'){
+            $dir .= '/';
+        }
+
+        $totalCopy = 0;
+		$handle = opendir($dir);
+
+		while(false !== ($file = readdir($handle))){
+			if($file != '.' && $file != '..'){
+                if (is_dir($dir.$file)){
+					$totalCopy += $this->getSize($dir.$file);
+				}else{
+                    $totalCopy += filesize($dir.$file);
+				}
+			}
+		}
+		closedir($handle);
+        return $totalCopy;
+    }
+
+
     /**
      * Get a list of folders or files or both in a given path.
      *
      * @param string $path Path to get the list of files/folders
      * @param string $listOnly List only files or folders. Use value DooFile::LIST_FILE or DooFile::LIST_FOLDER
-     * @return array Returns an assoc array with keys: name(file name), path(full path to file/folder), folder(boolean), extension, type, size(KB)
+     * @return array Returns an assoc array with keys: name(file name), path(full path to file/folder), folder(boolean), extension, type, size(bytes)
      */
 	public function getList($path, $listOnly=null){
         $path = str_replace('\\', '/', $path);
@@ -313,7 +343,7 @@ class DooFile {
                                     'folder' => is_dir($val),
                                     'extension' => strtolower($ext[sizeof($ext)-1]),
                                     'type' => mime_content_type($val),
-                                    'size' => round(filesize($val)/1024)
+                                    'size' => filesize($val)
                                 );
             }else{
                 $fileInfo[] = array('name' => $filename,
