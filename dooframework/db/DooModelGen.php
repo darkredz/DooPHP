@@ -269,7 +269,7 @@ class DooModelGen{
             $filestr  = "<?php\n\n";
            
             // add db maps
-            if( $addmaps && !empty($dbmaps) ){
+            if( $addmaps && !empty($res) ){
                 foreach( $res as $column ){
                     $dbtableid              = $column[ 'from' ];
                     $reference_dbtablemodel = $column[ 'table' ];
