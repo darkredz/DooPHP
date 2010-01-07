@@ -59,7 +59,7 @@ class DooFlashMessenger {
 	public function __construct() {
 
 		if (!isset($_SESSION)) {
-			start_session();
+			session_start();
 		}
 
 		if (!isset($_SESSION[$this->_namespace])) {
