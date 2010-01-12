@@ -121,17 +121,19 @@ class DooFile {
      * @return bool Returns true if file/folder created
      */
     public function move($from, $to) {
-        $path = str_replace('\\', '/', $to);
-        $path = explode('/', $path);
-        array_splice($path, sizeof($path)-1);
+        if(strpos($to, '/')!==false || strpos($to, '\\')!==false){
+            $path = str_replace('\\', '/', $to);
+            $path = explode('/', $path);
+            array_splice($path, sizeof($path)-1);
 
-        $path = implode('/', $path);
-        if($path[strlen($path)-1] != '/'){
-            $path .= '/';
+            $path = implode('/', $path);
+            if($path[strlen($path)-1] != '/'){
+                $path .= '/';
+            }
+            if(!file_exists($path))
+                mkdir($path, $this->chmod, true);
         }
-
-        if(!file_exists($path))
-            mkdir($path, $this->chmod, true);
+        
         return rename($from, $to);
     }
 
