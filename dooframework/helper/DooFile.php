@@ -68,6 +68,9 @@ class DooFile {
                         return $total + $t;
                 return $total;
             }
+            else if($deleteSelf){
+                return rmdir($path);
+            }
             return false;
         }
         else{
