@@ -86,17 +86,21 @@ class DooFile {
 	public function create($path, $content=null, $writeFileMode='w+') {
         //create file if content not empty
 		if (!empty($content)) {
-            $path = str_replace('\\', '/', $path);
-            $filename = $path;
-            $path = explode('/', $path);
-            array_splice($path, sizeof($path)-1);
+            if(strpos($path, '/')!==false || strpos($path, '\\')!==false){
+                $path = str_replace('\\', '/', $path);
+                $filename = $path;
+                $path = explode('/', $path);
+                array_splice($path, sizeof($path)-1);
 
-            $path = implode('/', $path);
-            if($path[strlen($path)-1] != '/'){
-                $path .= '/';
+                $path = implode('/', $path);
+                if($path[strlen($path)-1] != '/'){
+                    $path .= '/';
+                }
+            }else{
+                $filename = $path;
             }
 
-            if(!file_exists($path))
+            if($filename!=$path && !file_exists($path))
                 mkdir($path, $this->chmod, true);
             $fp = fopen($filename, $writeFileMode);
             $rs = fwrite($fp, $content);
