@@ -370,6 +370,7 @@ class Doo{
         $class['DooLog'] = 'logging/DooLog';
         $class['DooLoader'] = 'uri/DooLoader';
         $class['DooView'] = 'view/DooView';
+		$class['DooViewBasic'] = 'view/DooViewBasic';
 		$class['DooSession'] = 'session/DooSession';
 		$class['DooTranslator'] = 'translate/DooTranslator';
 
