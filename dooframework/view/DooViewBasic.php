@@ -512,8 +512,8 @@ class DooViewBasic {
 		$postForStatement = '';
 
         //for: i from 0 to 10
-		if (preg_match('/([a-z0-9\-_]+) from ([^ \t\r\n]+) to ([^ \t\r\n]+)(?: step ([^ \t\r\n]+))?( with meta)?/i', $params, $matches)){
-			$step = empty($matches[4]) ? 1 : $this->strToStmt($matches[4]);
+		if (preg_match('/([a-z0-9\-_]+) from ([^\t\r\n]+) to ([^\t\r\n]+?) step ([^\t\r\n]+?)( with meta)?$/i', $params, $matches)){
+			$step = $this->strToStmt($matches[4]);
 			$metaIdentifer = isset($matches[5]) ? $matches[1] : false;
 			if ($metaIdentifer !== false) {
 				$tmp = rand(1000, 9999);
@@ -522,6 +522,17 @@ class DooViewBasic {
 				$forStmt .= 'foreach($_dooTemplateRangeForLoop_' . $tmp . ' as $data[\'' . $matches[1] . '\']):';
 			} else {
 				$forStmt = 'foreach(range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ', ' . $step . ') as $data[\'' . $matches[1] . '\']):';
+			}
+		}
+		elseif (preg_match('/([a-z0-9\-_]+) from ([^\t\r\n]+) to ([^\t\r\n]+?)( with meta)?$/i', $params, $matches)){
+			$metaIdentifer = isset($matches[4]) ? $matches[1] : false;
+			if ($metaIdentifer !== false) {
+				$tmp = rand(1000, 9999);
+				$preForStatement .= '$_dooTemplateRangeForLoop_' . $tmp . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ", 1);\n";
+				$preForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['length'] = count(\$_dooTemplateRangeForLoop_{$tmp});\n";
+				$forStmt .= 'foreach($_dooTemplateRangeForLoop_' . $tmp . ' as $data[\'' . $matches[1] . '\']):';
+			} else {
+				$forStmt = 'foreach(range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ', 1) as $data[\'' . $matches[1] . '\']):';
 			}
 		}
 		// for: 'myArray as key=>val'
@@ -583,8 +594,9 @@ class DooViewBasic {
 	}
 
 	protected function block_include($params) {
-
-		if (preg_match('/[\'|\"]([a-zA-Z0-9\-\_]+)[\'|\"]/', $params, $matches)){
+		echo $params;
+		$params = trim($params);
+		if (preg_match('/^[\'|\"](.+)[\'|\"]$/', $params, $matches)){
 			$file = $matches[1];
 		} elseif (preg_match('/([a-zA-Z0-9\-\_]+)/', $params, $matches)) {
 			if (isset($this->data[$matches[1]])) {
