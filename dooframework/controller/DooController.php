@@ -163,10 +163,11 @@ class DooController {
      * The view singleton, auto create if the singleton has not been created yet.
      * @return DooView
      */
-    public function view($useViewEngine = 'DooView'){
+    public function view(){
         if($this->_view==NULL){
-            Doo::loadCore('view/' . $useViewEngine);
-            $this->_view = new $useViewEngine;
+			$engine = Doo::conf()->TEMPLATE_ENGINE;
+            Doo::loadCore('view/' . $engine);
+            $this->_view = new $engine;
         }
 
         return $this->_view;

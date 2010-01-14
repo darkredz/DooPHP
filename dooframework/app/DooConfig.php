@@ -116,6 +116,12 @@ class DooConfig{
      */
     public $MEMCACHE;
 
+	/**
+	 * The template engine to use by default
+	 * Options are: DooView and DooBasicView
+	 */
+	public $TEMPLATE_ENGINE;
+
     /**
      * Output/processed comments block in the template files.
      * @var bool
@@ -157,6 +163,9 @@ class DooConfig{
 
         if($this->DEBUG_ENABLED==NULL)
            $this->DEBUG_ENABLED=FALSE;
+
+		if ($this->TEMPLATE_ENGINE==NULL)
+			$this->TEMPLATE_ENGINE='DooView';
 
     }
 
