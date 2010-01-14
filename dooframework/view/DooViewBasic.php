@@ -610,7 +610,6 @@ class DooViewBasic {
 	}
 
 	protected function block_include($params) {
-		echo $params;
 		$params = trim($params);
 		if (preg_match('/^[\'|\"](.+)[\'|\"]$/', $params, $matches)){
 			$file = $matches[1];
@@ -798,7 +797,6 @@ class DooViewBasic {
 	}
 
 	private function extractDataPath($str) {
-		echo "Extract Arg: {$str}<br />";
 		$result = '$data';
 		$currentToken = '';
 		$numChars = strlen($str);
