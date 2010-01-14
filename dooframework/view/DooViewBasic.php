@@ -680,8 +680,8 @@ class DooViewBasic {
 				case '[':
 					if (!$inSingleQuoteString && !$inDoubleQuoteString) {
 						if ($currentToken != '') {		// We have an index like foo.bar[abc] to become $data['foo']['bar'][$data['abc']]
-							$result .= $this->extractArgument($currentToken) . '[';
-							$currentToken = '';
+							//$result .= $this->extractArgument($currentToken) . '[';
+							$currentToken .= $char;
 						} else {
 							$result .= 'array(';
 							$currentToken .= '';
@@ -698,8 +698,8 @@ class DooViewBasic {
 							$currentToken = '';
 							$arrayDepth--;
 						} else {
-							$result .= $this->extractArgument($currentToken) . ']';
-							$currentToken = '';
+							//$result .= $this->extractArgument($currentToken) . ']';
+							$currentToken .= $char;
 						}
 						break;
 					}
@@ -776,7 +776,7 @@ class DooViewBasic {
 
 	private function extractArgument($arg) {
 
-		if (in_array($arg, array('&&', '||', '<=', '==', '>=', '!=', '===', '!==', '<', '>', '+', '-'))) {
+		if (in_array($arg, array('', '&&', '||', '<=', '==', '>=', '!=', '===', '!==', '<', '>', '+', '-', '*', '/'))) {
 			return $arg;
 		}
 
@@ -794,24 +794,11 @@ class DooViewBasic {
 		// Got parameter values to handle
 		else {
 			return $this->extractDataPath($arg);
-			$varBck ='';
-			$param = explode('.', $arg);
-			foreach($param as $pa){
-				if(strpos($pa, '@')===0){
-					$varBck .= '->' . substr($pa, 1);
-				}else{
-					if (preg_match('/^[0-9]*\\.?[0-9]{0,}$/', $pa)) {
-						$varBck .= "[$pa]";
-					} else {
-						$varBck .= "['$pa']";
-					}
-				}
-			}
-			return '$data' . $varBck;
 		}
 	}
 
 	private function extractDataPath($str) {
+		echo "Extract Arg: {$str}<br />";
 		$result = '$data';
 		$currentToken = '';
 		$numChars = strlen($str);
@@ -842,6 +829,28 @@ class DooViewBasic {
 					}
 					$i = $j - 1;
 					$currentToken .= '(' . $this->strToStmt($functionContentToken) . ')';
+					break;
+				case '[':
+					$depth = 1;
+					$arrayIndexContentToken = '';
+					for($j=$i+1; $j < $numChars && $depth != 0; $j++) {
+						switch ($str[$j]) {
+							case '[':
+								$depth++;
+								$arrayIndexContentToken .= $str[$j];
+								break;
+							case ']':
+								$depth--;
+								if ($depth != 0) {
+									$arrayIndexContentToken .= $str[$j];
+								}
+								break;
+							default:
+								$arrayIndexContentToken .= $str[$j];
+						}
+					}
+					$i = $j - 1;
+					$currentToken .= '[' . $this->strToStmt($arrayIndexContentToken) . ']';
 					break;
 				case '-':
 					if (isset($str[$i+1])) {
