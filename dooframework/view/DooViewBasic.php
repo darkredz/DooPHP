@@ -679,18 +679,28 @@ class DooViewBasic {
 					break;
 				case '[':
 					if (!$inSingleQuoteString && !$inDoubleQuoteString) {
-						$result .= 'array(';
-						$currentToken .= '';
-						$arrayDepth++;
+						if ($currentToken != '') {		// We have an index like foo.bar[abc] to become $data['foo']['bar'][$data['abc']]
+							$result .= $this->extractArgument($currentToken) . '[';
+							$currentToken = '';
+						} else {
+							$result .= 'array(';
+							$currentToken .= '';
+							$arrayDepth++;
+						}
 						break;
 					}
 					$currentToken .= $char;
 					break;
 				case ']':
 					if (!$inSingleQuoteString && !$inDoubleQuoteString) {
-						$result .= $this->extractArgument($currentToken) . ')';
-						$currentToken = '';
-						$arrayDepth--;
+						if ($arrayDepth > 0) {
+							$result .= $this->extractArgument($currentToken) . ')';
+							$currentToken = '';
+							$arrayDepth--;
+						} else {
+							$result .= $this->extractArgument($currentToken) . ']';
+							$currentToken = '';
+						}
 						break;
 					}
 					$currentToken .= $char;
@@ -766,7 +776,7 @@ class DooViewBasic {
 
 	private function extractArgument($arg) {
 
-		if (in_array($arg, array('&&', '||', '<=', '==', '>=', '!=', '===', '!==', '<', '>'))) {
+		if (in_array($arg, array('&&', '||', '<=', '==', '>=', '!=', '===', '!==', '<', '>', '+', '-'))) {
 			return $arg;
 		}
 
