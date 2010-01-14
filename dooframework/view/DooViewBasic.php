@@ -170,14 +170,14 @@ class DooViewBasic {
 
         //just include the compiled file if process is false
         if($process!=true){
-            //includes user defined template tags for template use
+			//includes user defined template tags for template use
             $this->loadTagClass();
             include Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "viewc/$compiledViewFile.php";
         }
         else{
             $lfilename = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "layout/$layoutName.html";
-            $vfilename = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "view/$viewFile.html";
-            $cfilename = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "viewc/$compiledViewFile.php";
+			$vfilename = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "view/$viewFile.html";
+			$cfilename = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "viewc/$compiledViewFile.php";
 
             //if file exist and is not older than the html template file AND layout file, include the compiled php instead and exit the function
             if(!$forceCompile){
@@ -217,19 +217,19 @@ class DooViewBasic {
 
         // Identify the blocks within a view file: <!-- block:NAME -->CONTENT<!-- endblock -->
         $this->viewBlocks = array();
-        // We use \s\S to get ANY character including newlines etc as '.' will not get new lines
+		// We use \s\S to get ANY character including newlines etc as '.' will not get new lines
         // Also use +? and *? so as to use non greedy matching
         preg_replace_callback('/<!-- block:([^\t\r\n]+?) -->([\s\S]*?)<!-- endblock -->/', array( &$this, 'storeViewBlock'), $view);
-        $compiledLayoutView = preg_replace_callback('/<!-- placeholder:([^\t\r\n]+?) -->([\s\S]*?)<!-- endplaceholder -->/', array( &$this, 'replacePlaceholder'), $layout);
+		$compiledLayoutView = preg_replace_callback('/<!-- placeholder:([^\t\r\n]+?) -->([\s\S]*?)<!-- endplaceholder -->/', array( &$this, 'replacePlaceholder'), $layout);
 
-        $this->mainRenderFolder = $viewFile;
+		$this->mainRenderFolder = $viewFile;
 
         $str = $this->compileTags($compiledLayoutView);
 
         $folders = explode('/', $viewFile);
         array_splice($folders, -1);
 
-        // if a subfolder is specified, search for it, if not exist then create the folder
+		// if a subfolder is specified, search for it, if not exist then create the folder
         $pathsize = sizeof($folders);
         if($pathsize>0){
             $path = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "viewc/";
@@ -247,6 +247,22 @@ class DooViewBasic {
 
     }
 
+	private function storeViewBlock($matches){
+        // Store blocks as blockName => blockContent
+        $this->viewBlocks[$matches[1]] = $matches[2];
+        return '';
+    }
+
+	private function replacePlaceholder($matches) {
+        $blockName = $matches[1];
+        // If the block has been defined in the view then use it otherwise
+        // use the default from the layout
+        if (isset( $this->viewBlocks[$matches[1]] )) {
+            return $this->viewBlocks[$matches[1]];
+        } else {
+            return $matches[2];
+        }
+    }
 
     /**
      * Parse and compile the template file. Templates generated in protected/viewc folder
@@ -750,7 +766,7 @@ class DooViewBasic {
 
 	private function extractArgument($arg) {
 
-		if (in_array($arg, array('&&', '||', '<=', '==', '>=', '!=', '===', '!=='))) {
+		if (in_array($arg, array('&&', '||', '<=', '==', '>=', '!=', '===', '!==', '<', '>'))) {
 			return $arg;
 		}
 
