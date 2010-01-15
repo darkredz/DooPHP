@@ -176,8 +176,8 @@ class DooTranslator {
 	private function _loadData($data) {
 		if ($this->_adapter == null) throw new DooTranslatorException("Adapter not set!");
 
-		if ($this->hasCache() && (($this->_data == unserialize($this->_cache->get("translation_".$this->_cachedName))) == true)) {
-			var_dump($this->_data);
+		if ($this->hasCache() && (($this->_data = unserialize($this->_cache->get("translation_".$this->_cachedName))) == true)) {
+			//var_dump($this->_data);
 			return;
 		} else {
 			$this->_cacheIt = true;
