@@ -224,6 +224,61 @@ class DooViewBasic {
     }
 
 	/**
+	 * Recursivly searches for $file.html in relative folder. If not found in there
+	 * it goes up a directory in relative path and tries there. It will repeat this until
+	 * it reaches the root view folder. Should this fail it will then try in the default
+	 * root folder. If it still has no luck will render an error notice in compiled view
+	 *
+	 * @param string $relativeFolder relative path from view root where we should start looking for $file (excluding /)
+	 * @param string $file file name to look for excluding extension
+	 * @param array $data Associative array of the data to be used in the Template file. eg. <b>$data['username']</b>, you should use <b>{{username}}</b> in the template.
+	 * @param bool Ignores last modified time checking and force compile the template everytime it is visited.
+	 */
+	public function renderFileRecursive($relativeFolder, $file, $data=NULL, $forceCompile = false) {
+		if(isset(Doo::conf()->TEMPLATE_COMPILE_ALWAYS) && Doo::conf()->TEMPLATE_COMPILE_ALWAYS==true){
+            $forceCompile = true;
+        }
+        
+		$this->mainRenderFolder = $relativeFolder;
+
+        $file = '/' . $file . '.html';
+		$path =  $relativeFolder;
+		$cfilename = $this->rootCompiledPath . $path . $file . '.php';
+		
+		while(($found = file_exists($this->rootViewPath . $path . $file)) == false) {
+			if ($path == '.')
+				break;
+			$path = dirname($path);
+		}
+
+		if ($found == true) {
+			$vfilename = $this->rootViewPath . $path . $file;
+		} else {
+			$path = $relativeFolder;
+			while(($found = file_exists($this->defaultRootViewPath . $path . $file)) == false) {
+				if ($path == '.')
+					break;
+				$path = dirname($path);
+			}
+			$vfilename = $this->rootViewPath . $path . $file;
+		}
+
+		//if file exist and is not older than the html template file, include the compiled php instead and exit the function
+		if(!$forceCompile){
+			if(file_exists($cfilename)){
+				if(filemtime($cfilename)>=filemtime($vfilename)){
+					$this->setTags();
+					include $cfilename;
+					return;
+				}
+			}
+		}
+		$this->data = $data;
+		$this->compile($file, $vfilename, $cfilename);
+		include $cfilename;
+	}
+
+	/**
      * Parse and compile the template file. Templates generated in protected/viewc folder
      * @param string $file Template file name without extension .html
      * @param string $vfilename Full path of the template file
