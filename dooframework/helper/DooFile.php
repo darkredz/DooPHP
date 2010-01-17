@@ -544,6 +544,22 @@ class DooFile {
         }
     }
 
+	/**
+	 * Reads the contents of a given file
+	 * @param string $fullFilePath Full path to file whose contents should be read
+	 * @return string|bool Returns file contents or false if file not found
+	 */
+	function readFileContents($fullFilePath, $flags = 0, resource $context = null, $offset = -1, $maxlen = null) {
+		if (file_exists($fullFilePath)) {
+			if ($maxlen !== null)
+				return file_get_contents($fullFilePath, $flags, $context, $offset, $maxlen);
+			else
+				return file_get_contents($fullFilePath, $flags, $context, $offset);
+		} else {
+			return false;
+		}
+	}
+
 }
 
 ?>
