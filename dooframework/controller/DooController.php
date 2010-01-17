@@ -186,19 +186,6 @@ class DooController {
     }
 
     /**
-     * Shorthand for $this->view()->renderLayout() Renders a view using a Layout file.
-     *
-     * @param string $layoutName Layout file name (without extension name)
-     * @param string $viewFile Template file name (without extension name)
-     * @param array $data Associative array of the data to be used in the Template file. eg. <b>$data['username']</b>, you should use <b>{{username}}</b> in the template.
-     * @param bool $process If TRUE, checks the template's last modified time against the compiled version. Regenerates if template is newer.
-     * @param bool $forceCompile Ignores last modified time checking and force compile the template everytime it is visited.
-     */
-    public function renderLayout($layoutName, $viewFile, $data=NULL, $process=NULL, $forceCompile=false) {
-        $this->view()->renderLayout($layoutName, $viewFile, $data, $process, $forceCompile);
-    }
-
-    /**
      * Short hand for $this->view()->renderc() Renders the view file(php) located in viewc.
      *
      * @param string $file Template file name (without extension name)
@@ -373,6 +360,12 @@ class DooController {
         }
         return FALSE;
     }
+
+	public function  __call($name,  $arguments) {
+		if ($name == 'renderLayout') {
+			throw new Exception('renderLayout is no longer supported by DooController. Please use $this->view()->renderLayout instead');
+		}
+	}
 
 }
 
