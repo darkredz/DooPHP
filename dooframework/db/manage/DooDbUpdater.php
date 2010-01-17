@@ -60,14 +60,7 @@ abstract class DooDbUpdater {
 		$this->db->enableSqlHistory($enable);
 	}
 
-	public function getCurrentDbVersion() {
-		$version = $this->retrieveCurrentDbVersion();
-		if ($version === false) {
-			return 0;
-		} else {
-			return (int) $version;
-		}
-	}
+	
 
 	/**
 	 * Will run all of the updates since the current version upto and including the
@@ -179,13 +172,13 @@ abstract class DooDbUpdater {
 	 * DooDbUpdater::$versionTrackingLocation . DooDbUpdater::$dbMode . '.version'
 	 * @return int
 	 */
-	protected function retrieveCurrentDbVersion() {
-		$version = DooFile::readFileContents($this->versionTrackingLocation . $this->dbMode . '.version');
-		if ($version === false) {
-			return 0;
-		} else {
-			return (int) $version;
+	protected function getCurrentDbVersion() {
+		Doo::loadHelper('DooFile');
+		$file = new DooFile(0777);
+		if (($version = $file->readFileContents($this->versionTrackingLocation . $this->dbMode . '.version')) == false) {
+			$version = 0;
 		}
+		return (int) $version;
 	}
 
 	/**
@@ -195,7 +188,9 @@ abstract class DooDbUpdater {
 	 * @return void
 	 */
 	protected function storeCurrentDbVersion($version) {
-		DooFile::createFileAndWriteContents($this->versionTrackingLocation . $this->dbMode . '.version', $version);
+		Doo::loadHelper('DooFile');
+		$file = new DooFile(0777);
+		$file->create($this->versionTrackingLocation . $this->dbMode . '.version', $version);
 	}
 
 	/**
@@ -220,50 +215,6 @@ abstract class DooDbUpdater {
 			throw new DooDbUpdateException("Unsupported Database Engine : $engine");
 		}
 	}
-}
-
-
-
-// TODO: Move DooFile into its own folder so it can be used elsewhere
-class DooFile {
-
-	/**
-	 * Writes content to a file and will create the folder / file if it does not exist
-	 * @param string $fullFilePath Full path to the file
-	 * @param string $contents Content to be written to the file
-	 * @param int $flags Standard flags allowed by file_put_contents
-	 * @return bool True on successful write
-	 */
-	static function createFileAndWriteContents($fullFilePath, $contents, $flags = 0) {
-		$parts = explode('/', $fullFilePath);
-    	$file = array_pop($parts); // We dont create a folder for the actual file!
-    	$dir = '';
-		if (file_exists(dirname($fullFilePath)) == false) {
-			foreach($parts as $part) {
-	            if(is_dir($dir .= "/$part") == false) {
-	            	mkdir($dir);
-	            }
-			}
-		}
-		file_put_contents($fullFilePath, $contents, $flags);
-		return true;
-	}
-
-	/**
-	 * Read contents from a file
-	 * @param string $fullFilePath Path to the file to be read
-	 * @return mixed The files contents or FALSE
-	 */
-	static function readFileContents($fullFilePath) {
-		if (file_exists($fullFilePath)) {
-			return file_get_contents($fullFilePath);
-		} else {
-			return false;
-		}
-	}
-
-	// TODO: Atomic Safe File Read
-	// TODO: Atomic Safe File Write
 }
 
 
