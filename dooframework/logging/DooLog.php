@@ -431,9 +431,9 @@ class DooLog{
                     $mode = 'w+';
                 }
             }
-            $fh = fopen($filename, $mode);
-            fwrite($fh, $data);
-            fclose($fh);
+			Doo::loadHelper('DooFile');
+			$file = new DooFile(0777);
+			$file->create($filename, $data, $mode);
         }
     }
 
