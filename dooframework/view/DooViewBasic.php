@@ -804,14 +804,6 @@ class DooViewBasic {
 						$inSingleQuoteString = true;
 					}
 					break;
-				case ' ':
-					if ($inSingleQuoteString || $inDoubleQuoteString) {
-						$currentToken .= $char;
-					} else {
-						$result .= $this->extractArgument($currentToken);
-						$currentToken = '';
-					}
-					break;
 				case '=':	// If = appears in an array then its used for associatve array
 							// Otherwise its a delimiter for example <= == etc..
 					if ($arrayDepth > 0) {
@@ -823,9 +815,9 @@ class DooViewBasic {
 							$currentToken = '';
 							break;
 						}
-						$currentToken .= $char;
-						break;
 					}
+					$currentToken .= $char;
+					break;
 				case ')': // Reached the end of a parameter
 				case ',': // Reached the end of a parameter
 					if (!$inSingleQuoteString && !$inDoubleQuoteString && !strpos($currentToken, '->')) {
@@ -833,6 +825,14 @@ class DooViewBasic {
 						$currentToken = '';
 					} else {
 						$currentToken .= $char;
+					}
+					break;
+				case ' ':
+					if ($inSingleQuoteString || $inDoubleQuoteString) {
+						$currentToken .= $char;
+					} else {
+						$result .= $this->extractArgument($currentToken);
+						$currentToken = '';
 					}
 					break;
 				default:	// Not doing anything - keep moving
