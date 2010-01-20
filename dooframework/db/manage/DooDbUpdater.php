@@ -172,7 +172,7 @@ abstract class DooDbUpdater {
 	 * DooDbUpdater::$versionTrackingLocation . DooDbUpdater::$dbMode . '.version'
 	 * @return int
 	 */
-	protected function getCurrentDbVersion() {
+	public function getCurrentDbVersion() {
 		Doo::loadHelper('DooFile');
 		$file = new DooFile(0777);
 		if (($version = $file->readFileContents($this->versionTrackingLocation . $this->dbMode . '.version')) == false) {
@@ -187,7 +187,7 @@ abstract class DooDbUpdater {
 	 * @param int $version the current version which the db has been updated to
 	 * @return void
 	 */
-	protected function storeCurrentDbVersion($version) {
+	public function storeCurrentDbVersion($version) {
 		Doo::loadHelper('DooFile');
 		$file = new DooFile(0777);
 		$file->create($this->versionTrackingLocation . $this->dbMode . '.version', $version);
