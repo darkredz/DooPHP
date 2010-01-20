@@ -384,26 +384,9 @@ class DooView {
         //if no compiled file exist or compiled file is older, generate new one
         $str = $this->compileTags($compiledLayoutView);
 
-        //-------------------- Compiling -------------------------
-        //write to compiled file in viewc and include that file in.
-        $folders = explode('/', $viewFile);
-        array_splice($folders, -1);
-
-        //if a subfolder is specified, search for it, if not exist then create the folder
-        $pathsize = sizeof($folders);
-        if($pathsize>0){
-            $path = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "viewc/";
-            for($i=0;$i<$pathsize;$i++){
-                $path .= $folders[$i] .'/';
-                if(!file_exists($path)){
-                    mkdir($path);
-                }
-            }
-        }
-
-        $fh = fopen($cfilename, 'w+');
-        fwrite($fh, $str);
-        fclose($fh);
+		Doo::loadHelper('DooFile');
+		$fileManager = new DooFile(0777);
+		$fileManager->create($cfilename, $str, 'w+');
 
     }
 
@@ -421,25 +404,9 @@ class DooView {
         //if no compiled file exist or compiled file is older, generate new one
         $str = $this->compileTags(file_get_contents($vfilename));
 
-        //-------------------- Compiling -------------------------
-        //write to compiled file in viewc and include that file in.
-        $folders = explode('/', $file);
-        array_splice($folders, -1);
-
-        //if a subfolder is specified, search for it, if not exist then create the folder
-        $pathsize = sizeof($folders);
-        if($pathsize>0){
-            $path = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "viewc/";
-            for($i=0;$i<$pathsize;$i++){
-                $path .= $folders[$i] .'/';
-                if(!file_exists($path)){
-                    mkdir($path);
-                }
-            }
-        }
-        $fh = fopen($cfilename, 'w+');
-        fwrite($fh, $str);
-        fclose($fh);
+		Doo::loadHelper('DooFile');
+		$fileManager = new DooFile(0777);
+		$fileManager->create($cfilename, $str, 'w+');
     }
 
     /**
