@@ -341,7 +341,8 @@ class Doo{
      */
     public static function autoload($classname){
         if(class_exists($classname)===True) return;
-        $class['DooSiteMagic'] = 'app/DooSiteMagic';
+        $class['DooController'] = 'controller/DooController';
+		$class['DooSiteMagic'] = 'app/DooSiteMagic';
         $class['DooDigestAuth'] = 'auth/DooDigestAuth';
         $class['DooAuth'] = 'auth/DooAuth';
         $class['DooAcl'] = 'auth/DooAcl';
