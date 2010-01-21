@@ -199,7 +199,7 @@ class DooForm extends DooValidator {
     *                'label' => 'I am looking for:'
     *            )),
     *            'submit' => array('submit', array(
-    *                'label' => $this->translate("Edit password"),
+    *                'label' => "Edit password"),
     *                'order' => 100,
     *            ))
     *        ),
@@ -244,15 +244,29 @@ class DooForm extends DooValidator {
 					$elementAttributes .= ' value="'.htmlspecialchars($elementValues[$element]).'"';
 				}
 			}
+			$elementWrappOpen = "";
+			$elementWrappClose = "";
+			$elementWrapper = "dd";
 			// make wrapper div or dd or something other
-			$elementWrapper = (isset($k[1]['wrapper']))?$k[1]['wrapper']:'dt';
+			if (isset($k[1]['wrapper'])) {
+				$elementWrapper = ($k[1]['wrapper'] != "")?$k[1]['wrapper']:'dd';
+				$elementWrappOpen = '<'.$elementWrapper.' id="'.$element.'-element-wrapper">';
+				$elementWrappClose = '</'.$elementWrapper.'>';
+			}
 			// make label wrapper
-			$labelWrapper = (isset($k[1]['label-wrapper']))?$k[1]['label-wrapper']:$elementWrapper;
+			$labelWrappOpen = "";
+			$labelWrappClose = "";
+			$labelWrapper = "dt";
+			if (isset($k[1]['label-wrapper'])) {
+				$labelWrapper = ($k[1]['label-wrapper'] != "")?$k[1]['label-wrapper']:'dt';
+				$labelWrappOpen = '<'.$labelWrapper.' id="'.$element.'-label-wrapper">';
+				$labelWrappClose = '</'.$labelWrapper.'>';
+			}
 			// add lable if there is one
 			if (!isset($k[1]['hide-label']) || ($k[1]['hide-label'] != true))
 			{
 				if (isset($k[1]['label']) && ($k[0] != "submit") && ($k[0] != "captcha")) {
-					$labelField = '<'.$labelWrapper.' id="'.$element.'-label"><label for="'.$element.'-element" '.$elementRequred.'>'. $k[1]['label'] . '</label></'.$labelWrapper.'>';
+					$labelField = $labelWrappOpen.'<label for="'.$element.'-element" '.$elementRequred.'>'. $k[1]['label'] . '</label>'.$labelWrappClose;
 					$formElements[$element.'-label'] = $labelField;
 				}
 			}
@@ -260,22 +274,22 @@ class DooForm extends DooValidator {
 			switch ($k[0]) {
 				// input text
 				case 'text':
-					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element"><input '.$elementAttributes.' type="text" name="'.$element.'" '.$elementRequred.' /></'.$elementWrapper.'>';
+					$elementHtml = $elementWrappOpen.'<input '.$elementAttributes.' type="text" name="'.$element.'" id="'.$element.'-element" />'.$elementWrappClose;
 					break;
 				// input password
 				case 'password':
-					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element"><input '.$elementAttributes.' type="password" name="'.$element.'" '.$elementRequred.' /></'.$elementWrapper.'>';
+					$elementHtml = $elementWrappOpen.'<input '.$elementAttributes.' type="password" name="'.$element.'" id="'.$element.'-element" />'.$elementWrappClose;
 					break;
 				// submit field
 				case 'submit':
-					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element"><input '.$elementAttributes.' type="submit" name="'.$element.'" value="'.$k[1]['label']. '" /></'.$elementWrapper.'>';
+					$elementHtml = $elementWrappOpen.'<input '.$elementAttributes.' type="submit" name="'.$element.'" value="'.$k[1]['label']. '" />'.$elementWrappClose;
 					break;
 				// hidden field
 				case 'hidden':
-					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element"><input '.$elementAttributes.' type="hidden" name="'.$element.'"/></'.$elementWrapper.'>';
+					$elementHtml = $elementWrappOpen.'<input '.$elementAttributes.' type="hidden" name="'.$element.'"/>'.$elementWrappClose;
 					break;
 				case 'file':
-					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element"><input '.$elementAttributes.' type="file" name="'.$element.'"/></'.$elementWrapper.'>';
+					$elementHtml = $elementWrappOpen.'<input '.$elementAttributes.' type="file" name="'.$element.'" id="'.$element.'-element"/>'.$elementWrappClose;
 					// add automatic enctype for form
 					if ($this->_enctype != 'multipart/form-data') {
 						$this->_enctype = 'multipart/form-data';
@@ -283,7 +297,7 @@ class DooForm extends DooValidator {
 					break;
 				// select
 				case 'select':
-					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element" '.$elementRequred.'><select '.$elementAttributes.' name="'.$element.'">';
+					$elementHtml = $elementWrappOpen.'<select '.$elementAttributes.' name="'.$element.'" id="'.$element.'-element">';
 					if (isset($k[1]['multioptions']) && (count($k[1]['multioptions'] > 0))) {
 						foreach ($k[1]['multioptions'] as $optionValue => $optionName) {
 							if (is_array($optionName)) { // if its array make option groups
@@ -300,26 +314,25 @@ class DooForm extends DooValidator {
 							}
 						}
 					}
-					$elementHtml .= '</select></'.$elementWrapper.'>';
+					$elementHtml .= '</select>'.$elementWrappClose;
 					break;
 				// text area
 				case 'textarea':
 					$text =(isset($elementValues[$element]))?$elementValues[$element]:'';
-					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element"><textarea '.$elementAttributes.' name="'.$element.'"/>'.$text.'</textarea></'.$elementWrapper.'>';
+					$elementHtml = $elementWrappOpen.'<textarea '.$elementAttributes.' name="'.$element.'" id="'.$element.'-element"/>'.$text.'</textarea>'.$elementWrappClose;
 					break;
 				// checkbox
 				case 'checkbox':
 					$checked = (isset($elementValues[$element]) && ($elementValues[$element] == "on"))?'checked="checked"':'';
-					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element"><input '.$elementAttributes.' type="checkbox" name="'.$element.'" '.$checked.'/></'.$elementWrapper.'>';
+					$elementHtml = $elementWrappOpen.'<input '.$elementAttributes.' type="checkbox" id="'.$element.'-element" name="'.$element.'" '.$checked.'/>'.$elementWrappClose;
 					break;
 				// multi checkbox (zomg), crazy shit
 				// Ok this multicheckbox for value gets and damn fucking array of elements because
 				// you can check what ever you damn like in that array of checkboxes, we can maybe say it is
-				// checkbox group :)
+				// checkbox group
 				case 'MultiCheckbox':
-					//first add wrapper
-
-					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element" '.$elementRequred.'>';
+					//first add wrapper if there is any
+					$elementHtml = $elementWrappOpen;
 					// now get trough all multioptions and create checkboxes
 					if (isset($k[1]['multioptions']) && (count($k[1]['multioptions'] > 0))) {
 						foreach ($k[1]['multioptions'] as $optionValue => $optionName) {
@@ -327,16 +340,16 @@ class DooForm extends DooValidator {
 							$checked = (isset($elementValues[$element]) && (in_array($optionValue, $elementValues[$element])))?'checked="checked"':'';
 							// add name for every checkbox
 							$elementHtml .= '<label for="'.$element.'-'.$optionValue.'">' . $optionName;
-							$elementHtml .= '<input type="checkbox" value="'.$optionValue.'" name="'.$element.'[]" '.$checked.'/>';
+							$elementHtml .= '<input type="checkbox" value="'.$optionValue.'" name="'.$element.'[]" id="'.$element.'-'.$optionValue.'"'.$checked.'/>';
 							$elementHtml .= '</label>';
 						}
 					}
-					$elementHtml .= '</'.$elementWrapper.'>';
+					$elementHtml .= $elementWrappClose;
 					break;
 				// multi radio same thing as multi checkbox
 				case 'MultiRadio':
 					//first add wrapper
-					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element" '.$elementRequred.'>';
+					$elementHtml = $elementWrappOpen;
 					// now get trough all multioptions and create checkboxes
 					if (isset($k[1]['multioptions']) && (count($k[1]['multioptions'] > 0))) {
 						foreach ($k[1]['multioptions'] as $optionValue => $optionName) {
@@ -344,14 +357,15 @@ class DooForm extends DooValidator {
 							$checked = (isset($elementValues[$element]) && (in_array($optionValue, $elementValues[$element])))?'checked="checked"':'';
 							// add name for every checkbox
 							$elementHtml .= '<label for="'.$element.'-'.$optionValue.'">' . $optionName;
-							$elementHtml .= '<input type="radio" value="'.$optionValue.'" name="'.$element.'" '.$checked.'/>';
+							$elementHtml .= '<input type="radio" value="'.$optionValue.'" name="'.$element.'" id="'.$element.'-'.$optionValue.'" '.$checked.'/>';
 							$elementHtml .= '</label>';
 						}
 					}
+					$elementHtml .= $elementWrappClose;
 					break;
 				//MultiSelect, a hybrid of select and MultiCheckbox for mulitple select lists
 				case 'MultiSelect':
-				   $elementHtml = '<'.$elementWrapper.' id="'.$element.'-element" '.$elementRequred.'><select '.$elementAttributes.' multiple="multiple" name="'.$element.'[]">';
+				   $elementHtml = $elementWrappOpen.'<select '.$elementAttributes.' multiple="multiple" name="'.$element.'[]">';
 				   if (isset($k[1]['multioptions']) && (count($k[1]['multioptions'] > 0))) {
 					  foreach ($k[1]['multioptions'] as $optionValue => $optionName) {
 						 if (is_array($optionName)) { // if its array make option groups
@@ -367,7 +381,7 @@ class DooForm extends DooValidator {
 						 }
 					  }
 				   }
-				   $elementHtml .= '</select></'.$elementWrapper.'>';
+				   $elementHtml .= '</select>'.$elementWrappClose;
 				   break;
 				// captcha
 				case 'captcha':
@@ -458,9 +472,11 @@ class DooForm extends DooValidator {
 						$_SESSION['doo_captcha_'.$element] = $string;
 						if (is_dir($k[1]['directory'])) {
 							imagejpeg($captcha, $k[1]['directory'] . '/'.md5($string).'.jpg');
-							$elementHtml .= '<'.$elementWrapper.' id="'.$element.'-element"><img class="doo-captcha-image" height="50" width="120" src="'.$k[1]['url'].md5($string).'.jpg"/><br/>'.
-							'<'.$elementWrapper.' id="'.$element.'-label"><label for="'.$element.'" '.$elementRequred.'>'. $k[1]['label'] . '</label></'.$elementWrapper.'>'.
-							'<input size="'.strlen($string).'" '.$elementAttributes.' type="text" name="'.$element.'" '.$elementRequred.' class="doo-captcha-text" /></'.$elementWrapper.'>';
+							$elementHtml .= $elementWrappOpen.'<img class="doo-captcha-image" height="50" width="120" src="'.$k[1]['url'].md5($string).'.jpg"/><br/>'.
+							$labelWrappOpen.'<label for="'.$element.'-element" '.$elementRequred.'>'. $k[1]['label'] . '</label>'.$labelWrappClose.
+							'<input size="'.strlen($string).'" '.$elementAttributes.
+							' type="text" name="'.$element.'" id="'.$element.'-element" '.
+							$elementRequred.' class="doo-captcha-text" />'.$elementWrappClose;
 						} else throw new Exception("Cant create captcha there is no captcha directory: " . $k[1]['directory']);
 					} else throw new Exception("Cant create captcha of missing image: " . $k[1]['image']);
 					break;
@@ -568,6 +584,58 @@ class DooForm extends DooValidator {
 		} else {
 			return false;
 		}
+	}
+
+	/**
+	* Add display group
+	* @param string $name Name of display group
+	* @param array $fields Name of fields in group
+	*/
+
+	public function addDisplayGroup($name, $fields = array()) {
+		if (count($fields) > 0) {
+			foreach ($fields as $field) {
+				foreach ($this->_elements as $element => $e) {
+					if ($element == $field) {
+						$this->_displayGroups[$name][] = $element;
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	* Renders display group
+	* @param string $name Display group name
+	* @return mixed HTML of display group or false
+	*/
+
+	public function renderDisplayGroup($name) {
+		if (isset($this->_displayGroups[$name])) {
+			$formHtml = "";
+			$this->_addElements();
+			$formElements = $this->_formElements;
+			$errors = $this->_errors;
+			foreach ($formElements as $element => $e) {
+				foreach ($this->_displayGroups[$name] as $de => $d) {
+					if (($d == $element) || ($d.'-label' == $element)) {
+						$formHtml .= $formElements[$element];
+						if ((count($this->_errors) > 0) && (isset($errors[$element]))) {
+							$formHtml .= '<ul class="errors">';
+							foreach ($errors[$element] as $error) {
+								if (is_array($error)) {
+									$error = array_shift($error);
+								}
+								$formHtml .= '<li>'.$error.'</li>';
+							}
+							$formHtml .= '</ul>';
+						}
+					}
+				}
+			}
+			return $formHtml;
+		}
+		return false;
 	}
 }
 
