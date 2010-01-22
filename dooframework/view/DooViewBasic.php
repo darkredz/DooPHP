@@ -851,7 +851,7 @@ class DooViewBasic {
 		}
 
 		// Is a number
-		if (preg_match('/^[0-9]*\\.?[0-9]{0,}$/', $arg)) {
+		if (preg_match('/^[-]?[0-9]*\\.?[0-9]{0,}$/', $arg)) {
 			return $arg;
 		}
 		// Is a string 'anything' OR "anything"
