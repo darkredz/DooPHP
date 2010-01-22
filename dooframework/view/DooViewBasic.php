@@ -611,7 +611,7 @@ class DooViewBasic {
 				$forStmt = 'foreach(range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ', ' . $step . ') as $data[\'' . $matches[1] . '\']):';
 			}
 		}
-		elseif (preg_match('/([a-z0-9\-_]+) from ([^\t\r\n]+) to ([^\t\r\n]+?)( with meta)?$/i', $params, $matches)){
+		elseif (preg_match('/([^\t\r\n \'\"]+) from ([^\t\r\n]+) to ([^\t\r\n]+?)( with meta)?$/i', $params, $matches)){
 			$metaIdentifer = isset($matches[4]) ? $matches[1] : false;
 			if ($metaIdentifer !== false) {
 				$tmp = rand(1000, 9999);
@@ -623,7 +623,7 @@ class DooViewBasic {
 			}
 		}
 		// for: 'myArray as key=>val'
-		else if (preg_match('/([a-zA-Z0-9\-_]+) as ([a-zA-Z0-9\-_]+)[ ]?=>[ ]?([a-zA-Z0-9\-_]+)( with meta)?/', $params, $matches)) {
+		else if (preg_match('/([^\t\r\n \'\"]+) as ([a-zA-Z0-9\-_]+)[ ]?=>[ ]?([a-zA-Z0-9\-_]+)( with meta)?/', $params, $matches)) {
 			$metaIdentifer = isset($matches[4]) ? $matches[3] : false;
 			if ($metaIdentifer !== false) {
 				$preForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['length'] = count(" . $this->strToStmt($matches[1]) . ");\n";
