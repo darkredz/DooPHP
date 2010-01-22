@@ -631,7 +631,7 @@ class DooViewBasic {
 			$forStmt = 'foreach(' . $this->strToStmt($matches[1]) .' as $data[\''.$matches[2].'\']=>$data[\''.$matches[3].'\']):';
 		}
 		// for: 'myArray as val'
-		else if (preg_match('/([a-zA-Z0-9\-_]+) as ([a-zA-Z0-9\-_]+)( with meta)?/', $params, $matches)) {
+		else if (preg_match('/([^\t\r\n]+) as ([a-zA-Z0-9\-_]+)( with meta)?/', $params, $matches)) {
 			$metaIdentifer = isset($matches[3]) ? $matches[2] : false;
 			if ($metaIdentifer !== false) {
 				$preForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['length'] = count(" . $this->strToStmt($matches[1]) . ");\n";
