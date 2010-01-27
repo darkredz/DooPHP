@@ -67,6 +67,13 @@ class DooForm extends DooValidator {
 	protected $_method = "post";
 
 	/**
+	* Form render format
+	* @var string
+	*/
+
+	protected $_renderFormat = "string";
+
+	/**
 	* Form validators
 	* @var array
 	*/
@@ -126,6 +133,9 @@ class DooForm extends DooValidator {
 		if (isset($form['enctype'])) {
 			$this->_enctype = $form['enctype'];
 		}
+		if (isset($form['renderFormat'])) {
+			$this->_renderFormat = $form['renderFormat'];
+		}
 	}
 
 	/**
@@ -139,22 +149,46 @@ class DooForm extends DooValidator {
 		$formElements = $this->_formElements;
 		$errors = $this->_errors;
 		$enctype = (isset($this->_enctype) && ($this->_enctype == 'multipart/form-data'))?'enctype="'.$this->_enctype.'"':'';
-		$formHtml = '<form action="'.$this->_action . '" method="'.$this->_method.'" '.$enctype.' class="doo-form">';
-		foreach ($formElements as $element => $e) {
-			$formHtml .= $formElements[$element];
-			if ((count($this->_errors) > 0) && (isset($errors[$element]))) {
-				$formHtml .= '<ul class="errors">';
-				foreach ($errors[$element] as $error) {
-					if (is_array($error)) {
-						$error = array_shift($error);
+		$formOpenHtml = '<form action="'.$this->_action . '" method="'.$this->_method.'" '.$enctype.' class="doo-form">';
+		$formCloseHtml = '</form>';
+		if ($this->_renderFormat == 'array') {
+			$formOutput = array(
+				'startDooForm' => $formOpenHtml,
+				'endDooForm' => $formCloseHtml
+			);
+			foreach ($formElements as $element => $e) {
+				if ((count($this->_errors) > 0) && (isset($errors[$element]))) {
+					$elementError .= '<ul class="errors">';
+					foreach ($errors[$element] as $error) {
+						if (is_array($error)) {
+							$error = array_shift($error);
+						}
+						$elementError .= '<li>'.$error.'</li>';
 					}
-					$formHtml .= '<li>'.$error.'</li>';
+					$elementError .= '</ul>';
+					$element .= $elementError;
 				}
-				$formHtml .= '</ul>';
 			}
+			$formOutput['elements'] = $formElements;
 		}
-		$formHtml .= '</form>';
-		return $formHtml;
+		else {
+			$formOutput = $formOpenHtml;
+			foreach ($formElements as $element => $e) {
+				$formOutput .= $formElements[$element];
+				if ((count($this->_errors) > 0) && (isset($errors[$element]))) {
+					$formOutput .= '<ul class="errors">';
+					foreach ($errors[$element] as $error) {
+						if (is_array($error)) {
+							$error = array_shift($error);
+						}
+						$formOutput .= '<li>'.$error.'</li>';
+					}
+					$formOutput .= '</ul>';
+				}
+			}
+			$formOutput .= $formCloseHtml;
+		}
+		return $formOutput;
 	}
 
 	public function _setMethod($method) {
@@ -167,6 +201,14 @@ class DooForm extends DooValidator {
 
 	public function _setAction($action) {
 		$this->_action = (string)$action;
+	}
+
+	/**
+	* Set render format
+	*/
+
+	public function _setFormat($format) {
+		$this->_renderFormat = (string)$format;
 	}
 
 	/**
@@ -218,19 +260,17 @@ class DooForm extends DooValidator {
 	*/
 
 	public function _addElements() {
-		$formHtml = "";
-		$formElements = "";
+		$formElements = array();
 		$elementValues = $this->_elementValues;
 		foreach ($this->_elements as $element => $k) {
 
 			$elementHtml = "";
 			$elementAttributes = "";
-			$elementRequred = (isset($k[1]['required']) && ($k[1]['required'] == 1))?'required="true"':'';
+			$formElements[$element] = "";
 
 			// add element values
 			 if (isset($k[1]['value'])) {
 				$elementValues[$element] = $k[1]['value'];
-				//$this->_elementValues = $elementValues;
 			 }
 			// handle element attributes
 			if (isset($k[1]['attributes']) && count($k[1]['attributes']) > 0) { // there are element attributes handle them
@@ -239,17 +279,33 @@ class DooForm extends DooValidator {
 				}
 			}
 			// handle values for all fields except select, multicheckbox, checkbox, radio...
-			if (($k[0] != 'select') && ($k[0] != 'MultiCheckbox') && ($k[0] != 'MultiRadio')  && ($k[0] != 'MultiSelect') && ($k[0] != 'checkbox') && ($k[0] != 'textarea')) {
-				if (isset($elementValues[$element])) {
-					$elementAttributes .= ' value="'.htmlspecialchars($elementValues[$element]).'"';
-				}
+			switch ($k[0]) {
+				case 'text':
+				case 'password':
+				case 'submit':
+				case 'hidden':
+				case 'file':
+					if (isset($elementValues[$element])) {
+						$elementAttributes .= ' value="'.htmlspecialchars($elementValues[$element]).'"';
+					}
+					break;
 			}
+			// make field wrapper
+			$fieldWrappOpen = "";
+			$fieldWrappClose = "";
+			$fieldWrapper = "div";
+			if (isset($k[1]['field-wrapper'])) {
+				$fieldWrapper = ($k[1]['field-wrapper'] != "")?$k[1]['field-wrapper']:'div';
+				$fieldWrappOpen = '<'.$fieldWrapper.' id="'.$element.'-field-wrapper">';
+				$fieldWrappClose = '</'.$fieldWrapper.'>';
+				$formElements[$element] .= $fieldWrappOpen;
+			}
+			// make element wrapper
 			$elementWrappOpen = "";
 			$elementWrappClose = "";
 			$elementWrapper = "dd";
-			// make wrapper div or dd or something other
-			if (isset($k[1]['wrapper'])) {
-				$elementWrapper = ($k[1]['wrapper'] != "")?$k[1]['wrapper']:'dd';
+			if (isset($k[1]['element-wrapper'])) {
+				$elementWrapper = ($k[1]['element-wrapper'] != "")?$k[1]['element-wrapper']:'dd';
 				$elementWrappOpen = '<'.$elementWrapper.' id="'.$element.'-element-wrapper">';
 				$elementWrappClose = '</'.$elementWrapper.'>';
 			}
@@ -262,16 +318,20 @@ class DooForm extends DooValidator {
 				$labelWrappOpen = '<'.$labelWrapper.' id="'.$element.'-label-wrapper">';
 				$labelWrappClose = '</'.$labelWrapper.'>';
 			}
-			// add lable if there is one
+			// add label if there is one
 			if (!isset($k[1]['hide-label']) || ($k[1]['hide-label'] != true))
 			{
 				if (isset($k[1]['label']) && ($k[0] != "submit") && ($k[0] != "captcha")) {
-					$labelField = $labelWrappOpen.'<label for="'.$element.'-element" '.$elementRequred.'>'. $k[1]['label'] . '</label>'.$labelWrappClose;
-					$formElements[$element.'-label'] = $labelField;
+					$labelField = $labelWrappOpen.'<label for="'.$element.'-element">'. $k[1]['label'] . '</label>'.$labelWrappClose;
+					$formElements[$element] .= $labelField;
 				}
 			}
 			// switch by type and make elements
 			switch ($k[0]) {
+				// display element
+				case 'display':
+					$elementHtml = '<'.$elementWrapper.' id="'.$element.'-element" '.$elementAttributes.'>'.$k[1]['content'].'</'.$elementWrapper.'>';
+					break;
 				// input text
 				case 'text':
 					$elementHtml = $elementWrappOpen.'<input '.$elementAttributes.' type="text" name="'.$element.'" id="'.$element.'-element" />'.$elementWrappClose;
@@ -473,16 +533,16 @@ class DooForm extends DooValidator {
 						if (is_dir($k[1]['directory'])) {
 							imagejpeg($captcha, $k[1]['directory'] . '/'.md5($string).'.jpg');
 							$elementHtml .= $elementWrappOpen.'<img class="doo-captcha-image" height="50" width="120" src="'.$k[1]['url'].md5($string).'.jpg"/><br/>'.
-							$labelWrappOpen.'<label for="'.$element.'-element" '.$elementRequred.'>'. $k[1]['label'] . '</label>'.$labelWrappClose.
+							$labelWrappOpen.'<label for="'.$element.'-element">'. $k[1]['label'] . '</label>'.$labelWrappClose.
 							'<input size="'.strlen($string).'" '.$elementAttributes.
 							' type="text" name="'.$element.'" id="'.$element.'-element" '.
-							$elementRequred.' class="doo-captcha-text" />'.$elementWrappClose;
+							'class="doo-captcha-text" />'.$elementWrappClose;
 						} else throw new Exception("Cant create captcha there is no captcha directory: " . $k[1]['directory']);
 					} else throw new Exception("Cant create captcha of missing image: " . $k[1]['image']);
 					break;
 			}
 			// add element
-			$formElements[$element] = $elementHtml;
+			$formElements[$element] .= $elementHtml.$fieldWrappClose;
 		}
 		$this->_formElements = $formElements;
 		$this->_elementValues = $elementValues;
@@ -618,7 +678,7 @@ class DooForm extends DooValidator {
 			$errors = $this->_errors;
 			foreach ($formElements as $element => $e) {
 				foreach ($this->_displayGroups[$name] as $de => $d) {
-					if (($d == $element) || ($d.'-label' == $element)) {
+					if ($d == $element) {
 						$formHtml .= $formElements[$element];
 						if ((count($this->_errors) > 0) && (isset($errors[$element]))) {
 							$formHtml .= '<ul class="errors">';
@@ -637,6 +697,36 @@ class DooForm extends DooValidator {
 		}
 		return false;
 	}
+
+   /**
+   * Renders form validation in json
+   * @return json encoded string
+   */
+
+   public function renderJson() {
+      $validation = array ();
+      foreach ($this->_elements as $element => $e) {
+         if (isset($e[0])) {
+            $validation[$element]['type'] = $e[0];
+         }
+         if (isset($values[$element])) {
+            $validation[$element]['value'] = $values[$element];
+         }
+         if (isset($e[1]['validators'])) {
+            $validation[$element]['rules'] = $e[1]['validators'];
+         }
+         if (isset($e[1]['required'])) {
+            $validation[$element]['required'] = $e[1]['required'];
+         }
+         if (isset($e[1]['extension'])) {
+            $validation[$element]['extension'] = explode(',', $e[1]['extension']);
+         }
+         if (isset($e[1]['size'])) {
+            $validation[$element]['size'] = $e[1]['size'];
+         }
+      }
+      return json_encode($validation);
+   }
 }
 
 class DooFormException extends Exception {
