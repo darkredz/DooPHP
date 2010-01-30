@@ -454,7 +454,7 @@ class DooSqlMagic {
                                 $where_values[] = $matches[1];
                             }
                             else if(strpos(strtoupper($v), 'IS')===0){
-                                $wheresql .= " AND {$obj['_table']}.$o $v";                                
+                                $wheresql .= " AND {$obj['_table']}.$o $v";
                             }
                             else{
                                 $wheresql .= " AND {$obj['_table']}.$o=?";
@@ -539,16 +539,75 @@ class DooSqlMagic {
 
         //get define relation, what type, which model
         #list($rtype,$rparams) = $model->relationType($rmodel);
-        list($rtype,$rparams) = self::relationType($this->map, $class_name, $rmodel);
-        if($rtype==NULL)
-            throw new SqlMagicException("Model $class_name does not relate to $rmodel", SqlMagicException::RelationNotFound);
+		if (is_object($rmodel)) {
+			$relatedmodel = $rmodel;
+			$rmodel =  get_class($relatedmodel);
+			$rtable = $relatedmodel->_table;
 
-        Doo::loadModel($rmodel);
-        $relatedmodel = new $rmodel;
-        $rtable = $relatedmodel->_table;
+			list($rtype,$rparams) = self::relationType($this->map, $class_name, $rmodel);
+			if($rtype==NULL)
+				throw new SqlMagicException("Model $class_name does not relate to $rmodel", SqlMagicException::RelationNotFound);
 
-        #echo "$class_name $rtype $rmodel( $rtable )";
+			// As we have an object we will check to see what query params are set
+			// This will be used to run a nested select
+			$obj = get_object_vars($relatedmodel);
+            $nestedwheresql ='';
+            $nested_where_values = array();
+            foreach($obj as $o=>$v){
+                if(isset($v) && in_array($o, $relatedmodel->_fields)){
 
+                    if( is_object($v) ){
+                        $firstChr = substr($v, 0, 1);
+                        if(ctype_punct($firstChr)){
+                            $nestedwheresql .= " AND {$obj['_table']}.$o$firstChr?";
+                            $nested_where_values[] = substr($v, 1);
+                        }else{
+                            if(strpos(strtoupper($v), 'LIKE')===0){
+                                preg_match('/^LIKE[ ]{1,}[\'\"]{1}(.+)[\'\"]{1}[ ]{1,}$/i', $v, $matches);
+                                $nestedwheresql .= " AND {$obj['_table']}.$o LIKE ?";
+                                $nested_where_values[] = $matches[1];
+                            }
+                            else if(strpos(strtoupper($v), 'IS')===0){
+                                $nestedwheresql .= " AND {$obj['_table']}.$o $v";
+                            }
+                            else{
+                                $nestedwheresql .= " AND {$obj['_table']}.$o=?";
+                                $nested_where_values[] = $v;
+                            }
+                        }
+                    }else{
+                        $nestedwheresql .= " AND {$obj['_table']}.$o=?";
+                        $nested_where_values[] = $v;
+                    }
+                }
+			}
+
+			if($nestedwheresql!=''){
+				$nestedwheresql = substr($nestedwheresql, 5);
+                $sqladd['rNestedQuery'] = " (SELECT * FROM {$relatedmodel->_table} WHERE {$nestedwheresql}) AS ";
+            } else {
+				$sqladd['rNestedQuery'] = '';
+			}
+
+			if (isset($where_values) && isset($nested_where_values)) {
+				$where_values = array_merge($nested_where_values, $where_values);
+			} elseif (isset($nested_where_values)) {
+				$where_values = $nested_where_values;
+			}
+
+		} else {
+			list($rtype,$rparams) = self::relationType($this->map, $class_name, $rmodel);
+			if($rtype==NULL)
+				throw new SqlMagicException("Model $class_name does not relate to $rmodel", SqlMagicException::RelationNotFound);
+
+			Doo::loadModel($rmodel);
+			$relatedmodel = new $rmodel;
+			$rtable = $relatedmodel->_table;
+
+			#echo "$class_name $rtype $rmodel( $rtable )";
+
+			$sqladd['rNestedQuery'] = '';
+		}
 
         //reverse relation (belongs_to), checking params such as foreign_key
         #list($mtype,$mparams) = $relatedmodel->relationType($class_name);
@@ -567,7 +626,7 @@ class DooSqlMagic {
             elseif($opt['match']==false)
                 self::add_where_is_null($sqladd['where'], "{$relatedmodel->_table}.{$rparams['foreign_key']}", "{$model->_table}.{$mparams['foreign_key']}");
 
-        
+
         //need to seperate the related model vars from the caller model, and add it as a Caller model's property
         //all properties of the caller model class
         $model_vars = array_keys(self::toArray($model));
@@ -592,7 +651,7 @@ class DooSqlMagic {
         foreach($repeated_vars as $r){
             //dun add user defined class properties that are not used in database
             if(!in_array($r, $defined_class_vars))continue;
-            
+
             $alias = "_{$model->_table}__$r";
             $ralias = "_{$relatedmodel->_table}__$r";
             $sqladd['select'] .= ", {$model->_table}.$r AS $alias, {$relatedmodel->_table}.$r AS $ralias";
@@ -676,7 +735,7 @@ class DooSqlMagic {
                 $sql = "SELECT {$sqladd['select']},  {$relatedmodel->_table}.{$rparams['foreign_key']} AS _{$relatedmodel->_table}__{$rparams['foreign_key']}
                     FROM {$model->_table}
                     {$sqladd['include']}
-                    {$sqladd['joinType']} {$relatedmodel->_table}
+                    {$sqladd['joinType']} {$sqladd['rNestedQuery']} {$relatedmodel->_table}
                     ON {$model->_table}.{$mparams['foreign_key']} = {$relatedmodel->_table}.{$rparams['foreign_key']}
                     {$sqladd['where']}
                     {$sqladd['order']} {$sqladd['custom']} {$sqladd['limit']}";
@@ -686,11 +745,10 @@ class DooSqlMagic {
                 $sql = "SELECT {$sqladd['select']},  {$relatedmodel->_table}.{$rparams['foreign_key']} AS _{$relatedmodel->_table}__{$rparams['foreign_key']}
                     FROM {$model->_table}
                     {$sqladd['include']}
-                    {$sqladd['joinType']} {$relatedmodel->_table}
+                    {$sqladd['joinType']} {$sqladd['rNestedQuery']} {$relatedmodel->_table}
                     ON {$model->_table}.{$mparams['foreign_key']} = {$relatedmodel->_table}.{$rparams['foreign_key']}
                     {$sqladd['where']}
                     {$sqladd['order']} {$sqladd['custom']} {$sqladd['limit']}";
-
                 break;
             case 'has_many':
                 if($mtype=='has_many'){
@@ -772,7 +830,7 @@ class DooSqlMagic {
                                     $rlimitMatch = $rlimitMatch[0];
 
                                     $rlimitMatch = implode(' ', $rlimitMatch);
-                                    
+
                                     if( substr($rlimitMatch, strlen($rlimitMatch)-4)=='AND '){
                                         $rlimitMatch = substr($rlimitMatch, 0, strlen($rlimitMatch)-4);
                                     }
@@ -817,7 +875,7 @@ class DooSqlMagic {
                             else{
                                 $varsLimit = array_merge( $opt['param'], $where_values);
                             }
-                            
+
                             $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$limitstr}", $varsLimit);
                         }else if(isset($opt['param']) && !empty($opt['param']) && !empty($whrLimit)){
                             $stmtLimit = $this->query("SELECT {$model->_table}.{$model->_primarykey} FROM {$model->_table} WHERE $whrLimit $orderLimit LIMIT {$limitstr}", $opt['param']);
@@ -848,7 +906,7 @@ class DooSqlMagic {
                             }
                         }
                         $limitModelStr = implode(',', $limitModelStr);
-                        
+
                         if ($limitModelStr !== ''){
                             if($sqladd['where']===''){
                                 $sqladd['where'] = "WHERE {$model->_table}.{$model->_primarykey} IN ($limitModelStr)";
@@ -877,7 +935,7 @@ class DooSqlMagic {
                         {$relatedmodel->_table}.{$rparams['foreign_key']} AS _{$relatedmodel->_table}__{$rparams['foreign_key']}
                         FROM {$model->_table}
                         {$sqladd['include']}
-                        {$sqladd['joinType']} {$relatedmodel->_table}
+                        {$sqladd['joinType']} {$sqladd['rNestedQuery']} {$relatedmodel->_table}
                         ON {$model->_table}.{$mparams['foreign_key']} = {$relatedmodel->_table}.{$rparams['foreign_key']}
                         {$sqladd['where']}
                         {$sqladd['order']} {$sqladd['custom']} {$sqladd['limit']}";
@@ -908,7 +966,7 @@ class DooSqlMagic {
             if(isset($opt['asArray']) && $opt['asArray']===true){
                 return $rs->fetchAll();
             }else{
-                
+
                 #$arr = array();
                 if(isset($tmodel_class) && isset($record->{$tmodel_class}) ){
                     $tmodelArray=null;
@@ -994,7 +1052,7 @@ class DooSqlMagic {
                             $arr[] = $record;
                         }
                     break;
-                    
+
                     case 'has_many':
                             $mnull=-1;
                             $model_pk_arr = array();
@@ -1006,13 +1064,13 @@ class DooSqlMagic {
                                     //for many to many usage, if unmatched
                                     $fk = $mnull--;
                                 }
-                                
+
                                 //related model foreign key, if is Null means no relation!
                                 $rfk = $v[$rretrieved_pk_key];
 
                                 if($rfk!=NULL)
                                     $assoc_model = new $rmodel;
-                                    
+
                                 //if not a repeated record, add it on to the result array
                                 if(!in_array($fk, $model_pk_arr)){
                                     $model_pk_arr[]=$fk;
