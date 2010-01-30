@@ -194,7 +194,7 @@ class DooViewBasic {
         }
 
 		$this->mainRenderFolder = $file;
-		
+
         if($process == false){
             $this->loadTagClass();
             include $this->rootCompiledPath . $file . '.php';
@@ -238,13 +238,13 @@ class DooViewBasic {
 		if(isset(Doo::conf()->TEMPLATE_COMPILE_ALWAYS) && Doo::conf()->TEMPLATE_COMPILE_ALWAYS==true){
             $forceCompile = true;
         }
-        
+
 		$this->mainRenderFolder = $relativeFolder;
 
         $file = '/' . $file . '.html';
 		$path =  $relativeFolder;
 		$cfilename = $this->rootCompiledPath . $path . $file . '.php';
-		
+
 		while(($found = file_exists($this->rootViewPath . $path . $file)) == false) {
 			if ($path == '.')
 				break;
@@ -448,7 +448,7 @@ class DooViewBasic {
         return $template_tags;
     }
 
-	
+
 
 
     /**
@@ -605,10 +605,14 @@ class DooViewBasic {
 			if ($metaIdentifer !== false) {
 				$tmp = rand(1000, 9999);
 				$preForStatement .= '$_dooTemplateRangeForLoop_' . $tmp . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ', ' . $step . ");\n";
+				$preForStatement .= 'if (!empty($_dooTemplateRangeForLoop_' . $tmp . ")):\n";
 				$preForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['length'] = count(\$_dooTemplateRangeForLoop_{$tmp});\n";
 				$forStmt .= 'foreach($_dooTemplateRangeForLoop_' . $tmp . ' as $data[\'' . $matches[1] . '\']):';
 			} else {
-				$forStmt = 'foreach(range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ', ' . $step . ') as $data[\'' . $matches[1] . '\']):';
+				$tmp = rand(1000, 9999);
+				$forStmt .= '$_dooTemplateRangeForLoop_' . $tmp . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ', ' . $step . ");\n";
+				$forStmt .= 'if (!empty($_dooTemplateRangeForLoop_' . $tmp . ")):\n";
+				$forStmt .= 'foreach($_dooTemplateRangeForLoop_' . $tmp . ' as $data[\'' . $matches[1] . '\']):';
 			}
 		}
 		elseif (preg_match('/([^\t\r\n]+) from ([^\t\r\n]+) to ([^\t\r\n]+?)( with meta)?$/i', $params, $matches)){
@@ -616,27 +620,34 @@ class DooViewBasic {
 			if ($metaIdentifer !== false) {
 				$tmp = rand(1000, 9999);
 				$preForStatement .= '$_dooTemplateRangeForLoop_' . $tmp . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ", 1);\n";
+				$preForStatement .= 'if (!empty($_dooTemplateRangeForLoop_' . $tmp . ")):\n";
 				$preForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['length'] = count(\$_dooTemplateRangeForLoop_{$tmp});\n";
 				$forStmt .= 'foreach($_dooTemplateRangeForLoop_' . $tmp . ' as $data[\'' . $matches[1] . '\']):';
 			} else {
-				$forStmt = 'foreach(range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ', 1) as $data[\'' . $matches[1] . '\']):';
+				$forStmt .= '$_dooTemplateRangeForLoop_' . $tmp . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ", 1);\n";
+				$forStmt .= 'if (!empty($_dooTemplateRangeForLoop_' . $tmp . ")):\n";
+				$forStmt .= 'foreach($_dooTemplateRangeForLoop_' . $tmp . ' as $data[\'' . $matches[1] . '\']):';
 			}
 		}
 		// for: 'myArray as key=>val'
 		else if (preg_match('/([^\t\r\n]+) as ([a-zA-Z0-9\-_]+)[ ]?=>[ ]?([a-zA-Z0-9\-_]+)( with meta)?/', $params, $matches)) {
 			$metaIdentifer = isset($matches[4]) ? $matches[3] : false;
+			$arrName = $this->strToStmt($matches[1]);
+			$preForStatement .= 'if (!empty(' . $arrName . ")):\n";
 			if ($metaIdentifer !== false) {
-				$preForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['length'] = count(" . $this->strToStmt($matches[1]) . ");\n";
+				$preForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['length'] = count(" . $arrName . ");\n";
 			}
-			$forStmt = 'foreach(' . $this->strToStmt($matches[1]) .' as $data[\''.$matches[2].'\']=>$data[\''.$matches[3].'\']):';
+			$forStmt = 'foreach(' . $arrName .' as $data[\''.$matches[2].'\']=>$data[\''.$matches[3].'\']):';
 		}
 		// for: 'myArray as val'
 		else if (preg_match('/([^\t\r\n]+) as ([a-zA-Z0-9\-_]+)( with meta)?/', $params, $matches)) {
 			$metaIdentifer = isset($matches[3]) ? $matches[2] : false;
+			$arrName = $this->strToStmt($matches[1]);
+			$preForStatement .= 'if (!empty(' . $arrName . ")):\n";
 			if ($metaIdentifer !== false) {
-				$preForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['length'] = count(" . $this->strToStmt($matches[1]) . ");\n";
+				$preForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['length'] = count(" . $arrName . ");\n";
 			}
-			$forStmt = 'foreach(' . $this->strToStmt($matches[1]) .' as $data[\''.$matches[2].'\']):';
+			$forStmt = 'foreach(' . $arrName .' as $data[\''.$matches[2].'\']):';
 		}
 
 		if ($metaIdentifer !== false) {
@@ -646,15 +657,19 @@ class DooViewBasic {
 			$postForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['index0']++;\n";
 			$postForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['first'] = (\$data['doo']['for']['{$metaIdentifer}']['index0']) == 0 ? true : false;\n";
 			$postForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['last']  = (\$data['doo']['for']['{$metaIdentifer}']['index']) == \$data['doo']['for']['{$metaIdentifer}']['length'] ? true : false;\n";
-			return '<?php ' . $preForStatement . $forStmt . "\n" . $postForStatement . '?>';
-		} else {
-			return '<?php ' . $forStmt . '?>';
 		}
+		return '<?php ' . $preForStatement . $forStmt . "\n" . $postForStatement . '?>';
+	}
+
+	protected function block_ifempty($params) {
+		return "<?php endforeach;\n else: ?>";
 	}
 
 	protected function block_endfor($params) {
-		return '<?php endforeach; ?>';
+		return "<?php endforeach;\n endif; ?>";
 	}
+
+	
 
 	protected function block_continue($params) {
 		return '<?php continue; ?>';
