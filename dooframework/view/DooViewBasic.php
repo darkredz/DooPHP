@@ -241,26 +241,26 @@ class DooViewBasic {
 
 		$this->mainRenderFolder = $relativeFolder;
 
-        $file = '/' . $file . '.html';
+        $file = '/' . $file;
 		$path =  $relativeFolder;
 		$cfilename = $this->rootCompiledPath . $path . $file . '.php';
 
-		while(($found = file_exists($this->rootViewPath . $path . $file)) == false) {
+		while(($found = file_exists($this->rootViewPath . $path . $file . '.html')) == false) {
 			if ($path == '.')
 				break;
 			$path = dirname($path);
 		}
 
 		if ($found == true) {
-			$vfilename = $this->rootViewPath . $path . $file;
+			$vfilename = $this->rootViewPath . $path . $file . '.html';
 		} else {
 			$path = $relativeFolder;
-			while(($found = file_exists($this->defaultRootViewPath . $path . $file)) == false) {
+			while(($found = file_exists($this->defaultRootViewPath . $path . $file . '.html')) == false) {
 				if ($path == '.')
 					break;
 				$path = dirname($path);
 			}
-			$vfilename = $this->rootViewPath . $path . $file;
+			$vfilename = $this->defaultRootViewPath . $path . $file . '.html';
 		}
 
 		//if file exist and is not older than the html template file, include the compiled php instead and exit the function
@@ -597,6 +597,7 @@ class DooViewBasic {
 		$preForStatement = '';
 		$forStmt = '';
 		$postForStatement = '';
+		$namespace = isset(Doo::conf()->APP_NAMESPACE) ? Doo::conf()->APP_NAMESPACE : 'doo';
 
         //for: i from 0 to 10
 		if (preg_match('/([a-z0-9\-_]+) from ([^\t\r\n]+) to ([^\t\r\n]+?) step ([^\t\r\n]+?)( with meta)?$/i', $params, $matches)){
@@ -606,7 +607,7 @@ class DooViewBasic {
 				$tmp = rand(1000, 9999);
 				$preForStatement .= '$_dooTemplateRangeForLoop_' . $tmp . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ', ' . $step . ");\n";
 				$preForStatement .= 'if (!empty($_dooTemplateRangeForLoop_' . $tmp . ")):\n";
-				$preForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['length'] = count(\$_dooTemplateRangeForLoop_{$tmp});\n";
+				$preForStatement .= "\$data['{$namespace}']['for']['{$metaIdentifer}']['length'] = count(\$_dooTemplateRangeForLoop_{$tmp});\n";
 				$forStmt .= 'foreach($_dooTemplateRangeForLoop_' . $tmp . ' as $data[\'' . $matches[1] . '\']):';
 			} else {
 				$tmp = rand(1000, 9999);
@@ -621,7 +622,7 @@ class DooViewBasic {
 				$tmp = rand(1000, 9999);
 				$preForStatement .= '$_dooTemplateRangeForLoop_' . $tmp . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ", 1);\n";
 				$preForStatement .= 'if (!empty($_dooTemplateRangeForLoop_' . $tmp . ")):\n";
-				$preForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['length'] = count(\$_dooTemplateRangeForLoop_{$tmp});\n";
+				$preForStatement .= "\$data[{$namespace}]['for']['{$metaIdentifer}']['length'] = count(\$_dooTemplateRangeForLoop_{$tmp});\n";
 				$forStmt .= 'foreach($_dooTemplateRangeForLoop_' . $tmp . ' as $data[\'' . $matches[1] . '\']):';
 			} else {
 				$forStmt .= '$_dooTemplateRangeForLoop_' . $tmp . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ", 1);\n";
@@ -635,7 +636,7 @@ class DooViewBasic {
 			$arrName = $this->strToStmt($matches[1]);
 			$preForStatement .= 'if (!empty(' . $arrName . ")):\n";
 			if ($metaIdentifer !== false) {
-				$preForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['length'] = count(" . $arrName . ");\n";
+				$preForStatement .= "\$data['{$namespace}']['for']['{$metaIdentifer}']['length'] = count(" . $arrName . ");\n";
 			}
 			$forStmt = 'foreach(' . $arrName .' as $data[\''.$matches[2].'\']=>$data[\''.$matches[3].'\']):';
 		}
@@ -645,18 +646,18 @@ class DooViewBasic {
 			$arrName = $this->strToStmt($matches[1]);
 			$preForStatement .= 'if (!empty(' . $arrName . ")):\n";
 			if ($metaIdentifer !== false) {
-				$preForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['length'] = count(" . $arrName . ");\n";
+				$preForStatement .= "\$data['{$namespace}']['for']['{$metaIdentifer}']['length'] = count(" . $arrName . ");\n";
 			}
 			$forStmt = 'foreach(' . $arrName .' as $data[\''.$matches[2].'\']):';
 		}
 
 		if ($metaIdentifer !== false) {
-			$preForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['index']  = 0;\n";
-			$preForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['index0'] = -1;\n";
-			$postForStatement  = "\$data['doo']['for']['{$metaIdentifer}']['index']++;\n";
-			$postForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['index0']++;\n";
-			$postForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['first'] = (\$data['doo']['for']['{$metaIdentifer}']['index0']) == 0 ? true : false;\n";
-			$postForStatement .= "\$data['doo']['for']['{$metaIdentifer}']['last']  = (\$data['doo']['for']['{$metaIdentifer}']['index']) == \$data['doo']['for']['{$metaIdentifer}']['length'] ? true : false;\n";
+			$preForStatement .= "\$data['{$namespace}']['for']['{$metaIdentifer}']['index']  = 0;\n";
+			$preForStatement .= "\$data['{$namespace}']['for']['{$metaIdentifer}']['index0'] = -1;\n";
+			$postForStatement  = "\$data['{$namespace}']['for']['{$metaIdentifer}']['index']++;\n";
+			$postForStatement .= "\$data['{$namespace}']['for']['{$metaIdentifer}']['index0']++;\n";
+			$postForStatement .= "\$data['{$namespace}']['for']['{$metaIdentifer}']['first'] = (\$data['{$namespace}']['for']['{$metaIdentifer}']['index0']) == 0 ? true : false;\n";
+			$postForStatement .= "\$data['{$namespace}']['for']['{$metaIdentifer}']['last']  = (\$data['{$namespace}']['for']['{$metaIdentifer}']['index']) == \$data['{$namespace}']['for']['{$metaIdentifer}']['length'] ? true : false;\n";
 		}
 		return '<?php ' . $preForStatement . $forStmt . "\n" . $postForStatement . '?>';
 	}
