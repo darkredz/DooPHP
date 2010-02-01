@@ -921,6 +921,7 @@ class DooSqlMagic {
                         ,{$rparams['through']}.{$mparams['foreign_key']} AS _{$relatedmodel->_table}__{$rparams['foreign_key']}
                         ,{$rparams['through']}.{$rparams['foreign_key']} AS _{$model->_table}__{$mparams['foreign_key']}
                         FROM {$model->_table}
+						{$sqladd['include']}
                         {$sqladd['joinType']} {$mparams['through']}
                         ON {$model->_table}.{$model->_primarykey} = {$mparams['through']}.{$rparams['foreign_key']}
                         {$sqladd['joinType']} {$relatedmodel->_table}
