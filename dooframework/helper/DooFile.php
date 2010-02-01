@@ -141,9 +141,10 @@ class DooFile {
      * Copy a file/folder to a destination
      * @param string $from Original path of the folder/file
      * @param string $to Destination path of the folder/file
+	 * @param array $exclude An array of file and folder names to be excluded from a copy
      * @return bool|int Returns true if file copied. If $from is a folder, returns the number of files/folders copied
      */
-    public function copy($from, $to) {            
+    public function copy($from, $to, $exclude=array()) {
         if(is_dir($from)){
             if($to[strlen($to)-1] != '/' && $to[strlen($to)-1] != '\\' ){
                 $to .= DIRECTORY_SEPARATOR;
@@ -156,7 +157,7 @@ class DooFile {
             if(!file_exists($to))
                 mkdir($to, $this->chmod, true);
 
-            return $this->copyContent($from, $to);
+            return $this->copyContent($from, $to, $exclude);
         }else{
             if(strpos($to, '/')!==false || strpos($to, '\\')!==false){
                 $path = str_replace('\\', '/', $to);
@@ -179,14 +180,15 @@ class DooFile {
      * Copy contents in a folder recursively
      * @param string $dir Path of the folder to be copied
      * @param string $to Destination path
+	 * @param array $exclude An array of file and folder names to be excluded from a copy
      * @return int Total of files/folders copied
      */
-	public function copyContent($dir, $to){
+	public function copyContent($dir, $to, $exclude=array()){
         $totalCopy = 0;
 		$handle = opendir($dir);
 
 		while(false !== ($file = readdir($handle))){
-			if($file != '.' && $file != '..'){
+			if($file != '.' && $file != '..' && !in_array($file, $exclude)){
 
                 if (is_dir($dir.$file)){
                     if(!file_exists($to.$file))
