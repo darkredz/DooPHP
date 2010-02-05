@@ -469,7 +469,7 @@ class DooViewBasic {
 
 		// Reduce our workload and remove commented parts before we do anything else
         if(!isset(Doo::conf()->TEMPLATE_SHOW_COMMENT) || Doo::conf()->TEMPLATE_SHOW_COMMENT!=true){
-			$str = preg_replace('/' . $this->tagComment_start . '[\s\S]*' . $this->tagComment_end . '/', '', $str);
+			$str = preg_replace('/' . $this->tagComment_start . '[\s\S]*?' . $this->tagComment_end . '/', '', $str);
         }
 
 		// Handel any PHP Tags based on configured rules
@@ -598,19 +598,18 @@ class DooViewBasic {
 		$forStmt = '';
 		$postForStatement = '';
 		$namespace = isset(Doo::conf()->APP_NAMESPACE) ? Doo::conf()->APP_NAMESPACE : 'doo';
+		$tmp = rand(1000, 9999);
 
         //for: i from 0 to 10
 		if (preg_match('/([a-z0-9\-_]+) from ([^\t\r\n]+) to ([^\t\r\n]+?) step ([^\t\r\n]+?)( with meta)?$/i', $params, $matches)){
 			$step = $this->strToStmt($matches[4]);
 			$metaIdentifer = isset($matches[5]) ? $matches[1] : false;
 			if ($metaIdentifer !== false) {
-				$tmp = rand(1000, 9999);
 				$preForStatement .= '$_dooTemplateRangeForLoop_' . $tmp . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ', ' . $step . ");\n";
 				$preForStatement .= 'if (!empty($_dooTemplateRangeForLoop_' . $tmp . ")):\n";
 				$preForStatement .= "\$data['{$namespace}']['for']['{$metaIdentifer}']['length'] = count(\$_dooTemplateRangeForLoop_{$tmp});\n";
 				$forStmt .= 'foreach($_dooTemplateRangeForLoop_' . $tmp . ' as $data[\'' . $matches[1] . '\']):';
 			} else {
-				$tmp = rand(1000, 9999);
 				$forStmt .= '$_dooTemplateRangeForLoop_' . $tmp . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ', ' . $step . ");\n";
 				$forStmt .= 'if (!empty($_dooTemplateRangeForLoop_' . $tmp . ")):\n";
 				$forStmt .= 'foreach($_dooTemplateRangeForLoop_' . $tmp . ' as $data[\'' . $matches[1] . '\']):';
@@ -619,7 +618,6 @@ class DooViewBasic {
 		elseif (preg_match('/([^\t\r\n]+) from ([^\t\r\n]+) to ([^\t\r\n]+?)( with meta)?$/i', $params, $matches)){
 			$metaIdentifer = isset($matches[4]) ? $matches[1] : false;
 			if ($metaIdentifer !== false) {
-				$tmp = rand(1000, 9999);
 				$preForStatement .= '$_dooTemplateRangeForLoop_' . $tmp . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ", 1);\n";
 				$preForStatement .= 'if (!empty($_dooTemplateRangeForLoop_' . $tmp . ")):\n";
 				$preForStatement .= "\$data[{$namespace}]['for']['{$metaIdentifer}']['length'] = count(\$_dooTemplateRangeForLoop_{$tmp});\n";

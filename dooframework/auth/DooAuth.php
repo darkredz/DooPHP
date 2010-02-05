@@ -157,7 +157,7 @@ class DooAuth {
      * @return <Boolean>
      */
     public function validate() {
-        if (isset ($this->appSession->AuthData)) {
+        if (isset ($this->appSession) && $this->appSession->AuthData['_initialized'] !== null) {
             if (    ($this->_securityLevel==self::LEVEL_LOW && ($this->_initialized || isset ($this->appSession->AuthData['_username']) || ((time()-$this->appSession->AuthData['_time']) <= $this->_authSessionExpire))) || //LEVEL_LOW
                     (($this->_securityLevel==self::LEVEL_MEDIUM || $this->_securityLevel==self::LEVEL_HIGH) //LEVEL_MEDIUM
                          && $this->_fingerprint == md5($_SERVER['HTTP_USER_AGENT'].$this->getSalt())) ||
