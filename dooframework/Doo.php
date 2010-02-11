@@ -224,7 +224,7 @@ class Doo{
                 $obj=array();
 
             foreach ($class_name as $one) {
-                class_exists($class_name)===True || require_once($path . "$one.php");
+                class_exists($one)===True || require_once($path . "$one.php");
                 if($createObj)
                     $obj[] = new $one;
             }
