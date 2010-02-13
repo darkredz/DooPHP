@@ -1228,11 +1228,15 @@ class DooSqlMagic {
         foreach($mainR as $k1=>$v1){
             foreach($r as $k2=>$v2){
                 $cls = $relatedClass[$k2+1];
-                foreach($v2 as $k3=>$v3){
-                    if( $v3->{$mdl_pk} == $v1->{$mdl_pk}){
-                        $mainR[$k1]->{$cls} = $v3->{$cls};
-                    }
-                }
+				if (is_null($v2)) {
+					$mainR[$k1]->{$cls} = array();
+				} else {
+					foreach((array)$v2 as $k3=>$v3){
+						if( $v3->{$mdl_pk} == $v1->{$mdl_pk}){
+							$mainR[$k1]->{$cls} = $v3->{$cls};
+						}
+					}
+				}
             }
         }
         //-----------------------------------------------
