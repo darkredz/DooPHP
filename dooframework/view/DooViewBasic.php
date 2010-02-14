@@ -571,8 +571,9 @@ class DooViewBasic {
 	}
 
 	protected function block_set($params) {
-		preg_match('/([a-zA-Z0-9\-\_]+) as (.*)/', $params, $matches);
-		return '<?php $data[\'' . $matches[1] . '\'] = ' . $this->strToStmt($matches[2]) . '; ?>';
+		preg_match('/([^\t\r\n]+) as (.*)/', $params, $matches);
+		$variable = $this->strToStmt($matches[1]);
+		return '<?php ' . $variable . ' = ' . $this->strToStmt($matches[2]) . '; ?>';
 	}
 
 	protected function block_if($params) {
@@ -872,7 +873,7 @@ class DooViewBasic {
 		elseif (preg_match('/^[\'\"].*[\'\"]$/', $arg)) {
 			return str_replace('\/\.\;', ',', $arg);
 		}
-		elseif (strtolower($arg)=='true' || strtolower($arg)=='false') {
+		elseif (strtolower($arg)=='true' || strtolower($arg)=='false' || strtolower($arg)=='null') {
 			return $arg;
 		}
 		// Got parameter values to handle
