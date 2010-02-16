@@ -643,12 +643,12 @@ class DooViewBasic {
 				$forStmt .= 'foreach($_dooTemplateRangeForLoop_' . $tmp . ' as $data[\'' . $matches[1] . '\']):';
 			}
 		}
-		elseif (preg_match('/([^\t\r\n]+) from ([^\t\r\n]+) to ([^\t\r\n]+?)( with meta)?$/i', $params, $matches)){
+		elseif (preg_match('/([a-z0-9\-_]+) from ([^\t\r\n]+) to ([^\t\r\n]+?)( with meta)?$/i', $params, $matches)){
 			$metaIdentifer = isset($matches[4]) ? $matches[1] : false;
 			if ($metaIdentifer !== false) {
 				$preForStatement .= '$_dooTemplateRangeForLoop_' . $tmp . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ", 1);\n";
 				$preForStatement .= 'if (!empty($_dooTemplateRangeForLoop_' . $tmp . ")):\n";
-				$preForStatement .= "\$data[{$namespace}]['for']['{$metaIdentifer}']['length'] = count(\$_dooTemplateRangeForLoop_{$tmp});\n";
+				$preForStatement .= "\$data['{$namespace}']['for']['{$metaIdentifer}']['length'] = count(\$_dooTemplateRangeForLoop_{$tmp});\n";
 				$forStmt .= 'foreach($_dooTemplateRangeForLoop_' . $tmp . ' as $data[\'' . $matches[1] . '\']):';
 			} else {
 				$forStmt .= '$_dooTemplateRangeForLoop_' . $tmp . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ", 1);\n";
@@ -657,7 +657,7 @@ class DooViewBasic {
 			}
 		}
 		// for: 'myArray as key=>val'
-		else if (preg_match('/([^\t\r\n]+) as ([a-zA-Z0-9\-_]+)[ ]?=>[ ]?([a-zA-Z0-9\-_]+)( with meta)?/', $params, $matches)) {
+		else if (preg_match('/([^\t\r\n ]+) as ([a-zA-Z0-9\-_]+)[ ]?=>[ ]?([a-zA-Z0-9\-_]+)( with meta)?/', $params, $matches)) {
 			$metaIdentifer = isset($matches[4]) ? $matches[3] : false;
 			$arrName = $this->strToStmt($matches[1]);
 			$preForStatement .= 'if (!empty(' . $arrName . ")):\n";
@@ -667,7 +667,7 @@ class DooViewBasic {
 			$forStmt = 'foreach(' . $arrName .' as $data[\''.$matches[2].'\']=>$data[\''.$matches[3].'\']):';
 		}
 		// for: 'myArray as val'
-		else if (preg_match('/([^\t\r\n]+) as ([a-zA-Z0-9\-_]+)( with meta)?/', $params, $matches)) {
+		else if (preg_match('/([^\t\r\n ]+) as ([a-zA-Z0-9\-_]+)( with meta)?/', $params, $matches)) {
 			$metaIdentifer = isset($matches[3]) ? $matches[2] : false;
 			$arrName = $this->strToStmt($matches[1]);
 			$preForStatement .= 'if (!empty(' . $arrName . ")):\n";
