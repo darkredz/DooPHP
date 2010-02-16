@@ -11,7 +11,7 @@
 
 /**
  * DooSqlMagic is a fast ORM tool which handles relational data.
- * 
+ *
  * <p>It generates SQL query on the fly and escaping/quoting record values to prevent sql injection.
  * You can do CRUD operations in an easier way with DooSqlMagic instead of writing queries manually.</p>
  *
@@ -65,7 +65,7 @@ class DooSqlMagic {
     protected $dbconfig;
     protected $dbconfig_list;
     protected $pdo;
-    
+
     protected $sql_list;
 
     const JOIN_LEFT = 'LEFT';
@@ -92,7 +92,7 @@ class DooSqlMagic {
     public function getDefaultDbConfig(){
         return $this->dbconfig;
     }
-    
+
     /**
      * Set the database relationship mapping
      * @param array $dbmap Database relationship mapping
@@ -200,7 +200,7 @@ class DooSqlMagic {
 
         $stmt = $this->pdo->prepare($query);
         $stmt->setFetchMode(PDO::FETCH_ASSOC);
-        
+
         if($param==null)
             $stmt->execute();
         else
@@ -212,8 +212,8 @@ class DooSqlMagic {
     * Execute a query and Fetch single row
     * @param string $query SQL query prepared statement
     * @param array $param Values used in the prepared SQL
-    * @param int $fetchMode  PDO Fetch mode for the statement 
-    * @return Returns an array a row from the result set 
+    * @param int $fetchMode  PDO Fetch mode for the statement
+    * @return Returns an array a row from the result set
     */
     public function fetchRow($query, $param = null, $fetchMode = null) {
         $stmt = $this->query($query, $param);
@@ -226,8 +226,8 @@ class DooSqlMagic {
     * Execute a query and Fetch multiple rows
     * @param string $query SQL query prepared statement
     * @param array $param Values used in the prepared SQL
-    * @param int $fetchMode  PDO Fetch mode for the statement 
-    * @return Returns an array containing all of the result set rows 
+    * @param int $fetchMode  PDO Fetch mode for the statement
+    * @return Returns an array containing all of the result set rows
     */
     public function fetchAll($query, $param = null, $fetchMode = null) {
         $stmt = $this->query($query, $param);
@@ -254,11 +254,11 @@ class DooSqlMagic {
 
     /**
      * Quotes a string for use in a query.
-     * 
+     *
      * Places quotes around the input string and escapes and single quotes within the input string, using a quoting style appropriate to the underlying driver.
      * @param string $string The string to be quoted.
      * @param int $type Provides a data type hint for drivers that have alternate quoting styles. The default value is PDO::PARAM_STR.
-     * @return string Returns a quoted string that is theoretically safe to pass into an SQL statement. Returns FALSE if the driver does not support quoting in this way. 
+     * @return string Returns a quoted string that is theoretically safe to pass into an SQL statement. Returns FALSE if the driver does not support quoting in this way.
      */
     public function quote($string, $type=null) {
         return $this->pdo->quote($string, $type);
@@ -294,7 +294,7 @@ class DooSqlMagic {
 
             //auto search(add conditions to WHERE) if the model propertie(s) are/is set
             $obj = get_object_vars($model);
-            
+
             $wheresql ='';
             $where_values = array();
             foreach($obj as $o=>$v){
@@ -311,7 +311,7 @@ class DooSqlMagic {
                                 $where_values[] = $matches[1];
                             }
                             else if(strpos(strtoupper($v), 'IS')===0){
-                                $wheresql .= " AND {$obj['_table']}.$o $v";                                
+                                $wheresql .= " AND {$obj['_table']}.$o $v";
                             }
                             else{
                                 $wheresql .= " AND {$obj['_table']}.$o=?";
@@ -347,7 +347,7 @@ class DooSqlMagic {
             $sqladd['select'] ='*';
         }
 
-        
+
         //limit
         if(isset($opt['limit'])){
             $sqladd['limit'] = 'LIMIT ' . $opt['limit'];
@@ -1164,11 +1164,11 @@ class DooSqlMagic {
 
     }
 
-    
+
     /**
      * Combine relational search results (combine multiple relates).
-     * 
-     * Example: 
+     *
+     * Example:
      * <code>
      * Doo::db()->relateMany('Food',array('Recipe','Article','FoodType'))
      * </code>
@@ -1181,18 +1181,18 @@ class DooSqlMagic {
     public function relateMany($model, $rmodel, $opt=null){
         //---------------------Model has many other rmodels (has_many, has_one & belongs_to relationship only) ----------------
         $mainR = Doo::db()->relate($model, $rmodel[0], (isset($opt[$rmodel[0]])) ? $opt[$rmodel[0]] : null );
-        
+
         if($mainR===Null)
             return;
-            
+
         $r=array();
-        
+
         if(is_string($model)){
             Doo::loadModel($model);
             $newm = new $model;
             $mdl_pk = $newm->_primarykey;
             $mdl_tbl = $newm->_table;
-            
+
             foreach($rmodel as $rm){
                 if($rm==$rmodel[0])continue;
                 Doo::loadModel($rm);
@@ -1208,7 +1208,7 @@ class DooSqlMagic {
         }else{
             $mdl_pk = $model->_primarykey;
             $mdl_tbl = $model->_table;
-            
+
             foreach($rmodel as $rm){
                 if($rm==$rmodel[0])continue;
                 Doo::loadModel($rm);
@@ -1220,7 +1220,7 @@ class DooSqlMagic {
                     $rOpt['select'] = "$mdl_tbl.$mdl_pk, {$newrm->_table}.*";
                 }
                 $r[] = Doo::db()->relate($model, $rm, $rOpt);
-            }        
+            }
         }
 
         $relatedClass = $rmodel;
@@ -1228,14 +1228,14 @@ class DooSqlMagic {
         foreach($mainR as $k1=>$v1){
             foreach($r as $k2=>$v2){
                 $cls = $relatedClass[$k2+1];
-				if (is_null($v2)) {
-					$mainR[$k1]->{$cls} = array();
-				} else {
-					foreach((array)$v2 as $k3=>$v3){
-						if( $v3->{$mdl_pk} == $v1->{$mdl_pk}){
-							$mainR[$k1]->{$cls} = $v3->{$cls};
-						}
+				foreach((array)$v2 as $k3=>$v3){
+					if( $v3->{$mdl_pk} == $v1->{$mdl_pk}){
+						$mainR[$k1]->{$cls} = $v3->{$cls};
+						break;
 					}
+				}
+				if (!isset($mainR[$k1]->{$cls})) {
+					$mainR[$k1]->{$cls} = array();
 				}
             }
         }
@@ -1518,7 +1518,7 @@ class DooSqlMagic {
                 $sql ="UPDATE {$obj['_table']} SET {$field_and_value} WHERE {$where}";
             }
         }
-        
+
         return $this->query($sql, $values)->rowCount();
     }
 
@@ -1610,7 +1610,7 @@ class DooSqlMagic {
                 if($rtype==NULL)
                     throw new SqlMagicException("Model $class_name does not relate to $rclass_name", SqlMagicException::RelationNotFound);
                 #print_r(array($rtype,$rparams));
-                
+
                 if($rtype=='has_many' && isset($rparams['foreign_key']) && isset($rparams['through'])){
                     //echo '<h2>Insert MAny to many</h2>';
                     //select only the primary key (id) and the set properties
@@ -1655,7 +1655,7 @@ class DooSqlMagic {
 
 	/**
 	 * Delete all records from table (Prepares and executes the DELETE statement)
-	 * @param mixed $model The model object from which to delete all records 
+	 * @param mixed $model The model object from which to delete all records
 	 */
 	public function deleteAll($model) {
 		if (!is_object($model)) {
