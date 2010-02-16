@@ -345,6 +345,7 @@ class DooUriRouter{
                 if(isset($ext)){
                     $param['__extension'] = $ext;
                 }
+				$param['__routematch'] = $udata;
                 return array($udata, $param);
             }
 
@@ -391,6 +392,7 @@ class DooUriRouter{
                             }
                         }
                     }
+					$param['__routematch'] = $r;
                     return array($r, $param);
                 }
             }
@@ -429,6 +431,7 @@ class DooUriRouter{
                             }
                         }
                     }
+					$param['__routematch'] = $r;
                     return array($r, $param);
                 }
             }

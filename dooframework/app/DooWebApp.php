@@ -66,6 +66,11 @@ class DooWebApp{
                 $controller->extension = $controller->params['__extension'];
                 unset($controller->params['__extension']);
             }
+			if(isset($controller->params['__routematch'])){
+                $controller->routematch = $controller->params['__routematch'];
+                unset($controller->params['__routematch']);
+            }
+
             if($_SERVER['REQUEST_METHOD']==='PUT')
                 $controller->init_put_vars();
 
