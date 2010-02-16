@@ -19,6 +19,9 @@ class DooViewBasic {
 	protected $defaultRootViewPath = null;
 	protected $rootCompiledPath = null;
 	protected $relativeViewPath = '';
+	protected $filterFunctionPrefix = 'filter_';
+	protected $useSafeVariableAccess = false;
+	protected static $safeVariableResult = null;
 
 	protected $fileManager = null;
 
@@ -55,6 +58,30 @@ class DooViewBasic {
 	 */
 	public function setRootCompiledPath($path) {
 		$this->rootCompiledPath = $path;
+	}
+
+	/**
+	 * Specify the prefix string to be appended to filter functions
+	 * For example if the prefix is 'filter_' and you use a filter foo|default then in your TemplateTags your
+	 * function would be called filter_default
+	 *
+	 * @param string $prefix the prefix to prepend to filter function calls
+	 */
+	public function setFilterFunctionPrefix($prefix = 'filter_') {
+		$this->filterFunctionPrefix = $prefix;
+	}
+
+	/**
+	 * If you want to ensure that you do not have php_warnings triggered when a user
+	 * attempts to access a variable which is not defined within the scope of the
+	 * template you can enable the safe variable access which will check that a given
+	 * variable is defined and if its not it will return the $defaultValue
+	 * @param bool $allow Should safe variable access be enabled?
+	 * @param mixed $defaultValue Default result returned when variable is not set
+	 */
+	public function enableSafeVariableAccess($allow = true, $defaultValue = null) {
+		$this->useSafeVariableAccess = $allow;
+		DooViewBasic::$safeVariableResult = $defaultValue;
 	}
 
 	/**
@@ -485,7 +512,7 @@ class DooViewBasic {
 		$str = preg_replace_callback('/' . $this->tagVariable_start . '[ ]*([^\t\r\n]+?)[ ]*' . $this->tagVariable_end . '/', array( &$this, 'convertOutputVariable'), $str);
 
 		// Find and replace blocks in the form of {% blockHanlerFunction DATA %}
-		$str = preg_replace_callback('/' . $this->tagBlock_start . '[ ]*([a-zA-Z0-9\-\_]+)[ ]*([\s\S]*?)[ ]*'	. $this->tagBlock_end . '/', array( &$this, 'convertBlock'), $str);
+		$str = preg_replace_callback('/' . $this->tagBlock_start . '[ ]*([a-zA-Z0-9\-\_]+) ([\s\S]*?)[ ]*'	. $this->tagBlock_end . '/', array( &$this, 'convertBlock'), $str);
 
         return $str;
     }
@@ -737,18 +764,131 @@ class DooViewBasic {
 	}
 
 
-	// UTILITY STUFF
 	protected function strToStmt($str) {
+
+		$result = '';
+		$currentToken = '';
+		$numChars = strlen($str);
+		$functionDepth = 0;
+		$arrayDepth = 0;
+		$inFilter = false;
+		$tokens = array();
+
+		for($i = 0; $i < $numChars; $i++) {
+			$char = $str[$i];
+
+			switch($char) {
+				case '\'':
+				case '"':
+					$quoteType = $char;
+					$currentToken .= $char;
+					while (isset($str[$i + 1])) {
+						$currentToken .= $str[$i + 1];
+						if ($str[$i + 1] == '\\') {
+							if (isset($str[$i + 2]) && $str[$i + 2] == $quoteType) {
+								$currentToken .= $quoteType;
+								$i++;
+							}
+						} elseif($str[$i+1] == $quoteType) {
+							$i++;
+							break;
+						}
+						$i++;
+					}
+					break;
+				case '(':
+					$currentToken .= $char;
+					$functionDepth++;
+					break;
+				case ')':
+					$currentToken .= $char;
+					$functionDepth--;
+					break;
+				case '[':
+					$currentToken .= $char;
+					$arrayDepth++;
+					break;
+				case ']':
+					$currentToken .= $char;
+					$arrayDepth--;
+					break;
+				case '|':
+					if ($arrayDepth == 0 && $functionDepth == 0) {
+						$inFilter = true;
+						$tokens[] = $currentToken;
+						$currentToken = '';
+					} else {
+						$currentToken .= $char;
+					}
+					break;
+				case ',':
+				case ' ':
+					if ($arrayDepth == 0 && $functionDepth == 0) {
+						if ($inFilter) {
+
+							$tokens[] = $currentToken;
+							$filterResult = $tokens[0];
+
+							for ($j = 1; $j < count($tokens); $j++) {
+								$token = $tokens[$j];
+								if (($functionStartPos = strpos($token, '(')) !== false) {
+									$filterResult = $this->filterFunctionPrefix . substr($token, 0, $functionStartPos) . '(' . $filterResult . ', ' . substr($token, $functionStartPos + 1);
+								} else {
+									$filterResult = $this->filterFunctionPrefix .  $token . '(' . $filterResult . ')';
+								}
+							}
+							$result .= $this->processStmt($filterResult);
+							
+						} else {
+							$result .= $this->processStmt($currentToken);
+						}
+						$inFilter = false;
+						$tokens = array();
+						$currentToken = '';
+					} else {
+						$currentToken .= $char;
+					}
+					break;
+				default:
+					$currentToken .= $char;
+			}
+		}
+
+		if ($inFilter) {
+			$tokens[] = $currentToken;
+			$filterResult = $tokens[0];
+
+			for ($j = 1; $j < count($tokens); $j++) {
+				$token = $tokens[$j];
+				if (($functionStartPos = strpos($token, '(')) !== false) {
+					$filterResult = $this->filterFunctionPrefix . substr($token, 0, $functionStartPos) . '(' . $filterResult . ',' . substr($token, $functionStartPos + 1);
+				} else {
+					$filterResult = $this->filterFunctionPrefix . $token . '(' . $filterResult . ')';
+				}
+			}
+			$result .= $this->processStmt($filterResult);
+		} else {
+			$result .= $this->processStmt($currentToken);
+		}
+
+		return $result;
+
+
+	}
+
+	// UTILITY STUFF
+	protected function processStmt($str) {
 		$result = '';
 		$currentToken = '';
 		$numChars = strlen($str);
 		$arrayDepth = 0;
 		$inSingleQuoteString = false;
 		$inDoubleQuoteString = false;
+		$inFilter = false;
 
 		for($i = 0; $i < $numChars; $i++) {
 			$char = $str[$i];
-
+			
 			switch($char) {
 				case '(':	// Moving into a function
 					if (!$inSingleQuoteString && !$inDoubleQuoteString && !strpos($currentToken, '->')) {
@@ -765,7 +905,6 @@ class DooViewBasic {
 				case '[':
 					if (!$inSingleQuoteString && !$inDoubleQuoteString) {
 						if ($currentToken != '') {		// We have an index like foo.bar[abc] to become $data['foo']['bar'][$data['abc']]
-							//$result .= $this->extractArgument($currentToken) . '[';
 							$currentToken .= $char;
 						} else {
 							$result .= 'array(';
@@ -779,51 +918,38 @@ class DooViewBasic {
 				case ']':
 					if (!$inSingleQuoteString && !$inDoubleQuoteString) {
 						if ($arrayDepth > 0) {
-							$result .= $this->extractArgument($currentToken) . ')';
+							$result .= $this->strToStmt($currentToken) . ')';
 							$currentToken = '';
 							$arrayDepth--;
 						} else {
-							//$result .= $this->extractArgument($currentToken) . ']';
 							$currentToken .= $char;
 						}
 						break;
 					}
 					$currentToken .= $char;
-				case'\\':	// Handle any escaped quotes
-					$currentToken = $char;
-					if ($inSingleQuoteString || $inDoubleQuoteString) {
-						if (isset($char[$i+1])) {
-							$nextChar = $char[$i+1];
-							if ($nextChar == '\'' || $nextChar == '"') {
-								$currentToken .= $nextChar;
+				case '\'':
+				case '"':
+					$quoteType = $char;
+					$currentToken .= $char;
+					while (isset($str[$i + 1])) {
+						$currentToken .= $str[$i + 1];
+						if ($str[$i + 1] == '\\') {
+							if (isset($str[$i + 2]) && $str[$i + 2] == $quoteType) {
+								$currentToken .= $quoteType;
 								$i++;
 							}
+						} elseif($str[$i+1] == $quoteType) {
+							$i++;
+							break;
 						}
-					}
-					break;
-				case '"':
-					if ($inDoubleQuoteString) {
-						$currentToken .= $char;
-						$inDoubleQuoteString = false;
-					} else {
-						$currentToken .= $char;
-						$inDoubleQuoteString = true;
-					}
-					break;
-				case'\'':
-					if($inSingleQuoteString){
-						$currentToken .= $char;
-						$inSingleQuoteString = false;
-					} else {
-						$currentToken .= $char;
-						$inSingleQuoteString = true;
+						$i++;
 					}
 					break;
 				case '=':	// If = appears in an array then its used for associatve array
 							// Otherwise its a delimiter for example <= == etc..
 					if ($arrayDepth > 0) {
 						if (!$inSingleQuoteString && !($inDoubleQuoteString)) {
-							if ($currentToken != null && $currentToken[0] != '\'' && $currentToken[0] != '"') {
+							if ($currentToken != '' && $currentToken[0] != '\'' && $currentToken[0] != '"') {
 								$currentToken = '\'' . $currentToken . '\'';
 							}
 							$result .= strtolower($currentToken) . '=>';
@@ -836,7 +962,7 @@ class DooViewBasic {
 				case ')': // Reached the end of a parameter
 				case ',': // Reached the end of a parameter
 					if (!$inSingleQuoteString && !$inDoubleQuoteString && !strpos($currentToken, '->')) {
-						$result .= $this->extractArgument($currentToken) . $char;
+						$result .= $this->strToStmt($currentToken) . $char;
 						$currentToken = '';
 					} else {
 						$currentToken .= $char;
@@ -890,7 +1016,7 @@ class DooViewBasic {
 		$processingArrayIndex = true;		// True if an array index. False for object index
 		for($i = 0; $i < $numChars; $i++) {
 			$char = $str[$i];
-
+			
 			switch($char) {
 				case '(':
 					$depth = 1;
@@ -983,7 +1109,12 @@ class DooViewBasic {
 				$result .= '->' . $currentToken;
 			}
 		}
-		return $result;
+
+		if ($this->useSafeVariableAccess) {
+			return 'DooViewBasic::is_set_or(' . $result . ')';
+		} else {
+			return $result;
+		}
 	}
 
 	private function convertToFunction($funcName) {
@@ -1006,6 +1137,10 @@ class DooViewBasic {
 	private function stripPHPTags($str) {
 		$str = str_replace('<?php echo ', '', $str);
         return str_replace('; ?>', '', $str);
+	}
+
+	public static function is_set_or(&$var) {
+		return (isset($var)) ? $var : DooViewBasic::$safeVariableResult;
 	}
 
 }
