@@ -509,10 +509,10 @@ class DooViewBasic {
         }
 
 		// Handle Variable output in the form of {{foo}}, {{foo.bar}}, {{foo.@bar}}, {{func(foo, 'bar'}}, {{+foo}}, {{+func(foo)}}
-		$str = preg_replace_callback('/' . $this->tagVariable_start . '[ ]*([^\t\r\n]+?)[ ]*' . $this->tagVariable_end . '/', array( &$this, 'convertOutputVariable'), $str);
+		$str = preg_replace_callback('/' . $this->tagVariable_start . '[ ]*?([^\t\r\n]+?)[ ]*?' . $this->tagVariable_end . '/', array( &$this, 'convertOutputVariable'), $str);
 
 		// Find and replace blocks in the form of {% blockHanlerFunction DATA %}
-		$str = preg_replace_callback('/' . $this->tagBlock_start . '[ ]*([a-zA-Z0-9\-\_]+) ([\s\S]*?)[ ]*'	. $this->tagBlock_end . '/', array( &$this, 'convertBlock'), $str);
+		$str = preg_replace_callback('/' . $this->tagBlock_start . '[ ]*([a-zA-Z0-9\-\_]+)([\s\S]*?)[ ]*'	. $this->tagBlock_end . '/', array( &$this, 'convertBlock'), $str);
 
         return $str;
     }
