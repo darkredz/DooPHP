@@ -19,9 +19,12 @@ class DooViewBasic {
 	protected $defaultRootViewPath = null;
 	protected $rootCompiledPath = null;
 	protected $relativeViewPath = '';
+	protected $forceCompile = false;
+	protected $usingRecursiveRender = false;
 	protected $filterFunctionPrefix = 'filter_';
 	protected $useSafeVariableAccess = false;
 	protected static $safeVariableResult = null;
+	protected static $uniqueId = 0;
 
 	protected $fileManager = null;
 
@@ -31,6 +34,9 @@ class DooViewBasic {
 		$this->defaultRootViewPath = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'view/';
 		$this->rootViewPath = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'view/';
 		$this->rootCompiledPath = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'viewc/';
+		if (self::$uniqueId == 0) {
+			self::$uniqueId = time();
+		}
 	}
 
 	/**
@@ -76,11 +82,11 @@ class DooViewBasic {
 	 * attempts to access a variable which is not defined within the scope of the
 	 * template you can enable the safe variable access which will check that a given
 	 * variable is defined and if its not it will return the $defaultValue
-	 * @param bool $allow Should safe variable access be enabled?
+	 * @param bool $enable Should safe variable access be enabled?
 	 * @param mixed $defaultValue Default result returned when variable is not set
 	 */
-	public function enableSafeVariableAccess($allow = true, $defaultValue = null) {
-		$this->useSafeVariableAccess = $allow;
+	public function enableSafeVariableAccess($enable = true, $defaultValue = null) {
+		$this->useSafeVariableAccess = $enable;
 		DooViewBasic::$safeVariableResult = $defaultValue;
 	}
 
@@ -213,14 +219,15 @@ class DooViewBasic {
     public function render($file, $data=NULL, $process=NULL, $forceCompile=false){
 
         if(isset(Doo::conf()->TEMPLATE_COMPILE_ALWAYS) && Doo::conf()->TEMPLATE_COMPILE_ALWAYS==true){
-            $process = $forceCompile = true;
+            $this->forceCompile = $process = $forceCompile = true;
         }
         //if process not set, then check the app mode, if production mode, skip the process(false) and just include the compiled files
         else if($process===NULL){
             $process = (Doo::conf()->APP_MODE!='prod');
         }
 
-		$this->mainRenderFolder = $file;
+		$this->usingRecursiveRender = false;
+		$this->mainRenderFolder = substr($file, 0, strrpos('/', $file));
 
         if($process == false){
             $this->loadTagClass();
@@ -266,6 +273,7 @@ class DooViewBasic {
             $forceCompile = true;
         }
 
+		$this->usingRecursiveRender = true;
 		$this->mainRenderFolder = $relativeFolder;
 
         $file = '/' . $file;
@@ -341,6 +349,7 @@ class DooViewBasic {
             $process = (Doo::conf()->APP_MODE!='prod');
         }
 
+		$this->usingRecursiveRender = true;
 		$this->mainRenderFolder = $viewFolder;
 
         //just include the compiled file if process is false
@@ -598,8 +607,8 @@ class DooViewBasic {
 	}
 
 	protected function block_set($params) {
-		preg_match('/([^\t\r\n]+) as (.*)/', $params, $matches);
-		$variable = $this->strToStmt($matches[1]);
+		preg_match('/[ ]*([^\t\r\n ]+) as (.*)[ ]*/', $params, $matches);
+		$variable = $this->extractDataPath($matches[1], true);
 		return '<?php ' . $variable . ' = ' . $this->strToStmt($matches[2]) . '; ?>';
 	}
 
@@ -626,55 +635,57 @@ class DooViewBasic {
 		$forStmt = '';
 		$postForStatement = '';
 		$namespace = isset(Doo::conf()->APP_NAMESPACE) ? Doo::conf()->APP_NAMESPACE : 'doo';
-		$tmp = rand(1000, 9999);
+		$loopVar = $this->getUniqueVarId();
 
         //for: i from 0 to 10
 		if (preg_match('/([a-z0-9\-_]+) from ([^\t\r\n]+) to ([^\t\r\n]+?) step ([^\t\r\n]+?)( with meta)?$/i', $params, $matches)){
 			$step = $this->strToStmt($matches[4]);
 			$metaIdentifer = isset($matches[5]) ? $matches[1] : false;
 			if ($metaIdentifer !== false) {
-				$preForStatement .= '$_dooTemplateRangeForLoop_' . $tmp . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ', ' . $step . ");\n";
-				$preForStatement .= 'if (!empty($_dooTemplateRangeForLoop_' . $tmp . ")):\n";
-				$preForStatement .= "\$data['{$namespace}']['for']['{$metaIdentifer}']['length'] = count(\$_dooTemplateRangeForLoop_{$tmp});\n";
-				$forStmt .= 'foreach($_dooTemplateRangeForLoop_' . $tmp . ' as $data[\'' . $matches[1] . '\']):';
+				$preForStatement .=  $loopVar . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ', ' . $step . ");\n";
+				$preForStatement .= 'if (!empty(' . $loopVar . ")):\n";
+				$preForStatement .= "\$data['{$namespace}']['for']['{$metaIdentifer}']['length'] = count({$loopVar});\n";
+				$forStmt .= 'foreach(' . $loopVar . ' as $data[\'' . $matches[1] . '\']):';
 			} else {
-				$forStmt .= '$_dooTemplateRangeForLoop_' . $tmp . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ', ' . $step . ");\n";
-				$forStmt .= 'if (!empty($_dooTemplateRangeForLoop_' . $tmp . ")):\n";
-				$forStmt .= 'foreach($_dooTemplateRangeForLoop_' . $tmp . ' as $data[\'' . $matches[1] . '\']):';
+				$forStmt .= $loopVar . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ', ' . $step . ");\n";
+				$forStmt .= 'if (!empty(' . $loopVar . ")):\n";
+				$forStmt .= 'foreach(' . $loopVar . ' as $data[\'' . $matches[1] . '\']):';
 			}
 		}
 		elseif (preg_match('/([a-z0-9\-_]+) from ([^\t\r\n]+) to ([^\t\r\n]+?)( with meta)?$/i', $params, $matches)){
 			$metaIdentifer = isset($matches[4]) ? $matches[1] : false;
 			if ($metaIdentifer !== false) {
-				$preForStatement .= '$_dooTemplateRangeForLoop_' . $tmp . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ", 1);\n";
-				$preForStatement .= 'if (!empty($_dooTemplateRangeForLoop_' . $tmp . ")):\n";
-				$preForStatement .= "\$data['{$namespace}']['for']['{$metaIdentifer}']['length'] = count(\$_dooTemplateRangeForLoop_{$tmp});\n";
-				$forStmt .= 'foreach($_dooTemplateRangeForLoop_' . $tmp . ' as $data[\'' . $matches[1] . '\']):';
+				$preForStatement .= $loopVar . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ", 1);\n";
+				$preForStatement .= 'if (!empty(' . $loopVar . ")):\n";
+				$preForStatement .= "\$data['{$namespace}']['for']['{$metaIdentifer}']['length'] = count({$loopVar});\n";
+				$forStmt .= 'foreach(' . $loopVar . ' as $data[\'' . $matches[1] . '\']):';
 			} else {
-				$forStmt .= '$_dooTemplateRangeForLoop_' . $tmp . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ", 1);\n";
-				$forStmt .= 'if (!empty($_dooTemplateRangeForLoop_' . $tmp . ")):\n";
-				$forStmt .= 'foreach($_dooTemplateRangeForLoop_' . $tmp . ' as $data[\'' . $matches[1] . '\']):';
+				$forStmt .= $loopVar . ' = range(' . $this->strToStmt($matches[2]) . ', ' . $this->strToStmt($matches[3]) . ", 1);\n";
+				$forStmt .= 'if (!empty(' . $loopVar . ")):\n";
+				$forStmt .= 'foreach(' . $loopVar . ' as $data[\'' . $matches[1] . '\']):';
 			}
 		}
 		// for: 'myArray as key=>val'
 		else if (preg_match('/([^\t\r\n ]+) as ([a-zA-Z0-9\-_]+)[ ]?=>[ ]?([a-zA-Z0-9\-_]+)( with meta)?/', $params, $matches)) {
 			$metaIdentifer = isset($matches[4]) ? $matches[3] : false;
 			$arrName = $this->strToStmt($matches[1]);
-			$preForStatement .= 'if (!empty(' . $arrName . ")):\n";
+			$preForStatement .= $loopVar . ' = ' . $arrName . ";\n";
+			$preForStatement .= 'if (!empty(' . $loopVar . ")):\n";
 			if ($metaIdentifer !== false) {
-				$preForStatement .= "\$data['{$namespace}']['for']['{$metaIdentifer}']['length'] = count(" . $arrName . ");\n";
+				$preForStatement .= "\$data['{$namespace}']['for']['{$metaIdentifer}']['length'] = count(" . $loopVar . ");\n";
 			}
-			$forStmt = 'foreach(' . $arrName .' as $data[\''.$matches[2].'\']=>$data[\''.$matches[3].'\']):';
+			$forStmt = 'foreach(' . $loopVar .' as $data[\''.$matches[2].'\']=>$data[\''.$matches[3].'\']):';
 		}
 		// for: 'myArray as val'
 		else if (preg_match('/([^\t\r\n ]+) as ([a-zA-Z0-9\-_]+)( with meta)?/', $params, $matches)) {
 			$metaIdentifer = isset($matches[3]) ? $matches[2] : false;
 			$arrName = $this->strToStmt($matches[1]);
-			$preForStatement .= 'if (!empty(' . $arrName . ")):\n";
+			$preForStatement .= $loopVar . ' = ' . $arrName . ";\n";
+			$preForStatement .= 'if (!empty(' . $loopVar . ")):\n";
 			if ($metaIdentifer !== false) {
-				$preForStatement .= "\$data['{$namespace}']['for']['{$metaIdentifer}']['length'] = count(" . $arrName . ");\n";
+				$preForStatement .= "\$data['{$namespace}']['for']['{$metaIdentifer}']['length'] = count(" . $loopVar . ");\n";
 			}
-			$forStmt = 'foreach(' . $arrName .' as $data[\''.$matches[2].'\']):';
+			$forStmt = 'foreach(' . $loopVar .' as $data[\''.$matches[2].'\']):';
 		}
 
 		if ($metaIdentifer !== false) {
@@ -738,20 +749,48 @@ class DooViewBasic {
 
 		if(substr($file, 0,1)=='/'){
             $file = substr($file, 1);
-            $cfilename = str_replace('\\', '/', Doo::conf()->SITE_PATH) . Doo::conf()->PROTECTED_FOLDER . "viewc/$file.php";
-            $vfilename = str_replace('\\', '/', Doo::conf()->SITE_PATH) . Doo::conf()->PROTECTED_FOLDER . "view/$file.html";
+            $cfilename = str_replace('\\', '/', "{$this->rootCompiledPath}{$this->mainRenderFolder}/$file.php");
+            $vfilename = str_replace('\\', '/', "{$this->rootViewPath}/$file.html");
         }
         else{
-            $folders = explode('/', $this->mainRenderFolder);
-            $file = implode('/', array_splice($folders, 0, -1)).'/'.$file;
-            $cfilename = str_replace('\\', '/', Doo::conf()->SITE_PATH) . Doo::conf()->PROTECTED_FOLDER . "viewc/$file.php";
-            $vfilename = str_replace('\\', '/', Doo::conf()->SITE_PATH) . Doo::conf()->PROTECTED_FOLDER . "view/$file.html";
+            
+            $cfilename = str_replace('\\', '/', "{$this->rootCompiledPath}{$this->mainRenderFolder}/$file.php");
+
+			if ($this->usingRecursiveRender == true) {
+				$fileName = '/' . $file . '.html';
+				$path = $this->mainRenderFolder;
+
+				while(($found = file_exists($this->rootViewPath . $path . $fileName)) == false) {
+					if ($path == '.')
+						break;
+					$path = dirname($path);
+				}
+
+				if ($found == true) {
+					$vfilename = $this->rootViewPath . $path . $fileName;
+				} else {
+					$path = $relativeFolder;
+					while(($found = file_exists($this->defaultRootViewPath . $path . $fileName)) == false) {
+						if ($path == '.')
+							break;
+						$path = dirname($path);
+					}
+					$vfilename = $this->defaultRootViewPath . $path . $fileName;
+				}
+
+			} else {
+				if (file_exists("{$this->rootViewPath}{$this->mainRenderFolder}/{$file}.html")) {
+					$vfilename = "{$this->rootViewPath}{$this->mainRenderFolder}/{$file}.html";
+				} else {
+					$vfilename = "{$this->defaultRootViewPath}{$this->defaultRootViewPath}/{$file}.html";
+				}
+			}
         }
 
         if(!file_exists($vfilename)){
-            return "<span style=\"color:#ff0000\">Include view file <strong>$file.html</strong> not found</span>";
+            return "<span style=\"color:#ff0000\">Include view file <strong>{$file}.html</strong> not found</span>";
         }else{
-            if(file_exists($cfilename)){
+            if(!$this->forceCompile && file_exists($cfilename)){
                 if(filemtime($vfilename)>filemtime($cfilename)){
                     $this->compile($file, $vfilename, $cfilename);
                 }
@@ -764,6 +803,10 @@ class DooViewBasic {
 	}
 
 
+
+
+
+	// UTILITY STUFF
 	protected function strToStmt($str) {
 
 		$result = '';
@@ -838,7 +881,7 @@ class DooViewBasic {
 								}
 							}
 							$result .= $this->processStmt($filterResult);
-							
+
 						} else {
 							$result .= $this->processStmt($currentToken);
 						}
@@ -876,7 +919,6 @@ class DooViewBasic {
 
 	}
 
-	// UTILITY STUFF
 	protected function processStmt($str) {
 		$result = '';
 		$currentToken = '';
@@ -1008,7 +1050,7 @@ class DooViewBasic {
 		}
 	}
 
-	protected function extractDataPath($str) {
+	protected function extractDataPath($str, $ignoreSafe = false) {
 		$result = '$data';
 		$currentToken = '';
 		$numChars = strlen($str);
@@ -1110,7 +1152,7 @@ class DooViewBasic {
 			}
 		}
 
-		if ($this->useSafeVariableAccess) {
+		if (!$ignoreSafe && $this->useSafeVariableAccess) {
 			return 'DooViewBasic::is_set_or(' . $result . ')';
 		} else {
 			return $result;
@@ -1137,6 +1179,10 @@ class DooViewBasic {
 	private function stripPHPTags($str) {
 		$str = str_replace('<?php echo ', '', $str);
         return str_replace('; ?>', '', $str);
+	}
+
+	public function getUniqueVarId() {
+		return '$doo_view_basic_' . self::$uniqueId++;
 	}
 
 	public static function is_set_or(&$var) {
