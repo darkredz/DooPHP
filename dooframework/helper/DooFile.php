@@ -194,7 +194,7 @@ class DooFile {
                     if(!file_exists($to.$file))
                         mkdir($to.$file, $this->chmod, true);
 
-					$totalCopy += $this->copyContent($dir.$file.'/', $to.$file.'/');
+					$totalCopy += $this->copyContent($dir.$file.'/', $to.$file.'/', $exclude);
 				}else{
 					if( copy($dir.$file, $to.$file) )
                         $totalCopy++;

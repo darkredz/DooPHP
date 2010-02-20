@@ -1748,13 +1748,13 @@ class DooSqlMagic {
     protected function auto_load($class_name){
         if($this->autoload){
             if($this->check_model_exist){
-                if(file_exists(DOO_MODEL_PATH . "$class_name.php")){
-                    require_once(DOO_MODEL_PATH . "$class_name.php");
+                if(file_exists(Doo::conf()->MODEL_PATH . "$class_name.php")){
+                    require_once(Doo::conf()->MODEL_PATH . "$class_name.php");
                 }else{
-                    throw new SqlMagicException("Model $class_name file not found at ".DOO_MODEL_PATH."$class_name.php", SqlMagicException::UnexpectedClass);
+                    throw new SqlMagicException("Model $class_name file not found at ".Doo::conf()->MODEL_PATH."$class_name.php", SqlMagicException::UnexpectedClass);
                 }
             }else{
-                require_once(DOO_MODEL_PATH . "$class_name.php");
+                require_once(Doo::conf()->MODEL_PATH . "$class_name.php");
             }
         }
     }

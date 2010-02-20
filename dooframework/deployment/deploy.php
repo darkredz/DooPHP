@@ -147,7 +147,7 @@ class Doo{
     }
 
     public static function loadModel($class_name, $createObj=FALSE){
-        return self::load($class_name, self::conf()->SITE_PATH ."protected/model/", $createObj);
+        return self::load($class_name, self::conf()->MODEL_PATH, $createObj);
     }
 
     public static function loadHelper($class_name, $createObj=FALSE){
@@ -240,6 +240,12 @@ class DooConfig{
         if($this->DEBUG_ENABLED==NULL)
            $this->DEBUG_ENABLED=FALSE;
 
+		if ($this->TEMPLATE_ENGINE==NULL)
+			$this->TEMPLATE_ENGINE='DooView';
+
+		if ($this->MODEL_PATH==NULL)
+			$this->MODEL_PATH=$this->SITE_PATH . $this->PROTECTED_FOLDER . 'model/';
+		
     }
     public function add($key, $value){
         $this->{$key} = $value;

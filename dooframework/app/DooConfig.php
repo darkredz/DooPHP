@@ -145,6 +145,12 @@ class DooConfig{
      * @var array
      */
     public $TEMPLATE_GLOBAL_TAGS;
+
+	/**
+	 * Path to model files. Allows you to share models between apps
+	 * @param string
+	 */
+	public $MODEL_PATH;
 	
     /**
      * Set the configurations. SITE_PATH, BASE_PATH and APP_URL is required
@@ -166,6 +172,9 @@ class DooConfig{
 
 		if ($this->TEMPLATE_ENGINE==NULL)
 			$this->TEMPLATE_ENGINE='DooView';
+
+		if ($this->MODEL_PATH==NULL)
+			$this->MODEL_PATH=$this->SITE_PATH . $this->PROTECTED_FOLDER . 'model/';
 
     }
 

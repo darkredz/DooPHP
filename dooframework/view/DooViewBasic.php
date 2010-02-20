@@ -769,7 +769,7 @@ class DooViewBasic {
 				if ($found == true) {
 					$vfilename = $this->rootViewPath . $path . $fileName;
 				} else {
-					$path = $relativeFolder;
+					$path = $this->mainRenderFolder;
 					while(($found = file_exists($this->defaultRootViewPath . $path . $fileName)) == false) {
 						if ($path == '.')
 							break;

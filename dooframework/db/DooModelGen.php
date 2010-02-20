@@ -45,171 +45,173 @@ class DooModelGen{
      * @param string $extends make Model class to extend DooModel or DooSmartModel
      * @param bool $createBase Generate base model class, will not rewrite/replace model classes if True.
      */
-    public static function gen_mysql($comments=true, $vrules=true, $extends='', $createBase=false){
-        $dbconf = Doo::db()->getDefaultDbConfig();
-        if(!isset($dbconf) || empty($dbconf)){
-            echo "<html><head><title>DooPHP Model Generator - DB: Error</title></head><body bgcolor=\"#2e3436\"><span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Please setup the DB first in index.php and db.conf.php</span></span>";
-            exit;
-        }
+	public static function gen_mysql($comments=true, $vrules=true, $extends='', $createBase=false) {
+		Doo::loadHelper('DooFile');
+		$fileManager = new DooFile(0777);
+		$dbconf = Doo::db()->getDefaultDbConfig();
+		if(!isset($dbconf) || empty($dbconf)) {
+			echo "<html><head><title>DooPHP Model Generator - DB: Error</title></head><body bgcolor=\"#2e3436\"><span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Please setup the DB first in index.php and db.conf.php</span></span>";
+			exit;
+		}
 
-        $dbname = $dbconf[1];
+		$dbname = $dbconf[1];
 
-        echo "<html><head><title>DooPHP Model Generator - DB: $dbname</title></head><body bgcolor=\"#2e3436\">";
+		echo "<html><head><title>DooPHP Model Generator - DB: $dbname</title></head><body bgcolor=\"#2e3436\">";
 
-        $smt = Doo::db()->query("SHOW TABLES");
-        $tables = $smt->fetchAll();
-        $clsExtendedNum = 0;
-        foreach( $tables as $tbl ){
-            if(stristr($_SERVER['SERVER_SOFTWARE'], 'Win32')){
-                $tblname = $tbl['Tables_in_'.strtolower($dbname)];
-            }else{
-                $tblname = $tbl['Tables_in_'.$dbname];
-            }
-           $smt2 = Doo::db()->query("DESC `$tblname`");
-           $fields = $smt2->fetchAll();
-           //print_r($fields);
-           $classname = '';
-           $temptbl = $tblname;
-           for($i=0;$i<strlen($temptbl);$i++){
-               if($i==0){
-                   $classname .= strtoupper($temptbl[0]);
-               }
-               else if($temptbl[$i]=='_' || $temptbl[$i]=='-' || $temptbl[$i]=='.' ){
-                    $classname .= strtoupper( $temptbl[ ($i+1) ] );
-                    $arr = str_split($temptbl);
-                    array_splice($arr, $i, 1);
-                    $temptbl = implode('', $arr);
-               }else{
-                    $classname .= $temptbl[$i];
-               }
-           }
+		$smt = Doo::db()->query("SHOW TABLES");
+		$tables = $smt->fetchAll();
+		$clsExtendedNum = 0;
+		foreach( $tables as $tbl ) {
+			if(stristr($_SERVER['SERVER_SOFTWARE'], 'Win32')) {
+				$tblname = $tbl['Tables_in_'.strtolower($dbname)];
+			}else {
+				$tblname = $tbl['Tables_in_'.$dbname];
+			}
+			$smt2 = Doo::db()->query("DESC `$tblname`");
+			$fields = $smt2->fetchAll();
+			//print_r($fields);
+			$classname = '';
+			$temptbl = $tblname;
+			for($i=0;$i<strlen($temptbl);$i++) {
+				if($i==0) {
+					$classname .= strtoupper($temptbl[0]);
+				}
+				else if($temptbl[$i]=='_' || $temptbl[$i]=='-' || $temptbl[$i]=='.' ) {
+					$classname .= strtoupper( $temptbl[ ($i+1) ] );
+					$arr = str_split($temptbl);
+					array_splice($arr, $i, 1);
+					$temptbl = implode('', $arr);
+				}else {
+					$classname .= $temptbl[$i];
+				}
+			}
 
-           if( !empty($extends) ){
-               if($createBase!=True){
-                   if($extends==DooModelGen::EXTEND_MODEL || $extends==DooModelGen::EXTEND_SMARTMODEL)
-                       $filestr = "<?php\nDoo::loadCore('db/$extends');\n\nclass $classname extends $extends{\n";
-                   else
-                       $filestr = "<?php\nDoo::loadClass('$extends');\n\nclass $classname extends $extends{\n";
-               }else{
-                   if($extends==DooModelGen::EXTEND_MODEL || $extends==DooModelGen::EXTEND_SMARTMODEL)
-                       $filestr = "<?php\nDoo::loadCore('db/$extends');\n\nclass {$classname}Base extends $extends{\n";
-                   else
-                       $filestr = "<?php\nDoo::loadClass('$extends');\n\nclass {$classname}Base extends $extends{\n";
-               }
-           }else{
-               if($createBase!=True)
-                   $filestr = "<?php\nclass $classname{\n";
-               else
-                   $filestr = "<?php\nclass {$classname}Base{\n";
-           }
+			if( !empty($extends) ) {
+				if($createBase!=True) {
+					if($extends==DooModelGen::EXTEND_MODEL || $extends==DooModelGen::EXTEND_SMARTMODEL)
+						$filestr = "<?php\nDoo::loadCore('db/$extends');\n\nclass $classname extends $extends{\n";
+					else
+						$filestr = "<?php\nDoo::loadClass('$extends');\n\nclass $classname extends $extends{\n";
+				}else {
+					if($extends==DooModelGen::EXTEND_MODEL || $extends==DooModelGen::EXTEND_SMARTMODEL)
+						$filestr = "<?php\nDoo::loadCore('db/$extends');\n\nclass {$classname}Base extends $extends{\n";
+					else
+						$filestr = "<?php\nDoo::loadClass('$extends');\n\nclass {$classname}Base extends $extends{\n";
+				}
+			}else {
+				if($createBase!=True)
+					$filestr = "<?php\nclass $classname{\n";
+				else
+					$filestr = "<?php\nclass {$classname}Base{\n";
+			}
 
-           $pkey = '';
-           $ftype = '';
-           $fieldnames = array();
+			$pkey = '';
+			$ftype = '';
+			$fieldnames = array();
 
-           if($vrules)
-               Doo::loadHelper('DooValidator');
+			if($vrules)
+				Doo::loadHelper('DooValidator');
 
-           $rules = array();
-           foreach($fields as $f){
-                $fstring='';
-                if($comments && isset($f['Type']) && !empty($f['Type'])){
-                    preg_match('/([^\(]+)[\(]?([\d]*)?[\)]?(.+)?/', $f['Type'], $ftype);
-                    $length = '';
-                    $more = '';
-                    
-                    if(isset($ftype[2]) && !empty($ftype[2]))
-                        $length = " Max length is $ftype[2].";
-                    if(isset($ftype[3]) && !empty($ftype[3])){
-                        $more = " $ftype[3].";
-                        $ftype[3] = trim($ftype[3]);
-                    }
-                    
-                    $fstring = "\n    /**\n     * @var {$ftype[1]}$length$more\n     */\n";
+			$rules = array();
+			foreach($fields as $f) {
+				$fstring='';
+				if($comments && isset($f['Type']) && !empty($f['Type'])) {
+					preg_match('/([^\(]+)[\(]?([\d]*)?[\)]?(.+)?/', $f['Type'], $ftype);
+					$length = '';
+					$more = '';
 
-                    //-------- generate rules for the setupValidation() in Model ------
-                    if($vrules){
-                        $rule = array();
-                        if($rulename = DooValidator::dbDataTypeToRules(strtolower($ftype[1]))){
-                            $rule = array(array($rulename));
-                        }
+					if(isset($ftype[2]) && !empty($ftype[2]))
+						$length = " Max length is $ftype[2].";
+					if(isset($ftype[3]) && !empty($ftype[3])) {
+						$more = " $ftype[3].";
+						$ftype[3] = trim($ftype[3]);
+					}
 
-                        if(isset($ftype[3]) && $ftype[3]=='unsigned')
-                            $rule[] = array('min',0);
-                        if(ctype_digit($ftype[2])){
-                            if($ftype[1]=='varchar' || $ftype[1]=='char' )
-                                $rule[] = array('maxlength', intval($ftype[2]));
-                            else if($rulename=='integer'){
-                                $rule[] = array('maxlength', intval($ftype[2]));
-                            }
-                        }
+					$fstring = "\n    /**\n     * @var {$ftype[1]}$length$more\n     */\n";
 
-                        if(strtolower($f['Null'])=='no' && (strpos(strtolower($f['Extra']), 'auto_increment') === false))
-                            $rule[] = array('notnull');
-                        else
-                            $rule[] = array('optional');
+					//-------- generate rules for the setupValidation() in Model ------
+					if($vrules) {
+						$rule = array();
+						if($rulename = DooValidator::dbDataTypeToRules(strtolower($ftype[1]))) {
+							$rule = array(array($rulename));
+						}
 
-                        if(isset($rule[0]))
-                            $rules[$f['Field']] = $rule;
-                    }
-                }
-                
-                $filestr .= "$fstring    public \${$f['Field']};\n";
-                $fieldnames[] = $f['Field'];
-                if($f['Key']=='PRI'){
-                    $pkey = $f['Field'];
-                }
-           }
+						if(isset($ftype[3]) && $ftype[3]=='unsigned')
+							$rule[] = array('min',0);
+						if(ctype_digit($ftype[2])) {
+							if($ftype[1]=='varchar' || $ftype[1]=='char' )
+								$rule[] = array('maxlength', intval($ftype[2]));
+							else if($rulename=='integer') {
+								$rule[] = array('maxlength', intval($ftype[2]));
+							}
+						}
 
-           $fieldnames = implode($fieldnames, "','");
-           $filestr .= "\n    public \$_table = '$tblname';\n";
-           $filestr .= "    public \$_primarykey = '$pkey';\n";
-           $filestr .= "    public \$_fields = array('$fieldnames');\n";
+						if(strtolower($f['Null'])=='no' && (strpos(strtolower($f['Extra']), 'auto_increment') === false))
+							$rule[] = array('notnull');
+						else
+							$rule[] = array('optional');
 
-           if($vrules && !empty ($rules)){
-               $filestr .= "\n    public function getVRules() {\n        return ". self::exportRules($rules) ."\n    }\n\n";
-               if(empty($extends)){
-                   $filestr .="    public function validate(\$checkMode='all'){
-        //You do not need this if you extend DooModel or DooSmartModel
-        //MODE: all, all_one, skip
-        Doo::loadHelper('DooValidator');
-        \$v = new DooValidator;
-        \$v->checkMode = \$checkMode;
-        return \$v->validate(get_object_vars(\$this), \$this->getVRules());
-    }\n\n";
-               }
-           }
-           $filestr .= "}\n?>";
+						if(isset($rule[0]))
+							$rules[$f['Field']] = $rule;
+					}
+				}
 
-           if($createBase!=True){
-               $handle = fopen(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "model/$classname.php", 'w+');
-               fwrite($handle, $filestr);
-               fclose($handle);
-               echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";                        
-           }else{
-               $baseFolder = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "model/base";
-               if(!file_exists($baseFolder))
-                   mkdir($baseFolder);
-               $handle = fopen($baseFolder."/{$classname}Base.php", 'w+');
-               fwrite($handle, $filestr);
-               fclose($handle);
-               echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Base model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">{$classname}Base</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";                        
-               
-               $clsfile = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "model/$classname.php";
-               if(!file_exists($clsfile)){
-                   $handle = fopen($clsfile, 'w+');
-                   $filestr = "<?php\nDoo::loadModel('base/{$classname}Base');\n\nclass $classname extends {$classname}Base{\n}\n?>";
-                   fwrite($handle, $filestr);
-                   fclose($handle);              
-                   $clsExtendedNum++;
-                   echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";                        
-               }                
-           }
-        }
+				$filestr .= "$fstring    public \${$f['Field']};\n";
+				$fieldnames[] = $f['Field'];
+				if($f['Key']=='PRI') {
+					$pkey = $f['Field'];
+				}
+			}
 
-        $total = sizeof($tables)+$clsExtendedNum;
-        echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;color:#fff;\">Total $total file(s) generated.</span></body></html>";
-    }
+			$fieldnames = implode($fieldnames, "','");
+			$filestr .= "\n    public \$_table = '$tblname';\n";
+			$filestr .= "    public \$_primarykey = '$pkey';\n";
+			$filestr .= "    public \$_fields = array('$fieldnames');\n";
+
+			if($vrules && !empty ($rules)) {
+				$filestr .= "\n    public function getVRules() {\n        return ". self::exportRules($rules) ."\n    }\n\n";
+				if(empty($extends)) {
+					$filestr .="    public function validate(\$checkMode='all'){
+		//You do not need this if you extend DooModel or DooSmartModel
+		//MODE: all, all_one, skip
+		Doo::loadHelper('DooValidator');
+		\$v = new DooValidator;
+		\$v->checkMode = \$checkMode;
+		return \$v->validate(get_object_vars(\$this), \$this->getVRules());
+	}\n\n";
+				}
+			}
+			$filestr .= "}\n?>";
+
+			if($createBase!=True) {
+				if($fileManager->create(Doo::conf()->MODEL_PATH . "$classname.php", $filestr, 'w+')) {
+					echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
+				} else {
+					echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#f00;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#f00;\"> could not be generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#f00;\">.php</span></span><br/><br/>";
+				}
+			}else {
+
+				if($fileManager->create(Doo::conf()->MODEL_PATH."base/{$classname}Base.php", $filestr, 'w+')) {
+					echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Base model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">{$classname}Base</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
+					$clsfile = Doo::conf()->MODEL_PATH . "$classname.php";
+					if(!file_exists($clsfile)) {
+						$filestr = "<?php\nDoo::loadModel('base/{$classname}Base');\n\nclass $classname extends {$classname}Base{\n}\n?>";
+						if ($fileManager->create($clsfile, $filestr, 'w+')) {
+							echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
+							$clsExtendedNum++;
+						} else {
+							echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#f00;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#f00;\"> could not be generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#f00;\">.php</span></span><br/><br/>";
+						}
+					}
+				} else {
+					echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#f00;\">Base model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#f00;\"> could not be generated. File - </span><strong><span style=\"color:#729fbe;\">{$classname}Base</span></strong><span style=\"color:#f00;\">.php</span></span><br/><br/>";
+				}
+			}
+		}
+
+		$total = sizeof($tables)+$clsExtendedNum;
+		echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;color:#fff;\">Total $total file(s) generated.</span></body></html>";
+	}
 	
     /**
      * Generates Model class files from a SQLite database
@@ -219,7 +221,11 @@ class DooModelGen{
      * @param string $filenameModelPrefix Add a prefix for the model class name
      */
     public static function gen_sqlite($extends='', $createBase=false, $addmaps=false, $filenameModelPrefix = ''){
-        // get database info
+        
+		Doo::loadHelper('DooFile');
+		$fileManager = new DooFile(0777);
+
+		// get database info
         $dbconf = Doo::db()->getDefaultDbConfig();
         $dbname = $dbconf[0];
 
@@ -320,29 +326,28 @@ class DooModelGen{
 
             // write content
             if($createBase!=True){
-                $handle = fopen( Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "model/$classname.php", 'w+');
-                fwrite($handle, $filestr);
-                fclose($handle);
-                echo "<span style=\"font-size:100%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
-            }
-            else{
-                $baseFolder = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "model/base";
-                if(!file_exists($baseFolder))
-                    mkdir($baseFolder);
-                $handle = fopen($baseFolder."/{$classname}Base.php", 'w+');
-                fwrite($handle, $filestr);
-                fclose($handle);
-                echo "<span style=\"font-size:100%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Base model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">{$classname}Base</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";                        
-
-                $clsfile = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "model/$classname.php";
-                if(!file_exists($clsfile)){
-                    $handle = fopen($clsfile, 'w+');
-                    $filestr = "<?php\nDoo::loadModel('base/{$classname}Base');\n\nclass $classname extends {$classname}Base{\n}\n?>";
-                    fwrite($handle, $filestr);
-                    fclose($handle);              
-                    $clsExtendedNum++;
-                    echo "<span style=\"font-size:100%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";                        
-                }                 
+				if ($fileManager->create(Doo::conf()->MODEL_PATH . "$classname.php", $filestr, 'w+')) {
+					echo "<span style=\"font-size:100%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
+				} else {
+					echo "<span style=\"font-size:100%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#f00;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#f00;\"> could not be generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#f00;\">.php</span></span><br/><br/>";
+				}
+                
+            } else {
+				if ($fileManager->create(Doo::conf()->MODEL_PATH . "base/{$classname}Base.php", $filestr, 'w+')) {
+					echo "<span style=\"font-size:100%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Base model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">{$classname}Base</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
+					$clsfile = Doo::conf()->MODEL_PATH . "$classname.php";
+					if(!file_exists($clsfile)){
+						$filestr = "<?php\nDoo::loadModel('base/{$classname}Base');\n\nclass $classname extends {$classname}Base{\n}\n?>";
+						if ($fileManager->create($clsfile, $filestr, 'w+')){
+							$clsExtendedNum++;
+							echo "<span style=\"font-size:100%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
+						} else {
+							echo "<span style=\"font-size:100%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#f00;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#f00;\"> could not be generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#f00;\">.php</span></span><br/><br/>";
+						}
+					}
+				} else {
+					echo "<span style=\"font-size:100%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#f00;\">Base model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#f00;\"> could not be generated. File - </span><strong><span style=\"color:#729fbe;\">{$classname}Base</span></strong><span style=\"color:#f00;\">.php</span></span><br/><br/>";
+				}
             }
         }
 
@@ -351,7 +356,11 @@ class DooModelGen{
     }    
     
     public static function gen_pgsql(){
-        $dbconf = Doo::db()->getDefaultDbConfig();
+        
+		Doo::loadHelper('DooFile');
+		$fileManager = new DooFile(0777);
+
+		$dbconf = Doo::db()->getDefaultDbConfig();
         $dbSchema = $dbconf[6];
         $dbname = $dbconf[1];
 
@@ -425,10 +434,11 @@ class DooModelGen{
            $filestr .= "    public \$_primarykey = '$pkey';\n";
            $filestr .= "    public \$_fields = array('$fieldnames');\n";
            $filestr .= "}\n?>";
-           $handle = fopen(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "model/$classname.php", 'w+');
-           fwrite($handle, $filestr);
-           fclose($handle);
-           echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
+		   if ($fileManager->create(Doo::conf()->MODEL_PATH . "$classname.php", $filestr, 'w+')) {
+				echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
+		   } else {
+			   echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#f00;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#f00;\"> could not be generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#f00;\">.php</span></span><br/><br/>";
+		   }
         }
 
         $total = sizeof($tables);
