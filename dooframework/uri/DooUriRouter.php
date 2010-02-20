@@ -263,11 +263,12 @@ class DooUriRouter{
              * take note that Identical Routes MUST have different REQUIREMENT for the param, if not the first which is defined will matched, resulting the other will never be matched
              */
             $uri = substr($uri,1);
-            $uri_parts = explode('/', $uri);
+            $uri_parts_exploded = explode('/', $uri);
     		#echo '<br>------------------------------<br><h3>URI parts from browser:</h3><br>';
     		#print_r($uri_parts);
 
             foreach($uris_data as $ukey=>$udata){
+				$uri_parts = $uri_parts_exploded;
                 $ukey = substr($ukey,1);
                 $uparts = explode('/', $ukey);
                 if(sizeof($uri_parts) !== sizeof($uparts) )
