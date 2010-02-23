@@ -984,7 +984,6 @@ class DooSqlMagic {
                             $record = new $class_name;
 
                             $record->{$rmodel} = ($rfk!=NULL)? new $rmodel : NULL;
-
                             if(isset($tmodel_class) && !isset($record->{$tmodel_class}) ){
                                 if($tmodel_rtype=='has_many'){
                                     #echo 'Has Many 3rd';
@@ -1008,6 +1007,7 @@ class DooSqlMagic {
                                     if( strpos($k2, $tpart1)===0 ){
                                         $tmodel_var = str_replace($tpart1, '', $k2);
                                         $newtmodel->{$tmodel_var} = $v2;
+										continue;
                                     }
                                 }
 
