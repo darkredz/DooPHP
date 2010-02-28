@@ -4,7 +4,11 @@ class DooViewBasic {
 
 	public $controller;
     public $data;
-    protected $tags;
+
+	protected static $safeVariableResult = null;
+	protected static $uniqueId = 0;
+	
+	protected $tags;
     protected $mainRenderFolder;
     protected $tagClassName;
     protected $tagModuleName;
@@ -23,8 +27,6 @@ class DooViewBasic {
 	protected $usingRecursiveRender = false;
 	protected $filterFunctionPrefix = 'filter_';
 	protected $useSafeVariableAccess = false;
-	protected static $safeVariableResult = null;
-	protected static $uniqueId = 0;
 
 	protected $fileManager = null;
 
@@ -281,7 +283,7 @@ class DooViewBasic {
 		$cfilename = $this->rootCompiledPath . $path . $file . '.php';
 
 		while(($found = file_exists($this->rootViewPath . $path . $file . '.html')) == false) {
-			if ($path == '.')
+			if ($path == '.' || $path == '')
 				break;
 			$path = dirname($path);
 		}
@@ -291,7 +293,7 @@ class DooViewBasic {
 		} else {
 			$path = $relativeFolder;
 			while(($found = file_exists($this->defaultRootViewPath . $path . $file . '.html')) == false) {
-				if ($path == '.')
+				if ($path == '.' || $path == '')
 					break;
 				$path = dirname($path);
 			}
@@ -734,6 +736,40 @@ class DooViewBasic {
 	}
 
 	protected function block_include($params) {
+		$result = $this->compileSubView($params);
+		if ($result[0] == true) {
+			return "<?php include '{$result[1]}'; ?>";
+		} else {
+			return $result[1];
+		}
+	}
+
+	protected function block_insert($params) {
+		$result = $this->compileSubView($params);
+		if ($result[0] == true) {
+			return "\n" . file_get_contents($result[1]) . "\n";
+		} else {
+			return $result[1];
+		}
+	}
+
+	protected function block_cycle($params) {
+
+		if (preg_match('/ using ([^\t\r\n]+)$/i', $params, $matches)){
+			// Got an array to use
+			$cycleVar = $this->extractDataPath($matches[1], true);
+			$preCycleStatement = '';
+		} else {
+			$cycleVar = $this->getUniqueVarId();
+			$preCycleStatement = "if (!isset(" . $cycleVar . "))\n\t" . $cycleVar . ' = ' . $this->strToStmt($params) . ";\n";
+		}
+		$cycleStatement = 'echo current(' . $cycleVar . ");\n";
+		$cycleStatement .= 'if (next(' . $cycleVar . ")===false)\n\treset(" . $cycleVar . ");\n";
+		return "<?php\n" . $preCycleStatement . $cycleStatement . '?>';
+	}
+
+
+	private function compileSubView($params) {
 		$params = trim($params);
 		if (preg_match('/^[\'|\"](.+)[\'|\"]$/', $params, $matches)){
 			$file = $matches[1];
@@ -741,10 +777,10 @@ class DooViewBasic {
 			if (isset($this->data[$matches[1]])) {
 				$file = $this->data[$matches[1]];
 			} else {
-				return "<span style=\"color:#ff0000\">Invalid include path. Could not find \$data[{$matches[1]}]</span>";
+				return array(false, "<span style=\"color:#ff0000\">Invalid view. Could not find \$data[{$matches[1]}]</span>");
 			}
 		} else {
-			return "<span style=\"color:#ff0000\">Unrecognised include path. Must be string OR \$data index.</span>";
+			return array(false, "<span style=\"color:#ff0000\">Unrecognised view. Must be string OR \$data index.</span>");
 		}
 
 		if(substr($file, 0,1)=='/'){
@@ -753,7 +789,7 @@ class DooViewBasic {
             $vfilename = str_replace('\\', '/', "{$this->rootViewPath}/$file.html");
         }
         else{
-            
+
             $cfilename = str_replace('\\', '/', "{$this->rootCompiledPath}{$this->mainRenderFolder}/$file.php");
 
 			if ($this->usingRecursiveRender == true) {
@@ -761,7 +797,8 @@ class DooViewBasic {
 				$path = $this->mainRenderFolder;
 
 				while(($found = file_exists($this->rootViewPath . $path . $fileName)) == false) {
-					if ($path == '.')
+					echo $path . "<br />";
+					if ($path == '.' || $path == '')
 						break;
 					$path = dirname($path);
 				}
@@ -771,7 +808,8 @@ class DooViewBasic {
 				} else {
 					$path = $this->mainRenderFolder;
 					while(($found = file_exists($this->defaultRootViewPath . $path . $fileName)) == false) {
-						if ($path == '.')
+						echo $path . "<br />";
+						if ($path == '.' || $path == '')
 							break;
 						$path = dirname($path);
 					}
@@ -788,7 +826,7 @@ class DooViewBasic {
         }
 
         if(!file_exists($vfilename)){
-            return "<span style=\"color:#ff0000\">Include view file <strong>{$file}.html</strong> not found</span>";
+            return array('false', "<span style=\"color:#ff0000\">View file <strong>{$file}.html</strong> not found</span>");
         }else{
             if(!$this->forceCompile && file_exists($cfilename)){
                 if(filemtime($vfilename)>filemtime($cfilename)){
@@ -799,15 +837,14 @@ class DooViewBasic {
             }
         }
 
-        return "<?php include '{$cfilename}'; ?>";
+        return array(true, $cfilename);
 	}
-
-
-
 
 
 	// UTILITY STUFF
 	protected function strToStmt($str) {
+		
+		//echo "strToStmt: {$str}<br />";
 
 		$result = '';
 		$currentToken = '';
@@ -856,7 +893,11 @@ class DooViewBasic {
 					$arrayDepth--;
 					break;
 				case '|':
-					if ($arrayDepth == 0 && $functionDepth == 0) {
+					if (isset($str[$i+1]) && $str[$i+1] == '|') {
+						$currentToken .= $char . '|';
+						$i++;
+						continue;
+					} elseif ($arrayDepth == 0 && $functionDepth == 0 && trim($currentToken) != '|') {
 						$inFilter = true;
 						$tokens[] = $currentToken;
 						$currentToken = '';
@@ -920,6 +961,9 @@ class DooViewBasic {
 	}
 
 	protected function processStmt($str) {
+		
+		//echo "processStmt: {$str}<br />";
+
 		$result = '';
 		$currentToken = '';
 		$numChars = strlen($str);
@@ -1029,7 +1073,9 @@ class DooViewBasic {
 
 	protected function extractArgument($arg) {
 
-		if (in_array($arg, array('', '&&', '||', '<=', '==', '>=', '!=', '===', '!==', '<', '>', '+', '-', '*', '/'))) {
+		//echo "extractArgument: {$arg}<br />";
+
+		if (in_array($arg, array('', '&&', '||', '<=', '==', '>=', '!=', '===', '!==', '<', '>', '+', '-', '*', '/', '%'))) {
 			return $arg;
 		}
 
@@ -1051,6 +1097,9 @@ class DooViewBasic {
 	}
 
 	protected function extractDataPath($str, $ignoreSafe = false) {
+
+		//echo "extractDataPath: $str<br/>";
+
 		$result = '$data';
 		$currentToken = '';
 		$numChars = strlen($str);
@@ -1102,7 +1151,8 @@ class DooViewBasic {
 						}
 					}
 					$i = $j - 1;
-					$currentToken .= '[' . $this->strToStmt($arrayIndexContentToken) . ']';
+					$result .= '[' . $this->extractDataPath($arrayIndexContentToken, true) . ']';
+					$currentToken = '';
 					break;
 				case '-':
 					if (isset($str[$i+1])) {
