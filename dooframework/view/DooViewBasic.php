@@ -786,7 +786,11 @@ class DooViewBasic {
 		if(substr($file, 0,1)=='/'){
             $file = substr($file, 1);
             $cfilename = str_replace('\\', '/', "{$this->rootCompiledPath}{$this->mainRenderFolder}/$file.php");
-            $vfilename = str_replace('\\', '/', "{$this->rootViewPath}/$file.html");
+            if (file_exists("{$this->rootViewPath}/{$file}.html")) {
+				$vfilename = "{$this->rootViewPath}/{$file}.html";
+			} else {
+				$vfilename = "{$this->defaultRootViewPath}/{$file}.html";
+			}
         }
         else{
 
@@ -826,7 +830,7 @@ class DooViewBasic {
         }
 
         if(!file_exists($vfilename)){
-            return array('false', "<span style=\"color:#ff0000\">View file <strong>{$file}.html</strong> not found</span>");
+            return array(false, "<span style=\"color:#ff0000\">View file <strong>{$file}.html</strong> not found</span>");
         }else{
             if(!$this->forceCompile && file_exists($cfilename)){
                 if(filemtime($vfilename)>filemtime($cfilename)){
