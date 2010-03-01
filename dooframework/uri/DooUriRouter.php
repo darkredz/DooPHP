@@ -135,8 +135,8 @@ class DooUriRouter{
         }
         header("Location: $location", true, $code);
         if($headerAfter!=NULL){
-            for($i=0;$i<sizeof($headerBefore);$i++){
-                header($headerBefore[$i]);
+            for($i=0;$i<sizeof($headerAfter);$i++){
+                header($headerAfter[$i]);
             }
         }
         if($exit)
