@@ -110,7 +110,11 @@ class DooFile {
             fclose($fp);
             return ($rs>0);
 		}else{
-            return mkdir($path, $this->chmod, true);
+			if (!file_exists($path)) {
+				return mkdir($path, $this->chmod, true);
+			} else {
+				return true;
+			}
         }
 	}
 

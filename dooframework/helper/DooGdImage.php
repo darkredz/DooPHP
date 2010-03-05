@@ -389,6 +389,82 @@ class DooGdImage {
         return true;
     }
 
+	/**
+     * Resizes the Image and keep it proportioned
+     *
+     * Resize the image to fit within specified area while maintaining the image ratio.
+	 *
+	 * There are 3 modes of operation which are
+	 *  - To resize so width matches specification and height it auto determined (set width but leave height as null)
+	 *  - To resize so height matches spectification and width is auto determined (set width to null and height to desired height)
+	 *  - To resize so image fits within the area defined by width and height (set both width and height)
+     *
+     * @param string $file The image file name.
+     * @param int $width The maximum width of the new image (or null if only setting height)
+     * @param int $height The maximum height of the new image (or null if only setting width)
+     * @param string $rename New file name for the processed image file to be saved.
+     * @return bool|string Returns the generated image file name. Return false if failed.
+     */
+	public function ratioResize($file, $width=null, $height=null, $rename=null) {
+
+		$file = $this->uploadPath . $file;
+        $imginfo = $this->getInfo($file);
+
+        if($rename=='')
+            $newName = substr($imginfo['name'], 0, strrpos($imginfo['name'], '.')) . $this->thumbSuffix .'.'. $this->generatedType;
+        else
+            $newName = $rename .'.'. $this->generatedType;
+
+		if ($width === null && $height === null) {
+			return false;
+		} elseif ($width !== null && $height === null) {
+			$resizeWidth = $width;
+			$resizeHeight = ($width / $imginfo['width']) * $imginfo['height'];
+		} elseif ($width === null && $height !== null) {
+			$resizeWidth = ($height / $imginfo['height']) * $imginfo['width'];
+			$resizeHeight = $height;
+		} else {
+			if ($imginfo['width'] > $imginfo['height']) {
+				$resizeWidth = $width;
+				$resizeHeight = ($width / $imginfo['width']) * $imginfo['height'];
+			} else {
+				$resizeWidth = ($height / $imginfo['height']) * $imginfo['width'];
+				$resizeHeight = $height;
+			}
+		}
+
+		//create image object based on the image file type, gif, jpeg or png
+        $this->createImageObject($img, $imginfo['type'], $file);
+		if(!$img) return false;
+
+        if (function_exists('imagecreatetruecolor')){
+            $newImg = imagecreatetruecolor($resizeWidth, $resizeHeight);
+            imagecopyresampled($newImg, $img, 0, 0, 0, 0, $resizeWidth, $resizeHeight, $imginfo['width'], $imginfo['height']);
+        }
+        else{
+            $newImg = imagecreate($resizeWidth, $resizeHeight);
+            imagecopyresampled($newImg, $img, ($width-$resizeWidth)/2, ($height-$resizeHeight)/2, 0, 0, $resizeWidth, $resizeHeight, $imginfo['width'], $imginfo['height']);
+        }
+		
+		imagedestroy($img);
+
+        if($this->saveFile){
+            //delete if exist
+            if(file_exists($this->processPath . $newName))
+                unlink($this->processPath . $newName);
+            $this->generateImage($newImg, $this->processPath . $newName);
+            imagedestroy($newImg);
+            return $this->processPath . $newName;
+        }
+        else{
+            $this->generateImage($newImg);
+            imagedestroy($newImg);
+        }
+
+        return true;
+
+	}
+
     /**
      * Add water mark text to an image.
      * 
@@ -457,6 +533,141 @@ class DooGdImage {
 
         return true;
     }
+
+	/**
+	 * Embed a watermark image onto a given image.
+	 *
+	 * @param string $file Image file name
+	 * @param string $watermarkImgPath Full path to watermark image
+	 * @param string|int $posX Position of watermark horizontally: left | middle | right  OR > 0 to position Xpx from left or < 0 to position Xpx from right
+	 * @param string|int $posY Position of watermark vertically: top  | middle | bottom OR > 0 to position Xpx from top  or < 0 to position Xpx from bottom
+	 * @param string $rename New file name for the processed image file to be saved
+	 * @return bool|string Returns the generated image file name. Return false if failed
+	 */
+	public function waterMarkImage($file, $watermarkImgPath, $posX='right', $posY='bottom', $rename='') {
+		$file = $this->uploadPath . $file;
+        $imgInfo = $this->getInfo($file);
+		$watermarkImgInfo = $this->getInfo($watermarkImgPath);
+
+        if($rename=='')
+            $newName = substr($imgInfo['name'], 0, strrpos($imgInfo['name'], '.')) . $this->waterSuffix .'.'. $this->generatedType;
+        else
+            $newName = $rename .'.'. $this->generatedType;
+
+		$destX = 0;
+		$destY = 0;
+
+		if ($posX === 'left') {
+			$destX = 0;
+		} elseif ($posX === 'right') {
+			$destX = $imgInfo['width'] - $watermarkImgInfo['width'];
+		} elseif ($posX === 'middle') {
+			$destX = ($imgInfo['width'] - $watermarkImgInfo['width']) / 2;
+		} elseif ($posX > 0) {
+			$destX = $posX;
+		} elseif ($posX < 0) {
+			$destX = $imgInfo['width'] - $watermarkImgInfo['width'] + $posX;
+		}
+
+		if ($posY === 'top') {
+			$destY = 0;
+		} elseif ($posY === 'bottom') {
+			$destY = $imgInfo['height'] - $watermarkImgInfo['height'];
+		} elseif ($posY === 'middle') {
+			$destY = ($imgInfo['height'] - $watermarkImgInfo['height']) / 2;
+		} elseif ($posY > 0) {
+			$destY = $posY;
+		} elseif ($posY < 0) {
+			$destY = $imgInfo['height'] - $watermarkImgInfo['height'] + $posX;
+		}
+
+        //create image object based on the image file type, gif, jpeg or png
+        $this->createImageObject($img, $imgInfo['type'], $file);
+		$this->createImageObject($watermarkImg, $watermarkImgInfo['type'], $watermarkImgPath);
+
+        if(!$img || !$watermarkImg) return false;
+
+		if (function_exists('imagecreatetruecolor')){
+            $new = imagecreatetruecolor($imgInfo['width'], $imgInfo['height']);
+            imagecopyresampled($new, $img, 0, 0, 0, 0, $imgInfo['width'], $imgInfo['height'], $imgInfo['width'], $imgInfo['height']);
+        }
+        else{
+            $new = imagecreate($imgInfo['width'], $imgInfo['height']);
+            imagecopyresampled($new, $img, 0, 0, 0, 0, $imgInfo['width'], $imgInfo['height'], $imgInfo['width'], $imgInfo['height']);
+        }
+		imagedestroy($img);
+		
+		imagecopy($new, $watermarkImg, $destX, $destY, 0, 0, $watermarkImgInfo['width'], $watermarkImgInfo['height']);
+		imagedestroy($watermarkImg);
+
+		if ($this->saveFile){
+            if (file_exists($this->processPath . $newName))
+                unlink($this->processPath . $newName);
+            $this->generateImage($new, $this->processPath . $newName);
+			imagedestroy($new);
+            return $this->processPath . $newName;
+        }
+        else{
+            $this->generateImage($new);
+			imagedestroy($new);
+        }
+
+        return true;
+	}
+
+	/**
+	 * Centers an image in the middle of a container image. Useful when you want to align an image horizontally and vertically
+	 * for example a landscape image in a square box.
+	 *
+	 * @param string $file Image file name
+	 * @param integer $width The width of the new image
+	 * @param integer $height The height of the new image
+	 * @param array $bgcolor Array defining the background color array(RED, GREEN, BLUE) eg. (0, 255, 0) for bright green
+	 * @param string $rename New file name for the processed image file to be saved
+	 * @return bool|string Returns the generated image file name. Return false if failed
+	 */
+	public function centerImageInContrainer($file, $width, $height, array $bgcolor, $rename='') {
+		$file = $this->uploadPath . $file;
+        $imginfo = $this->getInfo($file);
+
+        if($rename=='')
+            $newName = substr($imginfo['name'], 0, strrpos($imginfo['name'], '.')) . $this->thumbSuffix .'.'. $this->generatedType;
+        else
+            $newName = $rename .'.'. $this->generatedType;
+
+		//create image object based on the image file type, gif, jpeg or png
+        $this->createImageObject($img, $imginfo['type'], $file);
+		if(!$img) return false;
+
+        //For GD version 2.0.1 only
+        if (function_exists('imagecreatetruecolor')){
+            $newImg = imagecreatetruecolor($width, $height);
+        } else {
+            $newImg = imagecreate($width, $height);
+        }
+
+		$bgColor = imagecolorallocate($newImg, $bgcolor[0], $bgcolor[1], $bgcolor[2]);
+		imagefilledrectangle($newImg, 0, 0, $width, $height, $bgColor);
+
+		imagecopyresampled($newImg, $img, ($width-$imginfo['width'])/2, ($height-$imginfo['height'])/2, 0, 0, $imginfo['width'], $imginfo['height'], $imginfo['width'], $imginfo['height']);
+
+		imagedestroy($img);
+
+        if($this->saveFile){
+            //delete if exist
+            if(file_exists($this->processPath . $newName))
+                unlink($this->processPath . $newName);
+            $this->generateImage($newImg, $this->processPath . $newName);
+            imagedestroy($newImg);
+            return $this->processPath . $newName;
+        }
+        else{
+            $this->generateImage($newImg);
+            imagedestroy($newImg);
+        }
+
+        return true;
+	}
 
     /**
      * Get the file name of an image's thumbnail.
