@@ -401,26 +401,29 @@ class DooFile {
         $file = !empty($_FILES[$filename]) ? $_FILES[$filename] : null;
         if($file==Null)return;
 
+		if (!file_exists($uploadPath)) {
+			$this->create($uploadPath);
+		}
+
         if(is_array($file['name'])===False){
             $pic = strrpos($file['name'], '.');
             $ext = substr($file['name'], $pic+1);
 
-            if ($this->timeAsName){
-                $newName = time().'-'.mt_rand(1000,9999) . '.' . $ext;
-            }else{
-                $newName = $file['name'];
-            }
-
             if($rename=='')
-                $filePath = $this->uploadPath . $newName;
+                $newName = time().'-'.mt_rand(1000,9999) . '.' . $ext;
             else
-                $filePath = $this->uploadPath . $rename . '.' . $ext;
+                $newName = $rename . '.' . $ext;
+
+			$filePath = $uploadPath . $newName;
 
             if (move_uploaded_file($file['tmp_name'], $filePath)){
-                return ($rename=='')? $newName : $rename. '.' . $ext;
+                return $newName;
             }
         }
         else{
+			if (!file_exists($uploadPath)) {
+				$this->create($uploadPath);
+			}
             $uploadedPath = array();
             foreach($file['error'] as $k=>$error){
                 if(empty($file['name'][$k])) continue;
@@ -428,16 +431,12 @@ class DooFile {
                    $pic = strrpos($file['name'][$k], '.');
                    $ext = substr($file['name'][$k], $pic+1);
 
-                   if($this->timeAsName){
-                       $newName = time().'-'.mt_rand(1000,9999) . '_' . $k . '.' . $ext;
-                   }else{
-                       $newName = $file['name'][$k];
-                   }
-
                    if($rename=='')
-                       $filePath = $uploadPath . $newName;
+                       $newName = time().'-'.mt_rand(1000,9999) . '_' . $k . '.' . $ext;
                    else
-                       $filePath = $uploadPath . $rename . '_' . $k . '.' . $ext;
+                       $newName = $rename . '_' . $k . '.' . $ext;
+
+				   $filePath = $uploadPath . $newName;
 
                    if (move_uploaded_file($file['tmp_name'][$k], $filePath)){
                        $uploadedPath[] = $newName;
