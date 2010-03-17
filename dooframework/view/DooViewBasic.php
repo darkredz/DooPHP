@@ -7,7 +7,7 @@ class DooViewBasic {
 
 	protected static $safeVariableResult = null;
 	protected static $uniqueId = 0;
-	
+
 	protected $tags;
     protected $mainRenderFolder;
     protected $tagClassName;
@@ -709,7 +709,7 @@ class DooViewBasic {
 		return "<?php endforeach;\n endif; ?>";
 	}
 
-	
+
 
 	protected function block_continue($params) {
 		return '<?php continue; ?>';
@@ -847,7 +847,7 @@ class DooViewBasic {
 
 	// UTILITY STUFF
 	protected function strToStmt($str) {
-		
+
 		//echo "strToStmt: {$str}<br />";
 
 		$result = '';
@@ -958,14 +958,14 @@ class DooViewBasic {
 		} else {
 			$result .= $this->processStmt($currentToken);
 		}
-
+		//echo "strToStmt:: {$result}<br />";
 		return $result;
 
 
 	}
 
 	protected function processStmt($str) {
-		
+
 		//echo "processStmt: {$str}<br />";
 
 		$result = '';
@@ -978,7 +978,7 @@ class DooViewBasic {
 
 		for($i = 0; $i < $numChars; $i++) {
 			$char = $str[$i];
-			
+
 			switch($char) {
 				case '(':	// Moving into a function
 					if (!$inSingleQuoteString && !$inDoubleQuoteString && !strpos($currentToken, '->')) {
@@ -1051,7 +1051,7 @@ class DooViewBasic {
 					break;
 				case ')': // Reached the end of a parameter
 				case ',': // Reached the end of a parameter
-					if (!$inSingleQuoteString && !$inDoubleQuoteString && !strpos($currentToken, '->')) {
+					if (!$inSingleQuoteString && !$inDoubleQuoteString) {
 						$result .= $this->strToStmt($currentToken) . $char;
 						$currentToken = '';
 					} else {
@@ -1072,6 +1072,7 @@ class DooViewBasic {
 		}
 		$result .= $this->extractArgument($currentToken);
 
+		//echo "processStmt:: {$result}<br />";
 		return $result;
 	}
 
@@ -1079,25 +1080,22 @@ class DooViewBasic {
 
 		//echo "extractArgument: {$arg}<br />";
 
+		$result = null;
+
 		if (in_array($arg, array('', '&&', '||', '<=', '==', '>=', '!=', '===', '!==', '<', '>', '+', '-', '*', '/', '%'))) {
-			return $arg;
+			$result = $arg;
+		} elseif (strtolower($arg)=='true' || strtolower($arg)=='false' || strtolower($arg)=='null') {
+			$result = $arg;
+		} elseif (preg_match('/^[-]?[0-9]*\\.?[0-9]{0,}$/', $arg)) {	// Is a number
+			$result = $arg;
+		} elseif (preg_match('/^[\'\"].*[\'\"]$/', $arg)) {				// Is a string 'anything' OR "anything"
+			$result = str_replace('\/\.\;', ',', $arg);
+		} else {														// Got parameter values to handle
+			$result = $this->extractDataPath($arg);
 		}
 
-		// Is a number
-		if (preg_match('/^[-]?[0-9]*\\.?[0-9]{0,}$/', $arg)) {
-			return $arg;
-		}
-		// Is a string 'anything' OR "anything"
-		elseif (preg_match('/^[\'\"].*[\'\"]$/', $arg)) {
-			return str_replace('\/\.\;', ',', $arg);
-		}
-		elseif (strtolower($arg)=='true' || strtolower($arg)=='false' || strtolower($arg)=='null') {
-			return $arg;
-		}
-		// Got parameter values to handle
-		else {
-			return $this->extractDataPath($arg);
-		}
+		//echo "extractArgument:: {$result}<br />";
+		return $result;
 	}
 
 	protected function extractDataPath($str, $ignoreSafe = false) {
@@ -1111,7 +1109,7 @@ class DooViewBasic {
 		$processingArrayIndex = true;		// True if an array index. False for object index
 		for($i = 0; $i < $numChars; $i++) {
 			$char = $str[$i];
-			
+
 			switch($char) {
 				case '(':
 					$depth = 1;
@@ -1155,7 +1153,7 @@ class DooViewBasic {
 						}
 					}
 					$i = $j - 1;
-					$result .= '[' . $this->extractDataPath($arrayIndexContentToken, true) . ']';
+					$result .= $currentToken . '[' . $this->extractDataPath($arrayIndexContentToken, true) . ']';
 					$currentToken = '';
 					break;
 				case '-':
@@ -1163,11 +1161,12 @@ class DooViewBasic {
 						if($str[$i+1] == '>') {
 							if ($processingArrayIndex) {
 								if (is_numeric($currentToken))
-									$result .= '[' . $currentToken . ']';
+									$result .= '[' . $currentToken . ']->';
 								else
-									$result .= '[\'' . $currentToken . '\']';
+									$result .= '[\'' . $currentToken . '\']->';
 							} else {
-								$result .= '->' . $currentToken;
+	//echo "CurrentToken: $currentToken<br />";
+								$result .= $currentToken . '->';
 							}
 
 							$processingArrayIndex = false;
@@ -1202,9 +1201,11 @@ class DooViewBasic {
 				else
 					$result .= '[\'' . $currentToken . '\']';
 			} else {
-				$result .= '->' . $currentToken;
+				$result .= $currentToken;
 			}
 		}
+
+		//echo "extractDataPath:: $result<br/>";
 
 		if (!$ignoreSafe && $this->useSafeVariableAccess) {
 			return 'DooViewBasic::is_set_or(' . $result . ')';
