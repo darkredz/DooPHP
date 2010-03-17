@@ -405,7 +405,7 @@ class DooGdImage {
      * @param string $rename New file name for the processed image file to be saved.
      * @return bool|string Returns the generated image file name. Return false if failed.
      */
-	public function ratioResize($file, $width=null, $height=null, $rename=null) {
+	public function ratioResize($file, $width=null, $height=null, $rename='') {
 
 		$file = $this->uploadPath . $file;
         $imginfo = $this->getInfo($file);
@@ -626,7 +626,8 @@ class DooGdImage {
 	 * @param string $rename New file name for the processed image file to be saved
 	 * @return bool|string Returns the generated image file name. Return false if failed
 	 */
-	public function centerImageInContrainer($file, $width, $height, array $bgcolor, $rename='') {
+	public function centerImageInContrainer($file, $width, $height, $bgcolor, $rename='') {
+
 		$file = $this->uploadPath . $file;
         $imginfo = $this->getInfo($file);
 
