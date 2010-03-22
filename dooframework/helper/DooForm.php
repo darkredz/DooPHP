@@ -151,6 +151,7 @@ class DooForm extends DooValidator {
 		$enctype = (isset($this->_enctype) && ($this->_enctype == 'multipart/form-data'))?'enctype="'.$this->_enctype.'"':'';
 		$formOpenHtml = '<form action="'.$this->_action . '" method="'.$this->_method.'" '.$enctype.' class="doo-form">';
 		$formCloseHtml = '</form>';
+		$elementError = '';
 		if ($this->_renderFormat == 'array') {
 			$formOutput = array(
 				'startDooForm' => $formOpenHtml,
