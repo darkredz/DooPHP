@@ -625,10 +625,11 @@ class DooForm extends DooValidator {
 		// set values
 		$this->_elementValues = $elementValues;
 		if (count($errors) > 0) {
-			$this->_errors = $errors;
 			foreach ($errors as $error => $e) {
 				if (!empty($e)) $valid = false;
+				if (is_null($e)) unset($errors[$error]);
 			}
+			$this->_errors = $errors;
 		}
 		return $valid;
 	}
