@@ -801,7 +801,7 @@ class DooViewBasic {
 				$path = $this->mainRenderFolder;
 
 				while(($found = file_exists($this->rootViewPath . $path . $fileName)) == false) {
-					echo $path . "<br />";
+					//echo $path . "<br />";
 					if ($path == '.' || $path == '')
 						break;
 					$path = dirname($path);
@@ -812,7 +812,7 @@ class DooViewBasic {
 				} else {
 					$path = $this->mainRenderFolder;
 					while(($found = file_exists($this->defaultRootViewPath . $path . $fileName)) == false) {
-						echo $path . "<br />";
+						//echo $path . "<br />";
 						if ($path == '.' || $path == '')
 							break;
 						$path = dirname($path);
@@ -848,7 +848,7 @@ class DooViewBasic {
 	// UTILITY STUFF
 	protected function strToStmt($str) {
 
-		//echo "strToStmt: {$str}<br />";
+		$this->debug("strToStmt: {$str}");
 
 		$result = '';
 		$currentToken = '';
@@ -864,21 +864,7 @@ class DooViewBasic {
 			switch($char) {
 				case '\'':
 				case '"':
-					$quoteType = $char;
-					$currentToken .= $char;
-					while (isset($str[$i + 1])) {
-						$currentToken .= $str[$i + 1];
-						if ($str[$i + 1] == '\\') {
-							if (isset($str[$i + 2]) && $str[$i + 2] == $quoteType) {
-								$currentToken .= $quoteType;
-								$i++;
-							}
-						} elseif($str[$i+1] == $quoteType) {
-							$i++;
-							break;
-						}
-						$i++;
-					}
+					$currentToken .= $this->findEndOfString($str, $i);
 					break;
 				case '(':
 					$currentToken .= $char;
@@ -958,19 +944,20 @@ class DooViewBasic {
 		} else {
 			$result .= $this->processStmt($currentToken);
 		}
-		//echo "strToStmt:: {$result}<br />";
+		$this->debug("strToStmt:: {$result}");
 		return $result;
 
 
 	}
 
 	protected function processStmt($str) {
-
-		//echo "processStmt: {$str}<br />";
+		$str = $str . ' ';
+		$this->debug("processStmt: {$str}");
 
 		$result = '';
 		$currentToken = '';
 		$numChars = strlen($str);
+		$functionDepth = 0;
 		$arrayDepth = 0;
 		$inSingleQuoteString = false;
 		$inDoubleQuoteString = false;
@@ -981,17 +968,45 @@ class DooViewBasic {
 
 			switch($char) {
 				case '(':	// Moving into a function
-					if (!$inSingleQuoteString && !$inDoubleQuoteString && !strpos($currentToken, '->')) {
-						if (trim($currentToken) != ''){
-							$result .= $this->convertToFunction($currentToken) . '(';
+					if (!$inSingleQuoteString && !$inDoubleQuoteString) {
+						if (trim($currentToken) != '' && !strpos($currentToken, '->')) {
+							$result .= $this->convertToFunction($currentToken);
 						} else {
-							$result .= $currentToken . $char;
+							if (trim($currentToken) != '') {
+								$result .= $this->extractDataPath($currentToken, true);
+							}
 						}
 						$currentToken = '';
-						break;
+						$functionDepth++;
+						while ($functionDepth > 0 && isset($str[++$i])) {
+							switch($str[$i]) {
+								case '"':
+								case '\'':
+									$currentToken .= $this->findEndOfString($str, $i);
+									break;
+								case '(':
+									$currentToken .= '(';
+									$functionDepth++;
+									break;
+								case ')':
+									$functionDepth--;
+									if ($functionDepth == 0) {
+										break;
+									} else {
+										$currentToken .= ')';
+									}
+									break;
+								default:
+									$currentToken .= $str[$i];
+							}
+						}
+						$this->debug("Function Loop Found: $currentToken");
+						$result .= '(' . $this->processStmt($currentToken) . ')';
+						$currentToken = '';
 					}
-					$currentToken .= $char;
+
 					break;
+
 				case '[':
 					if (!$inSingleQuoteString && !$inDoubleQuoteString) {
 						if ($currentToken != '') {		// We have an index like foo.bar[abc] to become $data['foo']['bar'][$data['abc']]
@@ -1049,7 +1064,6 @@ class DooViewBasic {
 					}
 					$currentToken .= $char;
 					break;
-				case ')': // Reached the end of a parameter
 				case ',': // Reached the end of a parameter
 					if (!$inSingleQuoteString && !$inDoubleQuoteString) {
 						$result .= $this->strToStmt($currentToken) . $char;
@@ -1070,15 +1084,16 @@ class DooViewBasic {
 					$currentToken .= $char;
 			}
 		}
+		$this->debug("CurrentToken:: $currentToken");
 		$result .= $this->extractArgument($currentToken);
 
-		//echo "processStmt:: {$result}<br />";
+		$this->debug("processStmt:: {$result}");
 		return $result;
 	}
 
 	protected function extractArgument($arg) {
 
-		//echo "extractArgument: {$arg}<br />";
+		$this->debug("extractArgument: {$arg}");
 
 		$result = null;
 
@@ -1094,13 +1109,13 @@ class DooViewBasic {
 			$result = $this->extractDataPath($arg);
 		}
 
-		//echo "extractArgument:: {$result}<br />";
+		$this->debug("extractArgument:: {$result}");
 		return $result;
 	}
 
 	protected function extractDataPath($str, $ignoreSafe = false) {
 
-		//echo "extractDataPath: $str<br/>";
+		$this->debug("extractDataPath: $str");
 
 		$result = '$data';
 		$currentToken = '';
@@ -1131,6 +1146,7 @@ class DooViewBasic {
 						}
 					}
 					$i = $j - 1;
+					$this->debug("FunctionContentToken: $functionContentToken");
 					$currentToken .= '(' . $this->strToStmt($functionContentToken) . ')';
 					break;
 				case '[':
@@ -1165,7 +1181,6 @@ class DooViewBasic {
 								else
 									$result .= '[\'' . $currentToken . '\']->';
 							} else {
-	//echo "CurrentToken: $currentToken<br />";
 								$result .= $currentToken . '->';
 							}
 
@@ -1184,7 +1199,7 @@ class DooViewBasic {
 						else
 							$result .= '[\'' . $currentToken . '\']';
 					} else {
-						$result .= '->' . $currentToken;
+						$result .= $currentToken;
 					}
 					$currentToken = '';
 					$processingArrayIndex = true;
@@ -1205,7 +1220,7 @@ class DooViewBasic {
 			}
 		}
 
-		//echo "extractDataPath:: $result<br/>";
+		$this->debug("extractDataPath:: $result");
 
 		if (!$ignoreSafe && $this->useSafeVariableAccess) {
 			return 'DooViewBasic::is_set_or(' . $result . ')';
@@ -1215,6 +1230,9 @@ class DooViewBasic {
 	}
 
 	private function convertToFunction($funcName) {
+
+		$this->debug("convertToFunction: $funcName");
+
 		if(!in_array(strtolower($funcName), $this->tags)) {
             return 'function_deny';
         }
@@ -1222,7 +1240,29 @@ class DooViewBasic {
         if(isset($this->tags['_methods']) && in_array($funcName, $this->tags['_methods'])===True){
             $funcName = $this->tags['_class'] . '::' . $funcName;
         }
+
+		$this->debug("convertToFunction:: $funcName");
 		return $funcName;
+	}
+
+
+	private function findEndOfString(&$str, &$i) {
+		$this->debug("findEndOfString: $str");
+		$start = $i+1;
+		$quoteType = $str[$i];
+		while (isset($str[$i + 1])) {
+			if ($str[$i + 1] == '\\') {
+				if (isset($str[$i + 2]) && $str[$i + 2] == $quoteType) {
+					$i++;
+				}
+			} elseif($str[$i+1] == $quoteType) {
+				$i++;
+				break;
+			}
+			$i++;
+		}
+		$this->debug("findEndOfString::" . $quoteType . substr($str, $start, $i - $start) . $quoteType);
+		return $quoteType . substr($str, $start, $i - $start) . $quoteType;
 	}
 
 	private function stripCommaStr($matches) {
@@ -1242,6 +1282,10 @@ class DooViewBasic {
 
 	public static function is_set_or(&$var) {
 		return (isset($var)) ? $var : DooViewBasic::$safeVariableResult;
+	}
+
+	private function debug($str) {
+		//echo $str . '<br />';
 	}
 
 }
