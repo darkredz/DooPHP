@@ -392,7 +392,7 @@ class DooModel{
      * @return int total of records
      */
     public function count($options=null){
-        $options['select'] = 'COUNT('. $this->_fields[0] .') as _doototal';
+        $options['select'] = 'COUNT('. $this->_table . '.' . $this->_fields[0] .') as _doototal';
         $options['asArray'] = true;
         $options['limit'] = 1;
         $rs = Doo::db()->find($this, $options);
@@ -458,7 +458,7 @@ class DooModel{
         if($model===null)
             $model = new self::$className;
 
-        $options['select'] = 'COUNT('. $model->_fields[0] .') as _doototal';
+		$options['select'] = 'COUNT('. $model->_table . '.' . $model->_fields[0] .') as _doototal';
         $options['asArray'] = true;
         $options['limit'] = 1;
         $rs = Doo::db()->find($model, $options);
