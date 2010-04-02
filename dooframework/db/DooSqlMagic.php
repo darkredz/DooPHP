@@ -176,7 +176,6 @@ class DooSqlMagic {
      * @return PDOStatement
      */
     public function query($query, $param=null){
-        //echo "\n\n". $query."\n\n";
         if($this->sql_tracking===true){
             $querytrack = $query;
             //if params used in sql, replace them into the sql string for logging
@@ -344,7 +343,7 @@ class DooSqlMagic {
         if(isset($opt['select'])){
             $sqladd['select']=$opt['select'];
         }else{
-            $sqladd['select'] ='*';
+            $sqladd['select'] = "{$model->_table}.*";
         }
 
 
@@ -362,6 +361,69 @@ class DooSqlMagic {
         }else{
             $sqladd['where'] ='';
         }
+
+		if (isset($opt['filters']) && is_array($opt['filters'])) {
+			$sqladd['filter'] = '';
+			foreach ($opt['filters'] as $filter) {
+				$fmodel = null;
+				if(is_object($filter['model'])){
+					$fmodel = $filter['model'];
+					$fTableName = $fmodel->_table;
+					$fmodel_class = get_class($tmodel);
+				}else{
+					$fmodel = Doo::loadModel($filter['model'], true);
+					$fTableName = $fmodel->_table;
+					$fmodel_class = $filter['model'];
+				}
+
+				list($fmodel_rtype, $fparams ) = self::relationType($this->map, $class_name, $fmodel_class);
+
+				if(isset($filter['joinType'])){
+					$joinType = $filter['joinType'] . ' JOIN';
+				}else{
+					$joinType = 'JOIN';
+				}
+
+				switch($fmodel_rtype) {
+					case 'has_one':
+						$sqladd['filter'] .= "{$joinType} {$fTableName} ON {$fmodel->_table}.{$fparams['foreign_key']} = {$model->_table}.{$model->_primarykey} ";
+						break;
+					case 'belongs_to':
+						list($frtype, $ffkey ) = self::relationType($this->map, $fmodel_class, $class_name);
+						$sqladd['filter'] .= "{$joinType} {$fTableName} ON {$fmodel->_table}.{$fparams['foreign_key']} = {$model->_table}.{$ffkey['foreign_key']} ";
+						break;
+					case 'has_many':
+						list($fmtype, $fmparams) = self::relationType($this->map, $fmodel_class, $class_name);
+						if ($fmtype == 'has_many') {
+							$sqladd['filter'] .= "{$joinType} {$fparams['through']} ON {$model->_table}.{$model->_primarykey} = {$fparams['through']}.{$fparams['foreign_key']}\n";
+							$sqladd['filter'] .= "{$joinType} {$fTableName} ON {$fmodel->_table}.{$fmodel->_primarykey} = {$fparams['through']}.{$fmparams['foreign_key']} ";
+						} else {
+							$sqladd['filter'] .= "{$joinType} {$fTableName} ON {$model->_table}.{$fmparams['foreign_key']} = {$fTableName}.{$fparams['foreign_key']} ";
+						}
+				}
+
+				if(isset($filter['where'])){
+					if($sqladd['where']==''){
+						$sqladd['where'] .= ' WHERE '.$filter['where'];
+					}else{
+						$sqladd['where'] .= ' AND '.$filter['where'].' ';
+					}
+					//merge the include param with the Where params, at the end
+					if(isset($filter['param'])){
+						if(isset($opt['param']) && isset($where_values))
+							 $where_values = array_merge( $where_values, $filter['param']);
+						else if(isset($opt['param']))
+							$opt['param'] = array_merge( $opt['param'], $filter['param']);
+						else if(isset($where_values))
+							$where_values = array_merge( $where_values, $filter['param']);
+						else
+							$where_values = $filter['param'];
+					}
+				}
+			}
+		} else {
+			$sqladd['filter'] = '';
+		}
 
         //if asc is defined first then ORDER BY xxx ASC, xxx DESC
         //else Order by xxx DESC, xxx ASC
@@ -394,7 +456,7 @@ class DooSqlMagic {
         }
 
 
-        $sql ="SELECT {$sqladd['select']} FROM {$model->_table} {$sqladd['where']} {$sqladd['order']} {$sqladd['custom']} {$sqladd['limit']}";
+        $sql ="SELECT {$sqladd['select']} FROM {$model->_table} {$sqladd['filter']} {$sqladd['where']} {$sqladd['order']} {$sqladd['custom']} {$sqladd['limit']}";
 
         //conditions WHERE param
         if(isset($opt['param']) && isset($where_values))
@@ -714,7 +776,7 @@ class DooSqlMagic {
                         $where_values = $opt['includeParam'];
                 }
             }
-            //edit the select part since now 3 tables are involved, might have 3 repeating field names in all tables.
+			//edit the select part since now 3 tables are involved, might have 3 repeating field names in all tables.
             //SELECT model.*, related_model.*, includemodel.id AS _t_includemodel_id, includemodel.title AS _t_includemodel_title, ...
             $tselect_field = '';
             foreach($tmodel->_fields as $tfname){
@@ -724,9 +786,83 @@ class DooSqlMagic {
                 $sqladd['select'] = substr($sqladd['select'], 2);
                 $sqladd['select'] = "{$model->_table}.*, {$relatedmodel->_table}.*, $tselect_field" . $sqladd['select'];
             }
+            
         }else{
             $sqladd['include']='';
         }
+
+
+		if (isset($opt['filters']) && is_array($opt['filters'])) {
+			$sqladd['filter'] = '';
+			foreach ($opt['filters'] as $filter) {
+				$fmodel = null;
+				if(is_object($filter['model'])){
+					$fmodel = $filter['model'];
+					$fTableName = $fmodel->_table;
+					$fmodel_class = get_class($tmodel);
+				}else{
+					$fmodel = Doo::loadModel($filter['model'], true);
+					$fTableName = $fmodel->_table;
+					$fmodel_class = $filter['model'];
+				}
+
+
+				list($fmodel_rtype, $fparams ) = self::relationType($this->map, $class_name, $fmodel_class);
+
+				if(isset($filter['joinType'])){
+					$joinType = $filter['joinType'] . ' JOIN';
+				}else{
+					$joinType = 'JOIN';
+				}
+
+				switch($fmodel_rtype) {
+					case 'has_one':
+						$sqladd['filter'] .= "{$joinType} {$fTableName} ON {$fmodel->_table}.{$fparams['foreign_key']} = {$model->_table}.{$model->_primarykey} ";
+						break;
+					case 'belongs_to':
+						list($frtype, $ffkey ) = self::relationType($this->map, $fmodel_class, $class_name);
+						$sqladd['filter'] .= "{$joinType} {$fTableName} ON {$fmodel->_table}.{$fparams['foreign_key']} = {$model->_table}.{$ffkey['foreign_key']} ";
+						break;
+					case 'has_many':
+						list($fmtype, $fmparams) = self::relationType($this->map, $fmodel_class, $class_name);
+						if ($fmtype == 'has_many') {
+							$sqladd['filter'] .= "{$joinType} {$fparams['through']} ON {$model->_table}.{$model->_primarykey} = {$fparams['through']}.{$fparams['foreign_key']}\n";
+							$sqladd['filter'] .= "{$joinType} {$fTableName} ON {$fmodel->_table}.{$fmodel->_primarykey} = {$fparams['through']}.{$fmparams['foreign_key']} ";
+						} else {
+							$sqladd['filter'] .= "{$joinType} {$fTableName} ON {$model->_table}.{$fmparams['foreign_key']} = {$fTableName}.{$fparams['foreign_key']} ";
+						}
+				}
+
+
+				#print_r($sqladd['where']);
+				if(isset($filter['where'])){
+					if($sqladd['where']==''){
+						$sqladd['where'] .= ' WHERE '.$filter['where'];
+					}else{
+						$sqladd['where'] .= ' AND '.$filter['where'].' ';
+					}
+					//merge the include param with the Where params, at the end
+					if(isset($filter['param'])){
+						if(isset($opt['param']) && isset($where_values))
+							 $where_values = array_merge( $where_values, $filter['param']);
+						else if(isset($opt['param']))
+							$opt['param'] = array_merge( $opt['param'], $filter['param']);
+						else if(isset($where_values))
+							$where_values = array_merge( $where_values, $filter['param']);
+						else
+							$where_values = $filter['param'];
+					}
+				}
+				//edit the select part since now we do not want the filter table fields. Not needed if using include as its adjusted select already
+				//SELECT model.*, related_model.*, includemodel.id AS _t_includemodel_id, includemodel.title AS _t_includemodel_title, ...
+				if(strpos($sqladd['select'], '*')===0){
+					$sqladd['select'] = substr($sqladd['select'], 1);
+					$sqladd['select'] = "{$model->_table}.*, {$relatedmodel->_table}.* " . $sqladd['select'];
+				}
+			}
+		} else {
+			$sqladd['filter'] = '';
+		}
 
 
         //generate SQL based on $rtype (has_one, has_many, belongs_to)
@@ -735,6 +871,7 @@ class DooSqlMagic {
                 $sql = "SELECT {$sqladd['select']},  {$relatedmodel->_table}.{$rparams['foreign_key']} AS _{$relatedmodel->_table}__{$rparams['foreign_key']}
                     FROM {$model->_table}
                     {$sqladd['include']}
+					{$sqladd['filter']}
                     {$sqladd['joinType']} {$sqladd['rNestedQuery']} {$relatedmodel->_table}
                     ON {$model->_table}.{$mparams['foreign_key']} = {$relatedmodel->_table}.{$rparams['foreign_key']}
                     {$sqladd['where']}
@@ -745,6 +882,7 @@ class DooSqlMagic {
                 $sql = "SELECT {$sqladd['select']},  {$relatedmodel->_table}.{$rparams['foreign_key']} AS _{$relatedmodel->_table}__{$rparams['foreign_key']}
                     FROM {$model->_table}
                     {$sqladd['include']}
+					{$sqladd['filter']}
                     {$sqladd['joinType']} {$sqladd['rNestedQuery']} {$relatedmodel->_table}
                     ON {$model->_table}.{$mparams['foreign_key']} = {$relatedmodel->_table}.{$rparams['foreign_key']}
                     {$sqladd['where']}
@@ -922,6 +1060,7 @@ class DooSqlMagic {
                         ,{$rparams['through']}.{$rparams['foreign_key']} AS _{$model->_table}__{$mparams['foreign_key']}
                         FROM {$model->_table}
 						{$sqladd['include']}
+						{$sqladd['filter']}
                         {$sqladd['joinType']} {$mparams['through']}
                         ON {$model->_table}.{$model->_primarykey} = {$mparams['through']}.{$rparams['foreign_key']}
                         {$sqladd['joinType']} {$relatedmodel->_table}
@@ -936,6 +1075,7 @@ class DooSqlMagic {
                         {$relatedmodel->_table}.{$rparams['foreign_key']} AS _{$relatedmodel->_table}__{$rparams['foreign_key']}
                         FROM {$model->_table}
                         {$sqladd['include']}
+						{$sqladd['filter']}
                         {$sqladd['joinType']} {$sqladd['rNestedQuery']} {$relatedmodel->_table}
                         ON {$model->_table}.{$mparams['foreign_key']} = {$relatedmodel->_table}.{$rparams['foreign_key']}
                         {$sqladd['where']}
@@ -973,7 +1113,8 @@ class DooSqlMagic {
                     $tmodelArray=null;
                 }
                 switch($rtype){
-                    case 'has_one':case 'belongs_to':
+                    case 'has_one':
+					case 'belongs_to':
                         foreach($rs as $k=>$v){
                             if(isset($v[$retrieved_pk_key]))
                                 $fk = $v[$retrieved_pk_key];
