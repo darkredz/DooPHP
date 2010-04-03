@@ -763,6 +763,12 @@ class DooGdImage {
         $img = !empty($_FILES[$filename]) ? $_FILES[$filename] : null;
         if($img==Null)return;
 
+		if (!file_exists($this->uploadPath)) {
+			Doo::loadHelper('DooFile');
+			$fileManager = new DooFile(0777);
+			$fileManager->create($this->uploadPath);
+		}
+
         if(is_array($img['name'])===False){
             $pic = strrpos($img['name'], '.');
             $ext = strtolower(substr($img['name'], $pic+1));
