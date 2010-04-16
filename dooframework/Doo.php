@@ -214,9 +214,10 @@ class Doo{
      */
     protected static function load($class_name, $path, $createObj=FALSE){
         if(is_string($class_name)===True){
-            class_exists($class_name)===True || require_once($path . "$class_name.php");
+			$pure_class_name = basename($class_name);
+            class_exists($pure_class_name)===True || require_once($path . "$class_name.php");
             if($createObj)
-                return new $class_name;
+                return new $pure_class_name;
         }else if(is_array($class_name)===True){
             //if not string, then a list of Class name, require them all.
             //make sure the class_name has array with is_array
@@ -224,9 +225,10 @@ class Doo{
                 $obj=array();
 
             foreach ($class_name as $one) {
-                class_exists($one)===True || require_once($path . "$one.php");
+				$pure_class_name = basename($one);
+                class_exists($pure_class_name)===True || require_once($path . "$one.php");
                 if($createObj)
-                    $obj[] = new $one;
+                    $obj[] = new $pure_class_name;
             }
 
             if($createObj)
@@ -340,8 +342,10 @@ class Doo{
      * @param string $classname Class name to be loaded.
      */
     public static function autoload($classname){
-        if(class_exists($classname)===True) return;
-        $class['DooController'] = 'controller/DooController';
+        if(class_exists($classname)===True)
+			return;
+
+		$class['DooController'] = 'controller/DooController';
 		$class['DooSiteMagic'] = 'app/DooSiteMagic';
         $class['DooDigestAuth'] = 'auth/DooDigestAuth';
         $class['DooAuth'] = 'auth/DooAuth';
