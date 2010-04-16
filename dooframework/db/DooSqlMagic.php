@@ -185,7 +185,11 @@ class DooSqlMagic {
                     $q = $querytrack[0];
                     foreach($querytrack as $k=>$v){
                         if($k===0)continue;
-                        $q .=  "'".$param[$k-1]."'" . $querytrack[$k];
+						if (isset($param[$k-1])) {
+							$q .=  "'".$param[$k-1]."'" . $querytrack[$k];
+						} else {
+							throw new Exception('Insufficent paramters provided for query');
+						}
                     }
                     $querytrack = $q;
                 }else{
