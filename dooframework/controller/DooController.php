@@ -364,6 +364,12 @@ class DooController {
 	public function  __call($name,  $arguments) {
 		if ($name == 'renderLayout') {
 			throw new Exception('renderLayout is no longer supported by DooController. Please use $this->view()->renderLayout instead');
+		} else {
+			$err = "DooController: Tried to call unknown method: {$name}";
+			if (!empty ($arguments)) {
+				$err .= '\n\t called with arguments: ' . implode(', ', $arguments);
+			}
+			Doo::logger()->err($err);
 		}
 	}
 
