@@ -143,7 +143,8 @@ class DooUriRouter{
             exit;
     }
 
-    /**
+
+	/**
      * Matching the route array with the request URI
      *
      * <p>Avoids preg_match for most cases to gain more performance.
@@ -161,284 +162,319 @@ class DooUriRouter{
      * RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
      * </code>
      */
-    private function connect($route,$subfolder){
-        $type = strtolower($_SERVER['REQUEST_METHOD']);
+	private function connect($routes, $subfolder) {
 
-        #echo 'type = ' . $type . '<br/>';
-        #echo 'request URI = ' . $_SERVER['REQUEST_URI'] . '<br/>';
-        #echo 'requested file = ' . $_SERVER['SCRIPT_NAME'] . '<br/>';
+		$skipNormalRoutes = false;	// Used to allow for parse through to check root and catchall
+									// routes if * and type routes do not meet / criteria
 
-        if(strpos($_SERVER['REQUEST_URI'],'/index.php')!==FALSE){
-            $requri = $_SERVER['REQUEST_URI'];
-        }else if($subfolder=='/'){
-            $requri = '/index.php' . $_SERVER['REQUEST_URI'];
-        }
-        else{
-            //if subfolder exists add index.php after /subfolder/index.php/news/2009
-    #		echo 'subfolder at '. strpos($_SERVER['REQUEST_URI'],$subfolder) .'<br>';
-            $requri = substr_replace($_SERVER['REQUEST_URI'], '/index.php/', 0, strlen($subfolder));
-    #		echo $requri;
-        }
-        #echo '<h1>G - '.$requri.'</h1>';
-        /*Uri is the server Request_Uri - Script_name, replace on first occurence only(the filename)
-         * Works for Apache and Cheroke - sub folder, sub domain and domain
-         */
-        if($requri=='/' || $requri=='/index.php' || $requri=='/index.php/' || $requri==$subfolder.'index.php/' || $requri==$subfolder.'index.php'){
-               # || ($requri==str_replace('index.php','',$_SERVER['SCRIPT_NAME'])  && strpos($_SERVER['SCRIPT_NAME'], 'index.php')!==FALSE)
-               # || ($requri==$_SERVER['SCRIPT_NAME'] && strpos($_SERVER['SCRIPT_NAME'], 'index.php')!==FALSE)){
-                //echo strpos($_SERVER['SCRIPT_NAME'], 'index.php');
+		//$this->log('Routes: ', $routes);
+		//$this->log('Subfolder: ' . $subfolder);
 
-                $uri='/';
-        }else{
-            //support ?p=123 GET variable on root
-            if(strpos($_SERVER['REQUEST_URI'], $subfolder.'?')===0 || strpos($_SERVER['REQUEST_URI'], $subfolder.'index.php?')===0){
-                if(isset($route[$type]['/']))
-                    return array($route[$type]['/'], null);
-                if(isset($route['*']['/']))
-                    return array($route['*']['/'], null);
-                return;
-            }
-            #echo '<h2>NOt Root</h2>';
-            $uri = $requri;
-            //strip out the index.php part
-            #if($uri!=$_SERVER['SCRIPT_NAME'])
-            #    $uri = substr_replace($uri, '', 0, strlen($_SERVER['SCRIPT_NAME']));
-            //echo $uri;
-            #echo '<h1>'.$subfolder.'index.php</h1>';
-            if(strpos($uri, '/index.php')===0)
-                $uri = str_replace('/index.php','', $uri);
-            elseif(strpos($uri, $subfolder.'index.php')===0)
-                $uri = str_replace($subfolder.'index.php','', $uri);
-            //echo strpos($uri, '/index.php');
+		$type = strtolower($_SERVER['REQUEST_METHOD']);
+		$requestedUri = $_SERVER['REQUEST_URI'];
 
-            #echo '<h1>'.$uri.'</h1>';
-        }
+		//$this->log('Type: ' . $type);
+		//$this->log('Requested Uri: ' . $requestedUri);
 
-        //strip out the GET variable part if start with /?
-        if($pos = strpos($uri, '/?')){
-            $uri = substr($uri,0,$pos);
-        }else if($pos = strpos($uri, '?')) {
-            $tmp = explode('?', $uri);
-            $uri = $tmp[0];
-        }
+		// Remove Subfolder
+		$requestedUri = substr($requestedUri, strlen($subfolder)-1);
+		//$this->log('Trimmed off subfolder from Request Uri to give: ' . $requestedUri);
 
-        //strip slashes at the end
-        if($uri!='/'){
-            $this->strip_slash($uri);
-        }
-     #   echo 'URI = '.$uri .'<br>';
+		// Remove index.php from URL if it exists
+		if (0 === strpos($requestedUri, '/index.php')) {
+			$requestedUri = substr($requestedUri, 10);
+			//$this->log('Trimmed off the /index.php from Request Uri to give: ' . $requestedUri);
+		}
 
-        if(isset($route[$type]))
-            $uris_data = $route[$type];
-        else
-            $uris_data=NULL;
+		// Remove get part of url (eg example.com/test/?foo=bar trimed to example.com/test/)
+		if (false !== ($getPosition = strpos($requestedUri, '?'))) {
+			$requestedUri = substr($requestedUri, 0, $getPosition);
+			//$this->log('Trimmed off get (?) to give Request Uri: ' . $requestedUri);
+		}
 
-        /* search in both * and other request methods, array merge them if * exists,else just search in GET/POST/PUT or others */
-        if(isset($route['*'])){
-            /* so it will search for the request type other than * first, speed things up, also solve the repeat in * problem */
-            if($uris_data!=NULL)
-                $uris_data = array_merge($uris_data, $route['*']);
-            else
-                $uris_data = $route['*'];
-        }
+		// Remove any trailing slashes from Uri except the first / of a uri (Root)
+		$this->strip_slashes($requestedUri);
+		//$this->log('Trimmed off trailing slashes from Request Uri: ' . $requestedUri);
 
-        $match = NULL;
+		
+		// Got a root url (ie. Homepage)
+		if ($requestedUri == '/') {
+			//$this->log('Got a root URL');
+			if(isset($routes[$type]['/']))
+				return array($routes[$type]['/'], null);
+			elseif(isset($routes['*']['/']))
+				return array($routes['*']['/'], null);
+			elseif(isset($routes['*']['catchall']))
+				$skipNormalRoutes = true;
+			else
+				return;
+		}
 
-        if(isset($uris_data[$uri]))
-            $match = $uris_data[$uri];
+		if (!$skipNormalRoutes) {
+			// Not got root url so we need to get possible routes
+			// First look for routes for specific route type and then try for * routes
+			// We will merge the 2 together to prevent duplicate checking
+			if(isset($routes[$type]))
+				$possibleRoutes = $routes[$type];
+			else
+				$possibleRoutes = null;
 
-        if($match!=NULL){
-    #        echo '<h1>Match perfect!</h1>';
-            /*These are perfect match, no dynamic route invote, so NO NEED check for requirement!
-             *go ahead to call and dispatch to controller->action,
-             *probably just return the array of controller and action, let other function handle the dispatch for code reusability
-             */
-            return array($match, NULL);
-        }else{
-            /* Add all match Routes to an array, as there might be Identical URIs defined by the developer, eg:
-             * /news/:title     - to show a news by passing the title which will maybe call the controller action News->show_by_title
-             * /news/:id     - to show a news by passing the ID which will maybe call the controller action News->show_by_id
-             * will then check up those identical routes IF the array length > 1
-             * if only 1 result, return the array, check up the params requirement in another function before dispatch them
-             * take note that Identical Routes MUST have different REQUIREMENT for the param, if not the first which is defined will matched, resulting the other will never be matched
-             */
-            $uri = substr($uri,1);
-            $uri_parts_exploded = explode('/', $uri);
-    		#echo '<br>------------------------------<br><h3>URI parts from browser:</h3><br>';
-    		#print_r($uri_parts);
+			if(isset($routes['*'])){
+				if($possibleRoutes != null)
+					$possibleRoutes = array_merge($possibleRoutes, $routes['*']);
+				else
+					$possibleRoutes = $routes['*'];
+			}
 
-            foreach($uris_data as $ukey=>$udata){
-				$uri_parts = $uri_parts_exploded;
-                $ukey = substr($ukey,1);
-                $uparts = explode('/', $ukey);
-                if(sizeof($uri_parts) !== sizeof($uparts) )
-                    continue;
+			//$this->log('Possible Routes: ', $possibleRoutes);
 
-                //if even the first part of the URI doesn't match, don't even bother to check down this route, continue searching...
-                if($uri_parts[0]!==$uparts[0])
-                    continue;
+			// We if we simply have the full route (ie. No params needed)
+			if (isset($possibleRoutes[$requestedUri])) {
+				// Ensure the url does not contain : in it
+				if (false === strpos($requestedUri, ':')) {
+					//$this->log('Got Perfect Match');
+					return array($possibleRoutes[$requestedUri], null);
+				}
+			}
+		}
 
-                //if extension is set, remove the part of the extension from the URI if found
-                if(isset($udata['extension'])){
-                    $lpindex = sizeof($uri_parts)-1;
-                    $lastpart = $uri_parts[$lpindex];
 
-                    if(is_string($udata['extension'])){
-                        $ext = $udata['extension'];
-                        $lastpart = explode($udata['extension'], $lastpart);
-                    }else{
-                        foreach ($udata['extension'] as $ext){
-                            if($ext!='' && strpos($lastpart,$ext)!==FALSE)
-                                break;
-                        }
-                        $lastpart = explode($ext, $lastpart);
-                    }
+		/* Not got a match so now we will loop over all possibleRoutes and see
+		 * if we have a matching route using parameters. We carry out some quick checks first
+		 * in an attempt to skip past a route which does not match the current route.
+		 *
+		 * Once we have a route which might work we must then test the route against any
+		 * regex (matches) which are to be applied to parameters. This allows for identical uri's to be used
+		 * but with each expecting different parameter formats for example
+		 * /news/:title     - to show a news by passing the title which will maybe call the controller action News->show_by_title
+		 * /news/:id     - to show a news by passing the ID which will maybe call the controller action News->show_by_id
+		 * 
+		 * Note that Identical Routes MUST have different REQUIREMENT (match) for the param,
+		 * if not the first which is defined will matched, therefore preventing any others being matched
+		 */
 
-                    $lplength = sizeof($lastpart);
-                    if($lplength<2)
-                        continue;
-                    if($lastpart[$lplength-1]!=='')
-                        continue;
-                    if($lplength===2){
-                        $lpart = array($lpindex, $lastpart[0]);
-                    }else
-                        $uri_parts[$lpindex] = $lastpart[0] . str_repeat($udata['extension'], $lplength-2);
-                }
+		$uriPartsOrig = explode('/', $requestedUri);
+		$uriPartsSize = sizeof($uriPartsOrig);
 
-                //if the static part doesn't match any existing routes' static part... skip, continue the search
-                if(isset($_GET)){
-                    foreach($uparts as $i=>$upart){
-                        if($upart[0]===':')
-                            continue;
-                        if($upart!=$uri_parts[$i] && strpos($uri_parts[$i], $upart.'?')===False)
-                            continue 2;
-                    }
-                }else{
-                    foreach($uparts as $i=>$upart){
-                        if($upart[0]===':')
-                            continue;
-                        if($upart!=$uri_parts[$i])
-                            continue 2;
-                    }
-                }
-                if(isset($lpart)){
-                    $uri_parts[$lpart[0]] = $lpart[1];
-                }
-    #			echo '<h1>MATCHED found!</h1><hr/><br/>';
+		$uriExtension = false;
+		if (false !== ($pos = strpos($uriPartsOrig[$uriPartsSize-1], '.')) ) {
+			$uriExtension = substr($uriPartsOrig[$uriPartsSize-1], $pos);
+			$uriLastPartNoExtension = substr($uriPartsOrig[$uriPartsSize-1], 0, $pos);
+		}
 
-                //set parameters list
-                $param = $this->parse_params($uri_parts, $uparts);
-                #echo '<pre>';
-                #print_r($param);
-                #print_r($udata['match']);
+		if (!$skipNormalRoutes) {
+			foreach($possibleRoutes as $routeKey=>&$routeData) {
+				//$this->log('Trying routeKey: ' . $routeKey);
+				$uriParts = $uriPartsOrig;
+				$routeParts = explode('/', $routeKey);
 
-                //check for matching requirement for each match defined by user
-                //match for the requirement of these Identical Routes
-                if(isset($udata['match'])){
-                    foreach($udata['match'] as $var_name=>$pattern){
-                        #echo $var_name .' = '. $pattern;
-                        #echo preg_match($pattern, $param[$var_name]);
-                        if( preg_match($pattern, $param[$var_name])==0 ){
-                            continue 2;
-                        }
-                    }
-                }
-                if(isset($ext)){
-                    $param['__extension'] = $ext;
-                }
-				$param['__routematch'] = $udata;
-                return array($udata, $param);
-            }
+				if ($uriPartsSize !== sizeof($routeParts)) {
+					//$this->log('Not Enought Parts: ' . $routeKey);
+					continue;	// Not enough parts in route to match our current uri?
+				}
 
-            if(isset($route['*']['root'])){
-                #echo '<h1>On Root</h1><pre>';
-                $routes = $route['*']['root'];
+				// If first part of uri not match first part of route then skip.
+				// We expect ALL routes at this stage to begin with a static segment.
+				// Note: We exploded with a leading / so element 0 in both arrays is an empty string
+				if ($uriParts[1] !== $routeParts[1]) {
+					//$this->log('First path not match');
+					continue;
+				}
 
-                foreach($routes as $k=>$r){
-                    #print_r(array($r[0], $r[1]));
-                    $uparts = explode('/', $k);
-                    #print_r($uri_parts);
+				// If the route allows extensions check that the extension provided is a correct match
+				if (isset($routeData['extension'])) {
+					if ($uriExtension === false) {
+						continue;		// We need an extension for this to match so can't be a match
+					} else {
+						$routeExtension = $routeData['extension'];
+						if (is_string($routeExtension) && ($uriExtension !== $routeExtension)) {
+							continue;	// Extensions do not match so can't be a match
+						} elseif (is_array($routeExtension) && !in_array($uriExtension, $routeExtension)) {
+							continue;	// Extension not in allowed extensions so can't be a match
+						}
+					}
+				}
 
-                    if(sizeof($uparts)-1 != sizeof($uri_parts)){
-                        continue;
-                    }
+				// Now check the other statics parts of the url (we deal with parameters later
+				foreach ($routeParts as $i=>&$routePart) {
+					if ($i < 2)
+						continue;
 
-                    $uparts = array_slice($uparts, 1);
-                    #print_r($uparts);
+					if ($routePart[0] === ':')
+						continue;	// This routePart is a parameter in the Uri
 
-                    //if the static part doesn't match any existing routes' static part... skip, continue the search
-                    if(isset($_GET)){
-                        foreach($uparts as $i=>$upart){
-                            if($upart[0]===':')
-                                continue;
-                            if($upart!=$uri_parts[$i] && strpos($uri_parts[$i], $upart.'?')===False)
-                                continue 2;
-                        }
-                    }else{
-                        foreach($uparts as $i=>$upart){
-                            if($upart[0]===':')
-                                continue;
-                            if($upart!=$uri_parts[$i])
-                                continue 2;
-                        }
-                    }
+					if ($routePart !== $uriParts[$i])
+						continue 2; // The static part of this route does not match the route part
+				}
 
-                    //convert into param with keys
-                    $param = $this->parse_params($uri_parts, $uparts);
+				//$this->log('Got a route match. RouteKey: ' . $routeKey);
+				if ($uriExtension !== false) {
+					$uriParts[$uriPartsSize - 1] = $uriLastPartNoExtension;
+				}
 
-                    if(isset($r['match'])){
-                        foreach($r['match'] as $var_name=>$pattern){
-                            if( preg_match($pattern, $param[$var_name])==0 ){
-                                continue 2;
-                            }
-                        }
-                    }
-					$param['__routematch'] = $r;
-                    return array($r, $param);
-                }
-            }
+				$params = $this->parse_params($uriParts, $routeParts);
+				//$this->log('Got Parameter Values:', $params);
 
-            if(isset($route['*']['catchall'])){
-                $routes = $route['*']['catchall'];
+				if (isset($routeData['match'])) {
+					//$this->log('Checking Parameter Matches');
+					foreach($routeData['match'] as $paramName=>&$pattern) {
+						if (preg_match($pattern, $params[$paramName]) == 0) {
+							continue 2;
+						}
+					}
+				}
+				if ($uriExtension !== false) {
+					$params['__extension'] = $uriExtension;
+				}
+				$params['__routematch'] = $routeData;
+				//$this->log('Got a Match');
+				return array($routeData, $params);
+			}
 
-                foreach($routes as $k=>$r){
-                    $uparts = explode('/', $k);
-                    $uparts = array_slice($uparts, 1);
+			if (isset($routes['*']['root'])) {
 
-                    //if the static part doesn't match any existing routes' static part... skip, continue the search
-                    if(isset($_GET)){
-                        foreach($uparts as $i=>$upart){
-                            if($upart[0]===':')
-                                continue;
-                            if($upart!=$uri_parts[$i] && strpos($uri_parts[$i], $upart.'?')===False)
-                                continue 2;
-                        }
-                    }else{
-                        foreach($uparts as $i=>$upart){
-                            if($upart[0]===':')
-                                continue;
-                            if($upart!=$uri_parts[$i])
-                                continue 2;
-                        }
-                    }
+				// Note: Root Routes should always start with a parameter ie. ['*']['root']['/:param']
+				// Therefore we wont look at running some checks used by non root routes
+				//$this->log('No Route Yet Found. Trying Root routes');
 
-                    //convert into param with keys
-                    $param = $this->parse_params_catch($uri_parts, $uparts);
+				foreach($routes['*']['root'] as $routeKey=>&$routeData) {
+					$uriParts = $uriPartsOrig;
+					$routeParts = explode('/', $routeKey);
 
-                    if(isset($r['match'])){
-                        foreach($r['match'] as $var_name=>$pattern){
-                            if( preg_match($pattern, $param[$var_name])==0 ){
-                                continue 2;
-                            }
-                        }
-                    }
-					$param['__routematch'] = $r;
-                    return array($r, $param);
-                }
-            }
+					if ($uriPartsSize !== sizeof($routeParts)) {
+						//$this->log('Not Enought Parts: ' . $routeKey);
+						continue;	// Not enough parts in route to match our current uri?
+					}
 
-        }
-    }
+					// If the route allows extensions check that the extension provided is a correct match
+					if (isset($routeData['extension'])) {
+						if ($uriExtension === false) {
+							continue;		// We need an extension for this to match so can't be a match
+						} else {
+							$routeExtension = $routeData['extension'];
+							if (is_string($routeExtension) && ($uriExtension !== $routeExtension)) {
+								continue;	// Extensions do not match so can't be a match
+							} elseif (is_array($routeExtension) && !in_array($uriExtension, $routeExtension)) {
+								continue;	// Extension not in allowed extensions so can't be a match
+							}
+						}
+					}
+
+					// Now check the other statics parts of the url (we deal with parameters later
+					foreach ($routeParts as $i=>&$routePart) {
+						if ($i == 0)
+							continue;	// The first item is empty
+
+						if ($routePart[0] === ':')
+							continue;	// This routePart is a parameter in the Uri
+
+						if ($routePart !== $uriParts[$i])
+							continue 2; // The static part of this route does not match the route part
+					}
+
+					//$this->log('Got a route match. RouteKey: ' . $routeKey);
+					if ($uriExtension !== false) {
+						$uriParts[$uriPartsSize - 1] = $uriLastPartNoExtension;
+					}
+
+					$params = $this->parse_params($uriParts, $routeParts);
+					//$this->log('Got Parameter Values:', $params);
+
+					if (isset($routeData['match'])) {
+						//$this->log('Checking Parameter Matches');
+						foreach($routeData['match'] as $paramName=>&$pattern) {
+							if (preg_match($pattern, $params[$paramName]) == 0) {
+								continue 2;
+							}
+						}
+					}
+					if ($uriExtension !== false) {
+						$params['__extension'] = $uriExtension;
+					}
+					$params['__routematch'] = $routeData;
+					//$this->log('Got a Match');
+					return array($routeData, $params);
+				}
+			}
+		}
+
+
+		if(isset($routes['*']['catchall'])) {
+
+			//$this->log('No Route Yet Found. Trying Catch All Routes');
+
+			foreach($routes['*']['catchall'] as $routeKey=>&$routeData) {
+
+				// If the route allows extensions check that the extension provided is a correct match
+				if (isset($routeData['extension'])) {
+					if ($uriExtension === false) {
+						continue;		// We need an extension for this to match so can't be a match
+					} else {
+						$routeExtension = $routeData['extension'];
+						if (is_string($routeExtension) && ($uriExtension !== $routeExtension)) {
+							continue;	// Extensions do not match so can't be a match
+						} elseif (is_array($routeExtension) && !in_array($uriExtension, $routeExtension)) {
+							continue;	// Extension not in allowed extensions so can't be a match
+						}
+					}
+				}
+
+				if ($routeKey !== '/') {
+					$uriParts = $uriPartsOrig;
+					$routeParts = explode('/', $routeKey);
+
+					// Now check the other statics parts of the url (we deal with parameters later
+					foreach ($routeParts as $i=>&$routePart) {
+						if ($i == 0)
+							continue;	// The first item is empty
+
+						if (isset($routePart[0]) && $routePart[0] === ':')
+							continue;	// This routePart is a parameter in the Uri
+
+						if ($routePart !== $uriParts[$i]) {
+							continue 2; // The static part of this route does not match the route part
+						}
+					}
+				}
+
+				if ($uriExtension !== false) {
+					$uriParts[$uriPartsSize - 1] = $uriLastPartNoExtension;
+				}
+
+				$params = $this->parse_params_catch($uriParts, $routeParts);
+
+				if (isset($routeData['match'])) {
+					foreach($routeData['match'] as $paramName=>&$pattern) {
+						if (preg_match($pattern, $params[$paramName]) == 0) {
+							continue 2;
+						}
+					}
+				}
+
+				if ($uriExtension !== false) {
+					$params['__extension'] = $uriExtension;
+				}
+
+				$params['__routematch'] = $routeData;
+
+				return array($routeData, $params);
+			}
+		}
+
+		//$this->log('Failed to find a matching route');
+	}
+
+	private function log($msg, $var=null) {
+		if (true) {
+			echo "{$msg}<br />\n";
+			if ($var !== null)
+				echo "<pre>" . print_r($var) . "</pre>";
+		}
+	}
+
+
+    
+   
 
     /**
      * Handles auto routing.
@@ -477,7 +513,7 @@ class DooUriRouter{
         }
 
         if($uri!='/')
-            $this->strip_slash($uri);
+            $this->strip_slashes($uri);
 
         //remove the / in the first char in REQUEST URI
         if($uri[0]=='/')
@@ -517,10 +553,13 @@ class DooUriRouter{
      * @return array An array of parameters found in the requested URI
      */
     protected function parse_params($req_route, $defined_route){
-        $params = NULL;
-        for($i=0;$i<sizeof($req_route);$i++){
+        $params = array();
+		$size = sizeof($req_route);
+        for($i=0; $i<$size; $i++){
             $param_key = $defined_route[$i];
-            if($param_key[0]===':'){
+			if ($param_key == '') {
+				continue;
+			} elseif($param_key[0]===':'){
                 $param_key = str_replace(':', '', $param_key);
                 $params[$param_key] = $req_route[$i];
             }
@@ -536,11 +575,13 @@ class DooUriRouter{
      * @return array An array of parameters found in the requested URI
      */
     protected function parse_params_catch($req_route, $defined_route){
-        $params = NULL;
+        $params = array();
         for($i=0;$i<sizeof($req_route);$i++){
             if(isset($defined_route[$i])){
                 $param_key = $defined_route[$i];
-                if($param_key[0]===':'){
+                if ($param_key == '') {
+					continue;
+				} elseif($param_key[0]===':'){
                     $param_key = str_replace(':', '', $param_key);
                     $params[$param_key] = $req_route[$i];
                 }
@@ -552,19 +593,13 @@ class DooUriRouter{
     }
 
     /**
-     * Strip out the additional slashes found at the end of an URI
-     *
-     * This method is called recursively to removed all slashes repeatedly
+     * Strip out the additional slashes found at the end. If first character is / then leaves it alone
      *
      * @param string $str Requested URI
      */
-    protected function strip_slash(&$str){
-        if($str[strlen($str)-1]==='/'){
-            $str = substr($str,0,-1);
-            $this->strip_slash($str);
-        }else{
-            return;
-        }
+    protected function strip_slashes(&$str){
+		for ($end = strlen($str) - 1; $end > 0 && $str[$end] === '/'; $end--) {}
+		$str = substr($str, 0, $end+1);
     }
 
 }
