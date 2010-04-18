@@ -272,9 +272,8 @@ class DooFile {
 		$filetype = array('.', '..');
 		$name = array();
 
-		try{
-			$dir = opendir($path);
-		}catch (Exception $e){
+		$dir = @opendir($path);
+		if ($dir === false ) {
 			return false;
 		}
 
