@@ -15,7 +15,7 @@
 * @copyright &copy; 2009 Milos Kovacki
 * @license http://www.doophp.com/license
 */
-class DooForm extends DooValidator {
+class DooForm {
 
 	/**
 	* Form attributes
@@ -151,7 +151,6 @@ class DooForm extends DooValidator {
 		$enctype = (isset($this->_enctype) && ($this->_enctype == 'multipart/form-data'))?'enctype="'.$this->_enctype.'"':'';
 		$formOpenHtml = '<form action="'.$this->_action . '" method="'.$this->_method.'" '.$enctype.' class="doo-form">';
 		$formCloseHtml = '</form>';
-		$elementError = '';
 		if ($this->_renderFormat == 'array') {
 			$formOutput = array(
 				'startDooForm' => $formOpenHtml,
@@ -560,7 +559,12 @@ class DooForm extends DooValidator {
 	public function isValid($values) {
 		$valid = true;
 		$errors = array();
-		$v = new DooValidator();
+		try {
+			Doo::loadHelper('DooValidator');
+			$v = new DooValidator();
+		} catch (DooFormException $e) {
+			echo 'Validator class coulndt be loaded ' . $e->getMessage() . '\n';
+		}
 		$formElements = $this->_formElements;
 		$elementValues = array();
 		foreach ($this->_elements as $element => $e) {
@@ -625,11 +629,10 @@ class DooForm extends DooValidator {
 		// set values
 		$this->_elementValues = $elementValues;
 		if (count($errors) > 0) {
+			$this->_errors = $errors;
 			foreach ($errors as $error => $e) {
 				if (!empty($e)) $valid = false;
-				if (is_null($e)) unset($errors[$error]);
 			}
-			$this->_errors = $errors;
 		}
 		return $valid;
 	}
