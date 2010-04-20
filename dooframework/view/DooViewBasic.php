@@ -720,7 +720,7 @@ class DooViewBasic {
 	}
 
 	protected function block_cache($params) {
-		if(preg_match('/\((.+)(([,][ ]*)([0-9]+))?\)/', $params, $matches)) {
+		if ( preg_match('/\(([^\t\r\n]+?)(([,][ ]*)([0-9]+[ ]*))?[ ]*\)[ ]*$/', $params, $matches)) {		
 			$matches[1] = $this->strToStmt($matches[1]);
 			if (count($matches) == 5) {
 				return "<?php if (!Doo::cache('front')->getPart({$matches[1]}, {$matches[4]})): ?>\n<?php Doo::cache('front')->start({$matches[1]}); ?>";
