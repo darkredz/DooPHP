@@ -223,8 +223,8 @@ class DooForm {
     *            'username' => array('text', array(
     *                'required' => true,
     *                'label' => 'Username:',
-	*				'attributes' => array("style" => 'border:1px solid #000;', 'class' => 'mitar'),
-	*				'wrapper' => 'div'
+	*				'attributes' => array("style" => 'border:1px solid #000;', 'class' => 'some_class'),
+	*				'field-wrapper' => 'div'
     *            )),
 	*			'profile_type' => array('select', array(
     *                'required' => true,
@@ -257,6 +257,11 @@ class DooForm {
 	* <code>
 	* echo $this->form;
 	* </code>
+	*
+	* There are 3 types of wrapper:
+	* field-wrapper - Wrap's element and label
+	* element-wrapper - Wrap's element only
+	* label-wrapper - Wrap's label only
 	*/
 
 	public function _addElements() {
