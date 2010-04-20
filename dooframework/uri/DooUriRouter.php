@@ -71,6 +71,14 @@
  * </code>
  * </p>
  *
+ * <p>If you do not want case sensetive routing you can force all routes to lowercase. Note this will also result in
+ * All parmeters being converted to lowercase as well.
+ * <code>
+ * $route['force_lowercase'] = true;	// Setting this to false or not defining it will keep routes case sensetive.
+ * </code>
+ * </p>
+ *
+ *
  * <p>See http://doophp.com/doc/guide/uri-routing for information in configuring Routes</p>
  *
  * @author Leng Sheng Hong <darkredz@gmail.com>
@@ -172,6 +180,10 @@ class DooUriRouter{
 
 		$type = strtolower($_SERVER['REQUEST_METHOD']);
 		$requestedUri = $_SERVER['REQUEST_URI'];
+
+		if (isset($routes['force_lowercase']) && $routes['force_lowercase'] === true) {
+			$requestedUri = strtolower($requestedUri);
+		}
 
 		//$this->log('Type: ' . $type);
 		//$this->log('Requested Uri: ' . $requestedUri);
