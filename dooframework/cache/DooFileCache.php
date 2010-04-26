@@ -154,16 +154,18 @@ class DooFileCache {
         return false;
     }
 
-        /**
-         * Deletes all data cache files
-         * @return bool
-         */
+    /**
+     * Deletes all data cache files
+     * @return bool
+     */
     public function flushAll() {
         $handle = opendir($this->_directory);
 
         while(($file = readdir($handle)) !== false) {
-            if (is_file($file))
-                unlink($file);
+            if (is_file($this->_directory . $file))
+                unlink($this->_directory . $file);
+            else if (is_dir($this->_directory . $file) && substr($file, 0, 4) == 'mdl_')
+                $this->flushAllIn($file);	
         }
         return true;
     }
