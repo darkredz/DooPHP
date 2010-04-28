@@ -230,7 +230,7 @@ class DooFile {
 		while(false !== ($file = readdir($handle))){
 			if($file != '.' && $file != '..'){
                 if (is_dir($dir.$file)){
-					$totalSize += $this->getSize($dir.$file);
+					$totalSize += $this->getSize($dir.$file, false);
 				}else{
                     $totalSize += filesize($dir.$file);
 				}
@@ -243,11 +243,14 @@ class DooFile {
     /**
      * Convert bytes into KB, MB, GB or TB.
      * @param int $bytes
-     * @param string $unit Case insensitive units: B, KB, MB, GB or TB
+     * @param string $unit Case insensitive units: B, KB, MB, GB or TB OR false if not to format the size
      * @param int $precision
      * @return float
      */
     public static function formatBytes($bytes, $unit='KB', $precision=2) {
+		if ($unit === false) {
+			return $bytes;
+		}
         $unit = strtoupper($unit);
         $unitPow = array('B'=>0, 'KB'=>1, 'MB'=>2, 'GB'=>3, 'TB'=>4);
         $bytes /= pow(1024, $unitPow[$unit]);
