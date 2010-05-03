@@ -369,6 +369,9 @@ class DooFile {
             if($listOnly==DooFile::LIST_FILE){
                 if(is_dir($val)) continue;
             }
+			if ($listOnly==DooFile::LIST_FOLDER) {
+				if(!is_dir($val)) continue;
+			}
 			$filename = explode('/', $val);
 			$filename = $filename[count($filename)-1];
             $ext = explode('.',$val);
