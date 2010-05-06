@@ -418,6 +418,9 @@ class DooSqlMagic {
 						} else {
 							$sqladd['filter'] .= "{$joinType} {$fTableName} ON {$model->_table}.{$fmparams['foreign_key']} = {$fTableName}.{$fparams['foreign_key']} ";
 						}
+						break;
+					default:
+						throw new Exception('Table Relationship not defined for ' . $class_name . ' to ' . $fmodel_class);
 				}
 
 				if(isset($filter['where'])){
