@@ -285,6 +285,20 @@ class DooSqlMagic {
 
     //---------------------------------- SQL generator functions ------------------------
 
+	/**
+     * Retrieve model by one record.
+     *
+     * @param array $opt Options for the query. Available options see @see find()
+     * @return mixed A model object or associateve array of the queried result
+     */
+	public function getOne($model, $opt=null){
+        if($opt!==null){
+            $opt['limit'] = 1;
+            return $this->find($model, $opt);
+        }
+        return $this->find($model, array('limit'=>1));
+    }
+
     /**
      * Find a record. (Prepares and execute the SELECT statements)
      * @param mixed $model The model class name or object to be select
