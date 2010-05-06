@@ -4,6 +4,8 @@ Doo::loadCore('db/manage/DooManageDb');
 
 class DooManageMySqlDb extends DooManageDb {
 
+	const ENGINE_INNODB = 'InnoDB';
+	const ENGINE_MYISAM = 'MyISAM';
 
 	/**
 	 * A mapping of DooManageDb generic datatypes to RDBMS native datatypes for columns
@@ -51,11 +53,14 @@ class DooManageMySqlDb extends DooManageDb {
 	 * @param array $cols
 	 * @return string A CREATE TABLE string to run against MySQL Server
 	 */
-	protected function _sqlCreateTable($table, $cols) {
-		$statement = parent::_sqlCreateTable($table, $cols);
+	protected function _sqlCreateTable($table, $cols, $options=null) {
+		$statement = parent::_sqlCreateTable($table, $cols, $options);
 
-		// Use InnoDb so we can have transaction support
-		$statement .= ' TYPE=InnoDB';
+		if (isset($options['engine'])) {
+			$statement .= ' ENGINE=' . $options['engine'];
+		} else {
+			$statement .= ' ENGINE=InnoDB';
+		}
 
 		// Use UTF8 encoding
 		if (isset($this->dbconfig['charset']) && isset($this->dbconfig['collate'])) {
@@ -73,9 +78,7 @@ class DooManageMySqlDb extends DooManageDb {
 	 * @param string $name Name of the index to be removed
 	 */
 	protected function _dropIndex($table, $name) {
-		$table = $this->quote($table);
-		$name = $this->quote($name);
-		return $this->query("DROP INDEX $name ON $table");
+		return $this->query("ALTER TABLE $table DROP INDEX $name");
 	}
 
 	/**

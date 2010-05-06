@@ -236,8 +236,8 @@ abstract class DooManageDb {
 	 * @param array $cols Array of the columns to create
 	 * @return bool on success of the tables creation
 	 */
-	public function createTable($table, $cols) {
-		$statement = $this->_sqlCreateTable($table, $cols);
+	public function createTable($table, $cols, $options=null) {
+		$statement = $this->_sqlCreateTable($table, $cols, $options);
 		try {
 			$this->query($statement);
 		} catch (PDOException $ex) {
@@ -251,7 +251,7 @@ abstract class DooManageDb {
 	 * @param array $cols Array of column defenitions
 	 * @return string SQL CREATE TABLE statement for the active database engine
 	 */
-	protected function _sqlCreateTable($table, $columnDefinitions) {
+	protected function _sqlCreateTable($table, $columnDefinitions, $options=null) {
 
 		$this->checkIdentifier('table', $table);
 
