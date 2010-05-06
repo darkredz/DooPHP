@@ -431,8 +431,10 @@ class DooUriRouter{
 					}
 				}
 
-				if ($routeKey !== '/') {
-					$uriParts = $uriPartsOrig;
+				$uriParts = $uriPartsOrig;
+				if ($routeKey === '/'){
+					$routeParts = array('');
+				} else {
 					$routeParts = explode('/', $routeKey);
 
 					// Now check the other statics parts of the url (we deal with parameters later
