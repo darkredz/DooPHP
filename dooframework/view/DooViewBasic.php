@@ -427,61 +427,74 @@ class DooViewBasic {
     public function loadTagClass(){
         /* if include tag class is not defined load TemplateTag for main app
          * else if render() is called from a module, load ModulenameTag */
+
+		$tagFile = '';
+
         if( !isset($this->tagClassName) ){
             if( !isset(Doo::conf()->PROTECTED_FOLDER_ORI) ){
-                require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'plugin/TemplateTag.php';
+                $tagFile = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'plugin/TemplateTag.php';
                 $tagcls = 'TemplateTag';
             }else{
                 $tagcls = explode('/', Doo::conf()->PROTECTED_FOLDER);
                 $tagcls = ucfirst($tagcls[sizeof($tagcls)-2]) . 'Tag';
-                require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'plugin/' . $tagcls .'.php';
+                $tagFile = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'plugin/' . $tagcls .'.php';
             }
         }else{
             //load the main app's TemplateTag if module is '/'
             if($this->tagModuleName=='/'){
-                require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER_ORI . 'plugin/'. $this->tagClassName .'.php';
+                $tagFile = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER_ORI . 'plugin/'. $this->tagClassName .'.php';
             }
             else if($this->tagModuleName===Null){
-                require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'plugin/'. $this->tagClassName .'.php';
+                $tagFile = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'plugin/'. $this->tagClassName .'.php';
             }
             else{
                 if(isset(Doo::conf()->PROTECTED_FOLDER_ORI))
-                    require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER_ORI .'module/'. $this->tagModuleName . '/plugin/'. $this->tagClassName .'.php';
+                    $tagFile = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER_ORI .'module/'. $this->tagModuleName . '/plugin/'. $this->tagClassName .'.php';
                 else
-                    require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER .'module/'. $this->tagModuleName . '/plugin/'. $this->tagClassName .'.php';
+                    $tagFile = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER .'module/'. $this->tagModuleName . '/plugin/'. $this->tagClassName .'.php';
             }
             $tagcls = $this->tagClassName;
         }
-        return $tagcls;
+		if (file_exists($tagFile)) {
+			require_once $tagFile;
+			return $tagcls;
+		} else {
+			return false;
+		}
     }
 
     private function setTags(){
         $tagcls = $this->loadTagClass();
 
-        $tagMethod = get_class_methods($tagcls);
+		if ($tagcls === false) {
+			$template_tags = array();
+		} else {
 
-        if(!empty($tagMethod)){
-            if( !empty(Doo::conf()->TEMPLATE_GLOBAL_TAGS) )
-                $template_tags = array_merge(Doo::conf()->TEMPLATE_GLOBAL_TAGS, $tagMethod);
-            else
-                $template_tags = $tagMethod;
+			$tagMethod = get_class_methods($tagcls);
 
-            $template_tags['_methods'] = $tagMethod;
-            $template_tags['_class'] = $tagcls;
-        }
-        else if( !empty(Doo::conf()->TEMPLATE_GLOBAL_TAGS) ){
-            $template_tags = Doo::conf()->TEMPLATE_GLOBAL_TAGS;
-        }
-        else{
-            $template_tags = array();
-        }
+			if(!empty($tagMethod)){
+				if( !empty(Doo::conf()->TEMPLATE_GLOBAL_TAGS) )
+					$template_tags = array_merge(Doo::conf()->TEMPLATE_GLOBAL_TAGS, $tagMethod);
+				else
+					$template_tags = $tagMethod;
 
-        foreach($template_tags as $k=>$v ){
-            if(is_int($k))
-                $template_tags[$k] = strtolower($v);
-            else
-                $template_tags[$k] = $v;
-        }
+				$template_tags['_methods'] = $tagMethod;
+				$template_tags['_class'] = $tagcls;
+			}
+			else if( !empty(Doo::conf()->TEMPLATE_GLOBAL_TAGS) ){
+				$template_tags = Doo::conf()->TEMPLATE_GLOBAL_TAGS;
+			}
+			else{
+				$template_tags = array();
+			}
+
+			foreach($template_tags as $k=>$v ){
+				if(is_int($k))
+					$template_tags[$k] = strtolower($v);
+				else
+					$template_tags[$k] = $v;
+			}
+		}
         Doo::conf()->add('TEMPLATE_TAGS', $template_tags);
         return $template_tags;
     }
