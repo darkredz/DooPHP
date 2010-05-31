@@ -216,12 +216,27 @@ class DooSqlMagic {
     * @param string $query SQL query prepared statement
     * @param array $param Values used in the prepared SQL
     * @param int $fetchMode  PDO Fetch mode for the statement
+	* @param mixed $fetchModeOptionalParam1 First Optional Param for PDOStatement::setFetchMode
+    * @param mixed $fetchModeOptionalParam2 Second Optional Param for PDOStatement::setFetchMode
     * @return Returns an array a row from the result set
     */
     public function fetchRow($query, $param = null, $fetchMode = null) {
         $stmt = $this->query($query, $param);
-		if($fetchMode!==null)
-			$stmt->setFetchMode($fetchMode);
+		if($fetchMode!==null) {
+			switch($fetchMode) {
+				case PDO::FETCH_COLUMN:
+					$stmt->setFetchMode($fetchMode, ($fetchModeOptionalParam1 !== null) ? $fetchModeOptionalParam1 : 0);
+					break;
+				case PDO::FETCH_CLASS:
+					$stmt->setFetchMode($fetchMode, $fetchModeOptionalParam1, $fetchModeOptionalParam2);
+					break;
+				case PDO::FETCH_INTO:
+					$stmt->setFetchMode($fetchMode, $fetchModeOptionalParam1);
+					break;
+				default:
+					$stmt->setFetchMode($fetchMode);
+			}
+		}
         return $stmt->fetch();
     }
 
@@ -230,12 +245,27 @@ class DooSqlMagic {
     * @param string $query SQL query prepared statement
     * @param array $param Values used in the prepared SQL
     * @param int $fetchMode  PDO Fetch mode for the statement
+    * @param mixed $fetchModeOptionalParam1 First Optional Param for PDOStatement::setFetchMode
+    * @param mixed $fetchModeOptionalParam2 Second Optional Param for PDOStatement::setFetchMode
     * @return Returns an array containing all of the result set rows
     */
-    public function fetchAll($query, $param = null, $fetchMode = null) {
+    public function fetchAll($query, $param = null, $fetchMode = null, $fetchModeOptionalParam1=null, $fetchModeOptionalParam2=array()) {
         $stmt = $this->query($query, $param);
-		if($fetchMode!==null)
-			$stmt->setFetchMode($fetchMode);
+		if($fetchMode!==null) {
+			switch($fetchMode) {
+				case PDO::FETCH_COLUMN:
+					$stmt->setFetchMode($fetchMode, ($fetchModeOptionalParam1 !== null) ? $fetchModeOptionalParam1 : 0);
+					break;
+				case PDO::FETCH_CLASS:
+					$stmt->setFetchMode($fetchMode, $fetchModeOptionalParam1, $fetchModeOptionalParam2);
+					break;
+				case PDO::FETCH_INTO:
+					$stmt->setFetchMode($fetchMode, $fetchModeOptionalParam1);
+					break;
+				default:
+					$stmt->setFetchMode($fetchMode);
+			}
+		}
         return $stmt->fetchAll();
     }
 
