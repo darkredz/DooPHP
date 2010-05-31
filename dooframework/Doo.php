@@ -55,12 +55,15 @@ class Doo{
     }
 
     /**
-     * @return DooAcl the application ACL singleton, auto create if the singleton has not been created yet.
+	 * @param $class the class to use for ACL. Can be DooAcl or DooRbAcl
+     * @return DooAcl|DooRbAcl the application ACL singleton, auto create if the singleton has not been created yet.
      */
-    public static function acl(){
+    public static function acl($class = 'DooAcl'){
         if(self::$_acl===NULL){
-            self::loadCore('auth/DooAcl');
-            self::$_acl = new DooAcl;
+			if (is_string($class)) {
+				self::loadCore('auth/' . $class);
+				self::$_acl = new $class;
+			}
         }
         return self::$_acl;
     }
