@@ -196,6 +196,9 @@ class DooUriRouter{
 		if (0 === strpos($requestedUri, '/index.php')) {
 			$requestedUri = substr($requestedUri, 10);
 			//$this->log('Trimmed off the /index.php from Request Uri to give: ' . $requestedUri);
+			if ($requestedUri == '') {
+				$requestedUri = '/';
+			}
 		}
 
 		// Remove get part of url (eg example.com/test/?foo=bar trimed to example.com/test/)
@@ -482,7 +485,7 @@ class DooUriRouter{
 		if (true) {
 			echo "{$msg}<br />\n";
 			if ($var !== null)
-				echo "<pre>" . print_r($var) . "</pre>";
+				echo "<pre>" . print_r($var,true) . "</pre>";
 		}
 	}
 
