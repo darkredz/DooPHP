@@ -133,13 +133,20 @@ class DooValidator {
 
     /**
      * Trim the data fields. The data will be modified.
-     * @param array $data One dimension assoc array
+     * @param array $data assoc array to be trimmed
+	 * @param int $maxDepth Maximum number of recursive calls. Defaults to a max nesting depth of 5.
      */
-    public function trimValues(&$data){
-        foreach($data as $k=>$v){
-            $data[$k] = trim($v);
-        }
-    }
+    public function trimValues(&$data, $maxDepth = 5) {
+		foreach($data as $k=>&$v) {
+			if (is_array($v)) {
+				if ($maxDepth > 0) {
+					$this->trimValues($v, $maxDepth - 1); // Changed to a +1 as 4 arrays in the same parent array would cause it to call with +1, +2, +3, +4 instead of +1, +1, +1, +1...hope this makes sense
+				}
+			} else {
+				$v = trim($v);
+			}
+		}
+	}
 
     /**
      * Get a list of available rules
