@@ -140,6 +140,27 @@ class DooModel{
     }
 
     /**
+     * Commits a transaction. Transactions can be nestable.
+     */
+    public function commit(){
+        Doo::db()->commit();
+    }
+
+    /**
+     * Initiates a transaction. Transactions can be nestable.
+     */
+    public function beginTransaction(){
+        Doo::db()->beginTransaction();
+    }
+
+    /**
+     * Rolls back a transaction. Transactions can be nestable.
+     */
+    public function rollBack(){
+        Doo::db()->rollBack();
+    }
+
+    /**
      * Find a record. (Prepares and execute the SELECT statements)
      * @param array $opt Associative array of options to generate the SELECT statement. Supported: <i>where, limit, select, param, asc, desc, custom, asArray</i>
      * @return mixed A model object or associateve array of the queried result

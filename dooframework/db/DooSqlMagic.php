@@ -66,6 +66,8 @@ class DooSqlMagic {
     protected $dbconfig_list;
     protected $pdo;
 
+    protected $transactionLevel = 0;
+
     protected $sql_list;
 
     const JOIN_LEFT = 'LEFT';
@@ -172,6 +174,46 @@ class DooSqlMagic {
             throw new SqlMagicException('Failed to open the DB connection', SqlMagicException::DBConnectionError);
         }
     }
+
+    /**
+     * Initiates a transaction. Transactions can be nestable.
+     */
+    public function beginTransaction() {
+        if($this->transactionLevel === 0){
+            $this->pdo->beginTransaction();
+        }
+        else{
+            $this->pdo->exec("SAVEPOINT LEVEL{$this->transactionLevel}");
+        }
+        $this->transactionLevel++;
+    }
+
+    /**
+     * Commits a transaction. Transactions can be nestable.
+     */
+    public function commit() {
+        $this->transactionLevel--;
+        if($this->transactionLevel === 0){
+            $this->pdo->commit();
+        }
+        else{
+            $this->pdo->exec("RELEASE SAVEPOINT LEVEL{$this->transLevel}");
+        }
+    }
+
+    /**
+     * Rolls back a transaction. Transactions can be nestable.
+     */
+    public function rollBack() {
+        $this->transactionLevel--;
+        if($this->transactionLevel === 0){
+            $this->pdo->rollBack();
+        }
+        else{
+            $this->pdo->exec("ROLLBACK TO SAVEPOINT LEVEL{$this->transactionLevel}");
+        }
+    }
+
 
     /**
      * Execute a query to the connected database

@@ -313,6 +313,27 @@ class DooSmartModel{
     }
 
     /**
+     * Commits a transaction. Transactions can be nestable.
+     */
+    public function commit(){
+        Doo::db()->commit();
+    }
+
+    /**
+     * Initiates a transaction. Transactions can be nestable.
+     */
+    public function beginTransaction(){
+        Doo::db()->beginTransaction();
+    }
+
+    /**
+     * Rolls back a transaction. Transactions can be nestable.
+     */
+    public function rollBack(){
+        Doo::db()->rollBack();
+    }
+
+    /**
      * Retrieve the total records in a table. COUNT()
      *
      * @param array $options Options for the query. Available options see @see find()
