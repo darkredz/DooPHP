@@ -148,21 +148,25 @@ class DooSqlMagic {
      * Reconnect to a database which has been defined in the database connection configurations
      * @param string $db_config_name Name/key of the database configuration
      */
-    public function reconnect($db_config_name){
+    public function reconnect($db_config_name=Null){
         //$host='localhost', $db='', $user='', $password='', $driver='mysql', $persist=true
-        $dbconfig = $this->dbconfig_list[$db_config_name];
+        if(isset($db_config_name)){
+            $this->dbconfig = $dbconfig = $this->dbconfig_list[$db_config_name];
+        }else{
+            $dbconfig = $this->dbconfig;
+        }
         try{
-            if ($this->dbconfig[4]=='sqlite')
-                $this->pdo = new PDO("{$this->dbconfig[4]}:{$this->dbconfig[0]}");
+            if ($dbconfig[4]=='sqlite')
+                $this->pdo = new PDO("{$dbconfig[4]}:{$dbconfig[0]}");
             else
                 $this->pdo = new PDO("{$dbconfig[4]}:host={$dbconfig[0]};dbname={$dbconfig[1]}", $dbconfig[2], $dbconfig[3],array(PDO::ATTR_PERSISTENT => $dbconfig[5]));
             $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->connected = true;
-            if(isset($this->dbconfig['charset']) && isset($this->dbconfig['collate'])){
-                $this->pdo->exec("SET NAMES '". $this->dbconfig['charset']. "' COLLATE '". $this->dbconfig['collate'] ."'");
+            if(isset($dbconfig['charset']) && isset($dbconfig['collate'])){
+                $this->pdo->exec("SET NAMES '". $dbconfig['charset']. "' COLLATE '". $dbconfig['collate'] ."'");
             }
-            else if(isset($this->dbconfig['charset']) ){
-                $this->pdo->exec("SET NAMES '". $this->dbconfig['charset']. "'");
+            else if(isset($dbconfig['charset']) ){
+                $this->pdo->exec("SET NAMES '". $dbconfig['charset']. "'");
             }
         }catch(PDOException $e){
             throw new SqlMagicException('Failed to open the DB connection', SqlMagicException::DBConnectionError);
