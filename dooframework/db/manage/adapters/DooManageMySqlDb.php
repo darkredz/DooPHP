@@ -42,9 +42,9 @@ class DooManageMySqlDb extends DooManageDb {
     	DooManageDb::COL_TYPE_TIMESTAMP	=> 'DATETIME',
 	);
 
-	protected $identifer_quote_prefix = '`';
+	protected $identiferQuotePrefix = '`';
 
-	protected $identifer_quote_suffix = '`';
+	protected $identiferQuoteSuffix = '`';
 
 	/**
 	 * Builds the Create Table command to run against MySQL.

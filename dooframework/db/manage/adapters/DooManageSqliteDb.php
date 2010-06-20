@@ -40,9 +40,9 @@ class DooManageSqliteDb extends DooManageDb {
     	DooManageDb::COL_TYPE_TIMESTAMP	=> 'TIMESTAMP',
 	);
 
-	protected $identifer_quote_prefix = '"';
+	protected $identiferQuotePrefix = '"';
 
-	protected $identifer_quote_suffix = '"';
+	protected $identiferQuoteSuffix = '"';
 
 	/**
 	 * SQLite does not quote numeric values so we need to overide the quoting mechanism

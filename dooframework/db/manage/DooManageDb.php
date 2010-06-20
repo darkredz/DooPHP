@@ -15,8 +15,8 @@
  *
  * {{code: php
  * 	protected $colTypeMapping;
- * 	protected $identifer_quote_prefix;
- * 	protected $identifer_quote_suffix;
+ * 	protected $identiferQuotePrefix;
+ * 	protected $identiferQuoteSuffix;
  * 	abstract columnDefineAutoincPrimary(&$columnDefinition, $autoinc, $primary);
  * }}
  *
@@ -40,18 +40,6 @@ abstract class DooManageDb {
 	const COL_TYPE_DATE		 = 'date';
 	const COL_TYPE_TIME		 = 'time';
 	const COL_TYPE_TIMESTAMP = 'timestamp';
-
-	/**
-     * Enable/disable SQL tracking, to view SQL which has been queried, use show_sql()
-     * @var bool
-     */
-	private $sql_tracking=false;
-
-	/**
-	 * Array of all SQL commands run against db
-	 * @var array
-	 */
-	protected $sql_list = array();
 
 	/**
      * Determined whether the database connection is made.
@@ -95,18 +83,24 @@ abstract class DooManageDb {
 	);
 
 	/**
+	 * Array of all SQL commands run against db
+	 * @var array
+	 */
+	protected $sqlList = array();
+
+	/**
      * The RDBMS specific quote character before an identifiers name
      * This must be defined in each specific adapter
      * @var string
      */
-    protected $identifer_quote_prefix = null;
+    protected $identiferQuotePrefix = null;
 
     /**
      * The RDBMS specific quote character after an identifiers name
      * This must be defined in each specific adapter
      * @var string
      */
-    protected $identifer_quote_suffix = null;
+    protected $identiferQuoteSuffix = null;
 
 	/**
 	 * Database configuration to use
@@ -114,10 +108,6 @@ abstract class DooManageDb {
 	 */
 	protected $dbconfig;
 
-	/** Collection of database configurations
-	 * @var array
-	 */
-    protected $dbconfig_list;
 
 	/**
 	 * A PDO Object for accessing the Database
@@ -125,6 +115,11 @@ abstract class DooManageDb {
 	 */
 	protected $pdo = null;
 
+	/**
+     * Enable/disable SQL tracking, to view SQL which has been queried, use show_sql()
+     * @var bool
+     */
+	private $sqlTracking=false;
 
 	/**
      * Set the database configuration
@@ -167,8 +162,8 @@ abstract class DooManageDb {
      * @return PDOStatement
      */
     public function query($query){
-        if($this->sql_tracking === true) {
-            $this->sql_list[] = $query;
+        if($this->sqlTracking === true) {
+            $this->sqlList[] = $query;
         }
         $stmt = $this->pdo->prepare($query);
         $stmt->execute();
@@ -179,37 +174,45 @@ abstract class DooManageDb {
 	 * Should SQL querys being executed be logged?
 	 * @param bool $enable True if tracking should be on, false otherwise
 	 */
-	public function enableSqlHistory($enable) {
-		if ($enable === true) {
-			$this->sql_tracking = true;
-		}
+	public function enableSqlHistory($enable = true) {
+		$this->sqlTracking = $enable;
 	}
 
 	/**
      * Retrieve a list of executed SQL queries
      * @return array
      */
-    public function get_sql_history(){
-        return $this->sql_list;
+    public function getSqlHistory(){
+        return $this->sqlList;
     }
 
     /**
      * Get the number of queries executed
      * @return int
      */
-    public function get_query_count(){
-        return sizeof($this->sql_list);
+    public function getQueryCount(){
+        return sizeof($this->sqlList);
     }
 
 	/**
      * Reset list of executed SQL queries
      * @return void
      */
-    public function reset_sql_history(){
-        $this->sql_list = array();
+    public function resetSqlHistory(){
+        $this->sqlList = array();
     }
 
-
+	/**
+	 * Checks to see if the specified table
+	 *
+	 * @param string $table Name of the table to check existance of
+	 */
+	public function tableExists($table) {
+		$stmt = $this->query("show tables like '{$table}'");
+		$result = $stmt->fetch();
+		return !empty($result);
+	}
+	
 	/**
 	 * Creates a new table within the active database
 	 *
@@ -552,7 +555,7 @@ abstract class DooManageDb {
 			if ($name == '*') {
 				return $name;
 			} else {
-				return $this->identifer_quote_prefix . $name . $this->identifer_quote_suffix;
+				return $this->identiferQuotePrefix . $name . $this->identiferQuoteSuffix;
 			}
 		}
 	}

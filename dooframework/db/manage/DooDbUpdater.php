@@ -10,43 +10,17 @@ abstract class DooDbUpdater {
 	protected $latestVersion = 0;
 
 	/**
-	 * This stores the current databases version
-	 * @var int
-	 */
-	protected $currentDbVersion = null;
-
-	/**
 	 * A DooDbAdmin adapater for the active DB engine
 	 * @var DooManageDb
 	 */
 	public $db = null;
 
-	/**
-	 * This is the mode of DB being used and relates to the application mode
-	 * This will be 'dev', 'prod' etc.
-	 * @var string
-	 */
-	protected $dbMode = null;
-
-	/**
-	 * This is the folder in which database update tracking files will be stored
-	 * There will be one file [APP_MODE].version created for each DooConfig::APP_MODE setting
-	 * The value in here indicates the current DB version for the current app mode
-	 * @var string
-	 */
-	protected $versionTrackingLocation = null;
 
 	/**
 	 * Sets up the DooDbUpdater
-	 * @param string $versionTrackingLocation folder path where tracking information files should be stored
 	 * @param array $dbConfig Database connection settings (db_host, db_name, db_user, db_pwd, db_driver, db_connection_cache)
-	 * @param string $appMode The mode the site is running in. DooDbUpdater supports different database versions for each app mode
 	 */
-	public function __construct($versionTrackingLocation, $dbConfig, $appMode) {
-
-		$this->versionTrackingLocation = $versionTrackingLocation;
-
-		$this->dbMode = $appMode;
+	public function __construct($dbConfig) {
 
 		// Load the correct Db Manager adapter based on the db_engine/driver being used
 		$this->db = $this->getDbEngineManager($dbConfig[4]);	// element 4 is the db_driver
@@ -167,31 +141,8 @@ abstract class DooDbUpdater {
 		}
 	}
 
-	/**
-	 * Returns the current version of the database. This is taken from the file:
-	 * DooDbUpdater::$versionTrackingLocation . DooDbUpdater::$dbMode . '.version'
-	 * @return int
-	 */
-	public function getCurrentDbVersion() {
-		Doo::loadHelper('DooFile');
-		$file = new DooFile(0777);
-		if (($version = $file->readFileContents($this->versionTrackingLocation . $this->dbMode . '.version')) == false) {
-			$version = 0;
-		}
-		return (int) $version;
-	}
-
-	/**
-	 * Stores the current version the database has been upgraded to in the file
-	 * DooDbUpdater::$versionTrackingLocation . DooDbUpdater::$dbMode . '.version'
-	 * @param int $version the current version which the db has been updated to
-	 * @return void
-	 */
-	public function storeCurrentDbVersion($version) {
-		Doo::loadHelper('DooFile');
-		$file = new DooFile(0777);
-		$file->create($this->versionTrackingLocation . $this->dbMode . '.version', $version);
-	}
+	abstract public function getCurrentDbVersion();
+	abstract public function storeCurrentDbVersion($version);
 
 	/**
 	 * Gets an instance of a Database Admin Adapter for the current DB's Engine
@@ -199,8 +150,6 @@ abstract class DooDbUpdater {
 	 * @return
 	 */
 	private function getDbEngineManager($engine) {
-
-		$engine = strtolower($engine);
 
 		if ($engine == 'mysql') {
 			Doo::loadCore('db/manage/adapters/DooManageMySqlDb');
