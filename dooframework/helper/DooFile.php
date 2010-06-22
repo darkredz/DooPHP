@@ -56,26 +56,28 @@ class DooFile {
      */
 	public function delete($path, $deleteSelf=true){
 
-        //delete all sub folder/files under, then delete the folder itself
-        if(is_dir($path)){
-            if($path[strlen($path)-1] != '/' && $path[strlen($path)-1] != '\\' ){
-                $path .= DIRECTORY_SEPARATOR;
-                $path = str_replace('\\', '/', $path);
-            }
-            if($total = $this->purgeContent($path)){
-                if($deleteSelf)
-                    if($t = rmdir($path))
-                        return $total + $t;
-                return $total;
-            }
-            else if($deleteSelf){
-                return rmdir($path);
-            }
-            return false;
-        }
-        else{
-            return unlink($path);
-        }
+		if (file_exists($path)) {
+			//delete all sub folder/files under, then delete the folder itself
+			if(is_dir($path)){
+				if($path[strlen($path)-1] != '/' && $path[strlen($path)-1] != '\\' ){
+					$path .= DIRECTORY_SEPARATOR;
+					$path = str_replace('\\', '/', $path);
+				}
+				if($total = $this->purgeContent($path)){
+					if($deleteSelf)
+						if($t = rmdir($path))
+							return $total + $t;
+					return $total;
+				}
+				else if($deleteSelf){
+					return rmdir($path);
+				}
+				return false;
+			}
+			else{
+				return unlink($path);
+			}
+		}
     }
 
 
@@ -108,6 +110,7 @@ class DooFile {
             $fp = fopen($filename, $writeFileMode);
             $rs = fwrite($fp, $content);
             fclose($fp);
+			chmod($filename, $this->chmod);
             return ($rs>0);
 		}else{
 			if (!file_exists($path)) {
