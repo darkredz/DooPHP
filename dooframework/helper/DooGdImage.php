@@ -389,6 +389,64 @@ class DooGdImage {
         return true;
     }
 
+
+	    public function adaptiveResizeCropExcess($file, $width=128, $height=128, $rename=''){
+        $file = $this->uploadPath . $file;
+
+        $imginfo = $this->getInfo($file);
+
+        if($rename=='')
+            $newName = substr($imginfo['name'], 0, strrpos($imginfo['name'], '.')) . $this->thumbSuffix .'.'. $this->generatedType;
+        else
+            $newName = $rename .'.'. $this->generatedType;
+
+        //create image object based on the image file type, gif, jpeg or png
+        $this->createImageObject($img, $imginfo['type'], $file);
+
+        if(!$img) return false;
+
+		if (($imginfo['width'] / $imginfo['height']) > ($width / $height) ) {	
+			$srcY = 0;
+			$srcH = $imginfo['height'];
+			$srcW = round($width / ($height / $imginfo['height']));
+			$srcX = round(($imginfo['width'] / 2) - ($srcW / 2));
+		} else {
+			$srcX = 0;
+			$srcW = $imginfo['width'];
+			$srcH = round($height / ($width / $imginfo['width']));
+			$srcY = round(($imginfo['height'] / 2) - ($srcH / 2));
+		}
+
+        //For GD version 2.0.1 only
+        if (function_exists('imagecreatetruecolor')){
+            $newImg = imagecreatetruecolor($width, $height);
+
+            imagecopyresampled($newImg, $img, 0, 0, $srcX, $srcY, $width, $height, $srcW, $srcH);
+        }
+        else{
+            $newImg = imagecreate($width, $height);
+            imagecopyresampled($newImg, $img, 0, 0, $srcX, $srcY, $width, $height, $srcW, $srcH);
+        }
+
+        if($this->saveFile){
+            //delete if exist
+            if(file_exists($this->processPath . $newName))
+                unlink($this->processPath . $newName);
+            $this->generateImage($newImg, $this->processPath . $newName);
+            imagedestroy($newImg);
+            imagedestroy($img);
+            return $this->processPath . $newName;
+        }
+        else{
+            $this->generateImage($newImg);
+            imagedestroy($newImg);
+            imagedestroy($img);
+        }
+
+        return true;
+    }
+
+
 	/**
      * Resizes the Image and keep it proportioned
      *
