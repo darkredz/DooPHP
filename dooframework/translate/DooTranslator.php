@@ -104,7 +104,7 @@ class DooTranslator {
 					case "apc":
 						$this->_cache = Doo::cache('apc');
 						break;
-					case "php";
+					case "php":
 						$this->_cache = Doo::cache('php');
 						break;
 					case "xcache":
