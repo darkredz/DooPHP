@@ -375,15 +375,14 @@ class DooFile {
 			if ($listOnly==DooFile::LIST_FOLDER) {
 				if(!is_dir($val)) continue;
 			}
-			$filename = explode('/', $val);
-			$filename = $filename[count($filename)-1];
-            $ext = explode('.',$val);
+			$filename = basename($filename);
+			$ext = $this->getFileExtensionFromPath($val, true);
 
             if(!is_dir($val)){
                 $fileInfo[] = array('name' => $filename,
                                     'path' => $val,
                                     'folder' => is_dir($val),
-                                    'extension' => strtolower($ext[sizeof($ext)-1]),
+                                    'extension' => $ext,
                                     'type' => mime_content_type($val),
                                     'size' => filesize($val)
                                 );
@@ -414,8 +413,7 @@ class DooFile {
 		}
 
         if(is_array($file['name'])===False){
-            $pic = strrpos($file['name'], '.');
-            $ext = substr($file['name'], $pic+1);
+			$ext = $this->getFileExtensionFromPath($file['name']);
 
             if($rename=='')
                 $newName = time().'-'.mt_rand(1000,9999) . '.' . $ext;
@@ -436,8 +434,7 @@ class DooFile {
             foreach($file['error'] as $k=>$error){
                 if(empty($file['name'][$k])) continue;
                 if ($error == UPLOAD_ERR_OK) {
-                   $pic = strrpos($file['name'][$k], '.');
-                   $ext = substr($file['name'][$k], $pic+1);
+				   $ext = $this->getFileExtensionFromPath($file['name'][$k]);
 
                    if($rename=='')
                        $newName = time().'-'.mt_rand(1000,9999) . '_' . $k . '.' . $ext;
@@ -513,15 +510,13 @@ class DooFile {
     public function checkFileExtension($filename, $allowExt){
         if(!empty($_FILES[$filename])){
             $name = $_FILES[$filename]['name'];
-            if(is_array($name)===False){
-                $n = strrpos($name, '.');
-                $ext = strtolower(substr($name, $n+1));
+            if(is_array($name)===false){
+                $ext = $this->getFileExtensionFromPath($name);
                 return in_array($ext, $allowExt);
             }
             else{
                 foreach($name as $nm){
-                    $n = strrpos($nm, '.');
-                    $ext = strtolower(substr($nm, $n+1));
+					$ext = $this->getFileExtensionFromPath($nm);
                     if(!in_array($ext, $allowExt)){
                         return false;
                     }
@@ -562,7 +557,7 @@ class DooFile {
 	 * @param string $fullFilePath Full path to file whose contents should be read
 	 * @return string|bool Returns file contents or false if file not found
 	 */
-	function readFileContents($fullFilePath, $flags = 0, resource $context = null, $offset = -1, $maxlen = null) {
+	public function readFileContents($fullFilePath, $flags = 0, resource $context = null, $offset = -1, $maxlen = null) {
 		if (file_exists($fullFilePath)) {
 			if ($maxlen !== null)
 				return file_get_contents($fullFilePath, $flags, $context, $offset, $maxlen);
@@ -571,6 +566,17 @@ class DooFile {
 		} else {
 			return false;
 		}
+	}
+
+	/**
+	 * Extracts the file extension (characters following last '.' in string) from a file path.
+	 * @param string $filePath Full path or filename including extension to be extracted
+	 * @param bool $toLowerCase Should the extension be converted to lower case ?
+	 * @return string|Returns the file extension (characters following last . in string)
+	 */
+	public function getFileExtensionFromPath($path, $toLowerCase = false) {
+		$ext = substr($path, strrpos($path, '.') + 1);
+		return ($toLowerCase == true) ? strtolower($ext) : $ext;
 	}
 
 }
