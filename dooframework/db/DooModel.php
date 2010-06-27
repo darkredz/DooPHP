@@ -409,11 +409,15 @@ class DooModel{
     /**
      * Retrieve the total records in a table. COUNT()
      *
-     * @param array $options Options for the query. Available options see @see find()
+     * @param array $options Options for the query. Available options see @see find() and additional 'distinct' option
      * @return int total of records
      */
     public function count($options=null){
-        $options['select'] = 'COUNT('. $this->_table . '.' . $this->_fields[0] .') as _doototal';
+		if (isset($options['distinct']) && $options['distinct'] == true) {
+			$options['select'] = 'COUNT(DISTINCT '. $this->_table . '.' . $this->_fields[0] .') as _doototal';
+		} else {
+			$options['select'] = 'COUNT('. $this->_table . '.' . $this->_fields[0] .') as _doototal';
+		}
         $options['asArray'] = true;
         $options['limit'] = 1;
         $rs = Doo::db()->find($this, $options);
@@ -472,14 +476,19 @@ class DooModel{
      * Retrieve the total records in a table. COUNT()
      *
      * @param object $model The model object to be select.
-     * @param array $options Options for the query. Available options see @see find()
+     * @param array $options Options for the query. Available options see @see find() and additional 'distinct' option
      * @return int total of records
      */
     public static function _count($model=null, $options=null){
         if($model===null)
             $model = new self::$className;
 
-		$options['select'] = 'COUNT('. $model->_table . '.' . $model->_fields[0] .') as _doototal';
+		if (isset($options['distinct']) && $options['distinct'] == true) {
+			$options['select'] = 'COUNT(DISTINCT '. $model->_table . '.' . $model->_fields[0] .') as _doototal';
+		} else {
+			$options['select'] = 'COUNT('. $model->_table . '.' . $model->_fields[0] .') as _doototal';
+		}
+		
         $options['asArray'] = true;
         $options['limit'] = 1;
         $rs = Doo::db()->find($model, $options);
