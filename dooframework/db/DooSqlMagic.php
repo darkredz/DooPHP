@@ -245,6 +245,7 @@ class DooSqlMagic {
                 }
             }
             $this->sql_list[] = $querytrack;
+			//echo '<pre>' . print_r($querytrack, true) . '</pre>';
         }
 
         $stmt = $this->pdo->prepare($query);
@@ -838,51 +839,57 @@ class DooSqlMagic {
                 $sqladd['include'] = $tmodel->_table;
                 $tmodel_class = $opt['include'];
             }
-            list($tmodel_rtype, $tmodel_fk ) = self::relationType($this->map, $class_name, $tmodel_class);
-            $tmodel_fk = $tmodel_fk['foreign_key'];
-            //echo $tmodel_rtype.'<br/>';
-            //include Join Type
-            if(isset($opt['includeType'])){
-                $sqladd['include'] = $opt['includeType'] . ' JOIN '. $sqladd['include'];
-            }else{
-                $sqladd['include'] = ' JOIN ' . $sqladd['include'];
-            }
-            if($rtype=='belongs_to'){
-                list($trtype, $tfkey ) = self::relationType($this->map, $tmodel_class, $class_name);
-                //echo '<h1>TMODEL '.$tfkey['foreign_key'].'</h1>';
-                $sqladd['include'] .= " ON {$tmodel->_table}.$tmodel_fk = {$model->_table}.{$tfkey['foreign_key']} ";
-            }else{
-                $sqladd['include'] .= " ON {$tmodel->_table}.$tmodel_fk = {$model->_table}.{$model->_primarykey} ";
-            }
-            #print_r($sqladd['where']);
-            if(isset($opt['includeWhere'])){
-                if($sqladd['where']==''){
-                    $sqladd['where'] .= ' WHERE '.$opt['includeWhere'];
-                }else{
-                    $sqladd['where'] .= ' AND '.$opt['includeWhere'].' ';
-                }
-                //merge the include param with the Where params, at the end
-                if(isset($opt['includeParam'])){
-                    if(isset($opt['param']) && isset($where_values))
-                         $where_values = array_merge( $where_values, $opt['includeParam']);
-                    else if(isset($opt['param']))
-                        $opt['param'] = array_merge( $opt['param'], $opt['includeParam']);
-                    else if(isset($where_values))
-                        $where_values = array_merge( $where_values, $opt['includeParam']);
-                    else
-                        $where_values = $opt['includeParam'];
-                }
-            }
+
+			list($tmodel_rtype, $tmodel_fk ) = self::relationType($this->map, $class_name, $tmodel_class);
+			$tmodel_fk = $tmodel_fk['foreign_key'];
+
+			if ($rtype == 'has_many' && $mtype == 'has_many' && $tmodel->_table == $rparams['through']) { // Is the include for the joining table?
+				$sqladd['include'] = '';
+			} else {
+				//echo $tmodel_rtype.'<br/>';
+				//include Join Type
+				if(isset($opt['includeType'])){
+					$sqladd['include'] = $opt['includeType'] . ' JOIN '. $sqladd['include'];
+				}else{
+					$sqladd['include'] = ' JOIN ' . $sqladd['include'];
+				}
+				if($rtype=='belongs_to'){
+					list($trtype, $tfkey ) = self::relationType($this->map, $tmodel_class, $class_name);
+					//echo '<h1>TMODEL '.$tfkey['foreign_key'].'</h1>';
+					$sqladd['include'] .= " ON {$tmodel->_table}.$tmodel_fk = {$model->_table}.{$tfkey['foreign_key']} ";
+				}else{
+					$sqladd['include'] .= " ON {$tmodel->_table}.$tmodel_fk = {$model->_table}.{$model->_primarykey} ";
+				}
+				#print_r($sqladd['where']);
+				if(isset($opt['includeWhere'])){
+					if($sqladd['where']==''){
+						$sqladd['where'] .= ' WHERE '.$opt['includeWhere'];
+					}else{
+						$sqladd['where'] .= ' AND '.$opt['includeWhere'].' ';
+					}
+					//merge the include param with the Where params, at the end
+					if(isset($opt['includeParam'])){
+						if(isset($opt['param']) && isset($where_values))
+							 $where_values = array_merge( $where_values, $opt['includeParam']);
+						else if(isset($opt['param']))
+							$opt['param'] = array_merge( $opt['param'], $opt['includeParam']);
+						else if(isset($where_values))
+							$where_values = array_merge( $where_values, $opt['includeParam']);
+						else
+							$where_values = $opt['includeParam'];
+					}
+				}
+			}
 			//edit the select part since now 3 tables are involved, might have 3 repeating field names in all tables.
-            //SELECT model.*, related_model.*, includemodel.id AS _t_includemodel_id, includemodel.title AS _t_includemodel_title, ...
-            $tselect_field = '';
-            foreach($tmodel->_fields as $tfname){
-                $tselect_field .= $tmodel->_table.'.'.$tfname . ' AS _t_' . $tmodel->_table . '_' . $tfname . ', ';
-            }
-            if(strpos($sqladd['select'], '*,')===0){
-                $sqladd['select'] = substr($sqladd['select'], 2);
-                $sqladd['select'] = "{$model->_table}.*, {$relatedmodel->_table}.*, $tselect_field" . $sqladd['select'];
-            }
+			//SELECT model.*, related_model.*, includemodel.id AS _t_includemodel_id, includemodel.title AS _t_includemodel_title, ...
+			$tselect_field = '';
+			foreach($tmodel->_fields as $tfname){
+				$tselect_field .= $tmodel->_table.'.'.$tfname . ' AS _t_' . $tmodel->_table . '_' . $tfname . ', ';
+			}
+			if(strpos($sqladd['select'], '*,')===0){
+				$sqladd['select'] = substr($sqladd['select'], 2);
+				$sqladd['select'] = "{$model->_table}.*, {$relatedmodel->_table}.*, $tselect_field" . $sqladd['select'];
+			}
             
         }else{
             $sqladd['include']='';
@@ -1316,7 +1323,33 @@ class DooSqlMagic {
                                     $record = new $class_name;
                                     $record->{$rmodel} = ($rfk!=NULL)? array() : NULL;
 
+									if(isset($tmodel_class) && !isset($record->{$tmodel_class}) ){
+										if($tmodel_rtype=='has_many'){
+											#echo 'Has Many 3rd';
+											if(!isset($tmodelArray)){
+												$tmodelArray = array();
+												#echo '+++++ Create new 3rd Model Array';
+											}
+											$newtmodel = new $tmodel_class;
+										}else{
+											#echo 'Has One 3rd';
+											$newtmodel = new $tmodel_class;
+										}
+									}
+
                                     foreach($v as $k2=>$v2){
+
+										//check and add to 3rd included Model
+										if(isset($newtmodel)){
+											//found then add to 3rd Model, create the Model object if not yet created
+											$tpart1 =  '_t_'.$tmodel->_table.'_';
+											if( strpos($k2, $tpart1)===0 ){
+												$tmodel_var = str_replace($tpart1, '', $k2);
+												$newtmodel->{$tmodel_var} = $v2;
+												continue;
+											}
+										}
+
                                         if(in_array($k2, $model_vars)){
                                             if($k2===$retrieved_pk_key)
                                                 $record->{$mparams['foreign_key']} = $v2;
@@ -1345,6 +1378,17 @@ class DooSqlMagic {
                                             }
                                         }
                                     }
+
+									//add in the 3rd Model to the 3rdModel key if created
+									if(isset($newtmodel)){
+										if($tmodel_rtype=='has_many'){
+											$tmodelArray[]= $newtmodel;
+											#echo '----Added 3rd Model<br/>';
+											$record->{$tmodel_class} = $tmodelArray;
+										}else{
+											$record->{$tmodel_class} = $newtmodel;
+										}
+									}
 
                                     //do not add to the associated object Array if, relation not found, means empty Array, no record! if not it will create an Array with an empty Model Object
                                     if($rfk!=NULL)
@@ -1963,6 +2007,9 @@ class DooSqlMagic {
      * @return array Relationship with details such as relationship type, foreign key, linked table
      */
     public static function relationType($map, $model_name, $relate_model_name){
+		if (!isset($map[$model_name])) {
+			throw new SqlMagicException("No relationship mapping found between '{$model_name}' and '{$relate_model_name}'");
+		}
         $r1 = $map[$model_name];
         #print_r($r1);
         $rtype = NULL;
