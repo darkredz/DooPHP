@@ -218,7 +218,7 @@ class Doo{
     protected static function load($class_name, $path, $createObj=FALSE){
         if(is_string($class_name)===True){
 			$pure_class_name = basename($class_name);
-            class_exists($pure_class_name)===True || require_once($path . "$class_name.php");
+            class_exists($pure_class_name, false)===True || require_once($path . "$class_name.php");
             if($createObj)
                 return new $pure_class_name;
         }else if(is_array($class_name)===True){
@@ -229,7 +229,7 @@ class Doo{
 
             foreach ($class_name as $one) {
 				$pure_class_name = basename($one);
-                class_exists($pure_class_name)===True || require_once($path . "$one.php");
+                class_exists($pure_class_name, false)===True || require_once($path . "$one.php");
                 if($createObj)
                     $obj[] = new $pure_class_name;
             }
