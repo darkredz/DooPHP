@@ -5,6 +5,7 @@ class DooViewBasic {
 	public $controller;
     public $data;
 
+	protected static $forceCompile = false;
 	protected static $safeVariableResult = null;
 	protected static $uniqueId = 0;
 
@@ -23,7 +24,6 @@ class DooViewBasic {
 	protected $defaultRootViewPath = null;
 	protected $rootCompiledPath = null;
 	protected $relativeViewPath = '';
-	protected $forceCompile = false;
 	protected $usingRecursiveRender = false;
 	protected $filterFunctionPrefix = 'filter_';
 	protected $useSafeVariableAccess = false;
@@ -221,13 +221,14 @@ class DooViewBasic {
     public function render($file, $data=NULL, $process=NULL, $forceCompile=false){
 
         if(isset(Doo::conf()->TEMPLATE_COMPILE_ALWAYS) && Doo::conf()->TEMPLATE_COMPILE_ALWAYS==true){
-            $this->forceCompile = $process = $forceCompile = true;
+			$process = $forceCompile = true;
         }
         //if process not set, then check the app mode, if production mode, skip the process(false) and just include the compiled files
         else if($process===NULL){
             $process = (Doo::conf()->APP_MODE!='prod');
         }
 
+		self::$forceCompile = $forceCompile;
 		$this->usingRecursiveRender = false;
 		$this->mainRenderFolder = substr($file, 0, strrpos('/', $file));
 
@@ -275,6 +276,7 @@ class DooViewBasic {
             $forceCompile = true;
         }
 
+		self::$forceCompile = $forceCompile;
 		$this->usingRecursiveRender = true;
 		$this->mainRenderFolder = $relativeFolder;
 
@@ -351,6 +353,7 @@ class DooViewBasic {
             $process = (Doo::conf()->APP_MODE!='prod');
         }
 
+		self::$forceCompile = $forceCompile;
 		$this->usingRecursiveRender = true;
 		$this->mainRenderFolder = $viewFolder;
 
@@ -733,7 +736,7 @@ class DooViewBasic {
 	}
 
 	protected function block_cache($params) {
-		if ( preg_match('/\(([^\t\r\n]+?)(([,][ ]*)([0-9]+[ ]*))?[ ]*\)[ ]*$/', $params, $matches)) {		
+		if ( preg_match('/\(([^\t\r\n]+?)(([,][ ]*)([0-9]+[ ]*))?[ ]*\)[ ]*$/', $params, $matches)) {
 			$matches[1] = $this->strToStmt($matches[1]);
 			if (count($matches) == 5) {
 				return "<?php if (!Doo::cache('front')->getPart({$matches[1]}, {$matches[4]})): ?>\n<?php Doo::cache('front')->start({$matches[1]}); ?>";
@@ -748,12 +751,49 @@ class DooViewBasic {
 		return "\n<?php Doo::cache('front')->end(); ?>\n<?php endif; ?>";
 	}
 
-	protected function block_include($params) {
+	protected function block_include_old($params) {
 		$result = $this->compileSubView($params);
 		if ($result[0] == true) {
 			return "<?php include '{$result[1]}'; ?>";
 		} else {
 			return $result[1];
+		}
+	}
+
+	protected function block_include($params) {
+		$params = trim($params);
+
+		// Using a static string for the include
+		if (preg_match('/^[\'|\"](.+)[\'|\"]$/', $params, $matches)){
+			$result = $this->compileSubView($matches[1]);
+			if ($result[0] == true) {
+				return "<?php include '{$result[1]}'; ?>";
+			} else {
+				return $result[1];
+			}
+
+		// Using dynamic variable for the include
+		} elseif (preg_match('/^([^\t\r\n ]+)$/', $params, $matches)) {
+			$filePath = $this->strToStmt($params);
+			$resultVar = $this->getUniqueVarId();
+
+			$content  = "<?php\n";
+			$content .= "\tif({$filePath} != DooViewBasic::\$safeVariableResult){\n";
+			$content .= "\t\t{$resultVar} = \$this->compileSubView({$filePath});\n";
+			$content .= "\t\tif ({$resultVar}[0] == true) {\n";
+			$content .= "\t\t\tinclude {$resultVar}[1];\n";
+			$content .= "\t\t} else {\n";
+			$content .= "\t\t\techo {$resultVar}[1];\n";
+			$content .= "\t\t}\n";
+			$content .= "\t} else {\n";
+			$content .= "\t\techo '<span style=\"color:#ff0000\">{$params} is not set</span>';\n";
+			$content .= "\t}\n";
+			$content .= "?>";
+			return $content;
+
+
+		} else {
+			return "<span style=\"color:#ff0000\">Unrecognised view. Must be string OR \$data index. Got: {$params}</span>";
 		}
 	}
 
@@ -781,8 +821,8 @@ class DooViewBasic {
 		return "<?php\n" . $preCycleStatement . $cycleStatement . '?>';
 	}
 
-
-	private function compileSubView($params) {
+	public function compileSubView($file) {
+		/*
 		$params = trim($params);
 		if (preg_match('/^[\'|\"](.+)[\'|\"]$/', $params, $matches)){
 			$file = $matches[1];
@@ -795,6 +835,7 @@ class DooViewBasic {
 		} else {
 			return array(false, "<span style=\"color:#ff0000\">Unrecognised view. Must be string OR \$data index.</span>");
 		}
+		 */
 
 		if(substr($file, 0,1)=='/'){
             $file = substr($file, 1);
@@ -1302,4 +1343,3 @@ class DooViewBasic {
 	}
 
 }
-?>
