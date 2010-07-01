@@ -267,7 +267,7 @@ class DooSqlMagic {
     * @param mixed $fetchModeOptionalParam2 Second Optional Param for PDOStatement::setFetchMode
     * @return Returns an array a row from the result set
     */
-    public function fetchRow($query, $param = null, $fetchMode = null) {
+    public function fetchRow($query, $param = null, $fetchMode = null, $fetchModeOptionalParam1=null, $fetchModeOptionalParam2=array()) {
         $stmt = $this->query($query, $param);
 		if($fetchMode!==null) {
 			switch($fetchMode) {
@@ -379,7 +379,7 @@ class DooSqlMagic {
     /**
      * Find a record. (Prepares and execute the SELECT statements)
      * @param mixed $model The model class name or object to be select
-     * @param array $opt Associative array of options to generate the SELECT statement. Supported: <i>where, limit, select, param, asc, desc, custom, asArray</i>
+     * @param array $opt Associative array of options to generate the SELECT statement. Supported: <i>where, limit, select, groupby, param, asc, desc, custom, asArray, filters</i>
      * @return mixed A model object or associateve array of the queried result
      */
     public function find($model, $opt=null){
@@ -464,7 +464,7 @@ class DooSqlMagic {
 				if(is_object($filter['model'])){
 					$fmodel = $filter['model'];
 					$fTableName = $fmodel->_table;
-					$fmodel_class = get_class($tmodel);
+					$fmodel_class = get_class($fmodel);
 				}else{
 					$fmodel = Doo::loadModel($filter['model'], true);
 					$fTableName = $fmodel->_table;
@@ -523,6 +523,13 @@ class DooSqlMagic {
 			$sqladd['filter'] = '';
 		}
 
+		//GROUP BY
+		if (isset($opt['groupby'])) {
+			$sqladd['groupby'] = 'GROUP BY ' . $opt['groupby'];
+		} else {
+			$sqladd['groupby'] = '';
+		}
+
         //if asc is defined first then ORDER BY xxx ASC, xxx DESC
         //else Order by xxx DESC, xxx ASC
         if(isset($opt['asc']) && isset($opt['desc']) && $opt['asc']!='' && $opt['desc']!=''){
@@ -554,7 +561,7 @@ class DooSqlMagic {
         }
 
 
-        $sql ="SELECT {$sqladd['select']} FROM {$model->_table} {$sqladd['filter']} {$sqladd['where']} {$sqladd['order']} {$sqladd['custom']} {$sqladd['limit']}";
+        $sql ="SELECT {$sqladd['select']} FROM {$model->_table} {$sqladd['filter']} {$sqladd['where']} {$sqladd['groupby']} {$sqladd['order']} {$sqladd['custom']} {$sqladd['limit']}";
 
         //conditions WHERE param
         if(isset($opt['param']) && isset($where_values))
@@ -589,7 +596,7 @@ class DooSqlMagic {
      * Find a record and its associated model. Relational search. (Prepares and execute the SELECT statements)
      * @param mixed $model The model class name or object to be select.
      * @param string $rmodel The related model class name.
-     * @param array $opt Associative array of options to generate the SELECT statement. Supported: <i>where, limit, select, param, joinType, match, asc, desc, custom, asArray, include, includeWhere, includeParam</i>
+     * @param array $opt Associative array of options to generate the SELECT statement. Supported: <i>where, limit, select, param, groupby, joinType, match, asc, desc, custom, asArray, include, includeWhere, includeParam, filters</i>
      * @return mixed A list of model object(s) or associateve array of the queried result
      */
     public function relate($model, $rmodel, $opt=null){
@@ -676,6 +683,12 @@ class DooSqlMagic {
             $sqladd['where'] ='';
         }
 
+		//GROUP BY
+		if (isset($opt['groupby'])) {
+			$sqladd['groupby'] = 'GROUP BY ' . $opt['groupby'];
+		} else {
+			$sqladd['groupby'] = '';
+		}
 
         //ASC ORDER
         if(isset($opt['asc'])){
@@ -903,7 +916,7 @@ class DooSqlMagic {
 				if(is_object($filter['model'])){
 					$fmodel = $filter['model'];
 					$fTableName = $fmodel->_table;
-					$fmodel_class = get_class($tmodel);
+					$fmodel_class = get_class($fmodel);
 				}else{
 					$fmodel = Doo::loadModel($filter['model'], true);
 					$fTableName = $fmodel->_table;
@@ -979,6 +992,7 @@ class DooSqlMagic {
                     {$sqladd['joinType']} {$sqladd['rNestedQuery']} {$relatedmodel->_table}
                     ON {$model->_table}.{$mparams['foreign_key']} = {$relatedmodel->_table}.{$rparams['foreign_key']}
                     {$sqladd['where']}
+					{$sqladd['groupby']}
                     {$sqladd['order']} {$sqladd['custom']} {$sqladd['limit']}";
                 break;
             case 'belongs_to':
@@ -990,6 +1004,7 @@ class DooSqlMagic {
                     {$sqladd['joinType']} {$sqladd['rNestedQuery']} {$relatedmodel->_table}
                     ON {$model->_table}.{$mparams['foreign_key']} = {$relatedmodel->_table}.{$rparams['foreign_key']}
                     {$sqladd['where']}
+					{$sqladd['groupby']}
                     {$sqladd['order']} {$sqladd['custom']} {$sqladd['limit']}";
                 break;
             case 'has_many':
@@ -1170,6 +1185,7 @@ class DooSqlMagic {
                         {$sqladd['joinType']} {$relatedmodel->_table}
                         ON {$relatedmodel->_table}.{$relatedmodel->_primarykey} = {$rparams['through']}.{$mparams['foreign_key']}
                         {$sqladd['where']}
+						{$sqladd['groupby']}
                         ORDER BY {$addonOrder} {$rparams['through']}.{$mparams['foreign_key']},{$rparams['through']}.{$rparams['foreign_key']} ASC
                          {$sqladd['custom']}";
                 }
@@ -1183,6 +1199,7 @@ class DooSqlMagic {
                         {$sqladd['joinType']} {$sqladd['rNestedQuery']} {$relatedmodel->_table}
                         ON {$model->_table}.{$mparams['foreign_key']} = {$relatedmodel->_table}.{$rparams['foreign_key']}
                         {$sqladd['where']}
+						{$sqladd['groupby']}
                         {$sqladd['order']} {$sqladd['custom']} {$sqladd['limit']}";
                 }
                 break;
