@@ -109,6 +109,19 @@ class DooSession {
 	}
 
 	/**
+	 * Keeping a session open for a long operation causes subsequent requests from
+	 * a user of that session having to wait for session's file to be freed.
+	 * Therefore if you do not need the session anymore you can call this function
+	 * to store the session and close the lock it has
+	 */
+	public function stop() {
+		if ($this->_sessionStarted) {
+			session_write_close();
+			$this->_sessionStarted = false;
+		}
+	}
+
+	/**
 	* Set variable into session
 	* @param string $name Name of key
 	* @param mixed $value Value for keyname ($name)

@@ -613,6 +613,9 @@ class DooViewBasic {
 		$blockName = $matches[1];
 		$blockParams = isset($matches[2]) ? $matches[2] : '';
 
+		// Remove newlines from parameters for block and replace tabs with 4 spaces
+		$blockParams = str_replace(array("\r\n", "\n", "\r", "\t"), array('','','','    '), $blockParams);
+
 		// Remove any PHP tags from outputting
 		$blockParams = $this->stripPHPTags($blockParams);
 		$blockName = 'block_' . $blockName;
@@ -969,6 +972,9 @@ class DooViewBasic {
 
 						} else {
 							$result .= $this->processStmt($currentToken);
+							if ($char == ',') {
+								$result .= ',';
+							}
 						}
 						$inFilter = false;
 						$tokens = array();

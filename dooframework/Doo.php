@@ -254,7 +254,7 @@ class Doo{
      * @param string $class_name Name of the class to be imported
      */
     public static function loadController($class_name){
-        require_once self::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'controller/'.$class_name.'.php';
+		return self::load($class_name, self::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'controller/', false);
     }
 
     /**
@@ -345,7 +345,7 @@ class Doo{
      * @param string $classname Class name to be loaded.
      */
     public static function autoload($classname){
-        if(class_exists($classname)===True)
+        if(class_exists($classname, false)===True)
 			return;
 
 		$class['DooController'] = 'controller/DooController';

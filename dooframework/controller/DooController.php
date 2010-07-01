@@ -161,7 +161,7 @@ class DooController {
 	
     /**
      * The view singleton, auto create if the singleton has not been created yet.
-     * @return DooView
+     * @return DooView|DooViewBasic
      */
     public function view(){
         if($this->_view==NULL){

@@ -73,7 +73,6 @@ class DooWebApp{
 
             if($_SERVER['REQUEST_METHOD']==='PUT')
                 $controller->init_put_vars();
-
 			//before run, normally used for ACL auth
 			if($clsnameDefined){
 				if($rs = $controller->beforeRun($routeRs[3], $routeRs[1])){
