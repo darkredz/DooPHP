@@ -93,6 +93,13 @@ class DooMailer {
 	protected $_attachments = array();
 
 	/**
+	 * End of line combo to use in headers
+	 * Some OS / Mail Servers require an alternative line ending
+	 * @var string
+	 */
+	protected $_headerEOL = "\r\n";
+
+	/**
 	* Flag if email has attachments
 	* @var bool
 	*/
@@ -103,10 +110,12 @@ class DooMailer {
 	* Class constructor
 	*
 	* @param string $charset Charset for mail, default (utf-8)
+	* @param string $headerEOL The string to use for end of line in the mail headers (Note: Use double quotes when defining this)
 	*/
 
-	public function __construct($charset = 'utf-8') {
+	public function __construct($charset = 'utf-8', $headerEOL = "\r\n") {
 		$this->_charset = $charset;
+		$this->_headerEOL = $headerEOL;
 	}
 
 	/**
@@ -217,41 +226,40 @@ class DooMailer {
 		$fromName = (isset($from['name']))?$from['name']:'';
 		$fromEmail = (isset($from['email']))?$from['email']:'';
 		$mime_boundary = 'Multipart_Boundary_x'.md5(time()).'x';		
-		$header = "From: ".$fromName." <".$fromEmail.">\r\n";
+		$header = "From: ".$fromName." <{$fromEmail}>" . $this->_headerEOL;
 		// add to
-		$header .= "To: " . $this->getTo(true);
-		$header .= "\r\n";
-		$header .= "Subject: ".$this->_subject . "\r\n";
+		$header .= "To: " . $this->getTo(true) . $this->_headerEOL;
+		$header .= "Subject: ".$this->_subject . $this->_headerEOL;
 		// add recipients
 		if ($this->_recipients)
-		$header .= "Reply-To: ".$replyto."\r\n";
-		$header .= "MIME-Version: 1.0\r\n";
-		$header .= "Content-Type: multipart/alternative; boundary=\"$mime_boundary\"\r\n";
-		$header .= "--".$mime_boundary."\n";
+		$header .= "Reply-To: {$replyto}" . $this->_headerEOL;
+		$header .= "MIME-Version: 1.0" . $this->_headerEOL;
+		$header .= "Content-Type: multipart/alternative; boundary=\"{$mime_boundary}\"" . $this->_headerEOL;
+		$header .= "--{$mime_boundary}" . $this->_headerEOL;
 		// add content
 		if (isset($this->_bodyText) && ($this->_bodyText != "") && ($this->_bodyHtml == "")) {			
-			$body.= "--$mime_boundary\n";
-			$body.= "Content-Type: text/plain; charset=\"charset=".$this->_charset."\"\n";
-			$body.= "Content-Transfer-Encoding: 7bit\n\n";
+			$body.= "--{$mime_boundary}" . $this->_headerEOL;
+			$body.= "Content-Type: text/plain; charset=\"charset={$this->_charset}\"" . $this->_headerEOL;
+			$body.= "Content-Transfer-Encoding: 7bit" . $this->_headerEOL . $this->_headerEOL;
 			$body.= $this->_bodyText;
-			$body.= "\n\n";
+			$body.= $this->_headerEOL . $this->_headerEOL;
 		} else if (isset($this->_bodyHtml)) {
-			$body.= "--$mime_boundary\n";
-			$body.= "Content-Type: text/html; charset=\"UTF-8\"\n";
-			$body.= "Content-Transfer-Encoding: 7bit\n\n";
+			$body.= "--{$mime_boundary}" . $this->_headerEOL;
+			$body.= "Content-Type: text/html; charset=\"{$this->_charset}\"" . $this->_headerEOL;
+			$body.= "Content-Transfer-Encoding: 7bit" . $this->_headerEOL . $this->_headerEOL;
 			$body.= $this->_bodyHtml;
-			$body.= "\n\n";
+			$body.= $this->_headerEOL . $this->_headerEOL;
 		}
-		$body .= "--" . $mime_boundary . "--\r\n";
+		$body .= "--{$mime_boundary}--" . $this->_headerEOL;
 		// add attachments if there are any
 		if ($this->hasAttachments == true) {
-			$header .= "--" . $mime_boundary . "\r\n";
+			$header .= "--{$mime_boundary}" . $this->_headerEOL;
 			foreach ($this->_attachments as $attachment => $a) {
-				$header .= 'Content-Type: "'.$a['file_type'].'"; name="'.$a['file_name']."\r\n";
-				$header .= 'Content-Disposition: attachment; filename="'.$a['file_name'].'"'. "\r\n";
-				$header .= "Content-Transfer-Encoding: base64\r\n";
-				$header .= chunk_split(base64_encode($a['file_data'])) . "\r\n";
-				$header .= "--".$mime_boundary."\n";
+				$header .= 'Content-Type: "'.$a['file_type'].'"; name="'.$a['file_name'] . $this->_headerEOL;
+				$header .= 'Content-Disposition: attachment; filename="'.$a['file_name'] .'"'. $this->_headerEOL;
+				$header .= "Content-Transfer-Encoding: base64" . $this->_headerEOL;
+				$header .= chunk_split(base64_encode($a['file_data'])) . $this->_headerEOL;
+				$header .= "--{$mime_boundary}" . $this->_headerEOL;
 			}
 		}
 		// mail it
