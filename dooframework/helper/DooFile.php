@@ -375,7 +375,7 @@ class DooFile {
 			if ($listOnly==DooFile::LIST_FOLDER) {
 				if(!is_dir($val)) continue;
 			}
-			$filename = basename($filename);
+			$filename = basename($val);
 			$ext = $this->getFileExtensionFromPath($val, true);
 
             if(!is_dir($val)){
