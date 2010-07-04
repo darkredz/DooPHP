@@ -1,5 +1,14 @@
 <?php
-
+/**
+ * DooManageSqliteDb class file.
+ *
+ * @author Richard Myers <richard.myers@hotmail.co.uk>
+ * @link http://www.doophp.com/
+ * @copyright Copyright &copy; 2009 Leng Sheng Hong
+ * @license http://www.doophp.com/license
+ * @package doo.db.manage.adapters
+ * @since 1.3
+ */
 Doo::loadCore('db/manage/DooManageDb');
 
 class DooManageSqliteDb extends DooManageDb {

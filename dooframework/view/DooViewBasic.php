@@ -1,5 +1,10 @@
 <?php
-
+/**
+ * DooViewBasic class file.
+ *
+ * @package doo.view
+ * @since 1.3
+ */
 class DooViewBasic {
 
 	public $controller;

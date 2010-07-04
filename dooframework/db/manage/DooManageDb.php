@@ -7,8 +7,10 @@
  * @link http://www.doophp.com/
  * @copyright Copyright &copy; 2009 Leng Sheng Hong
  * @license http://www.doophp.com/license
+ * @package doo.db
+ * @since 1.3
  */
-
+ 
 /**
  * An abstract Database manager for specific RDBMS adapters.
  * For each specific engine being supported the following functions and properties must be overriden

@@ -1,5 +1,14 @@
 <?php
-
+/**
+ * DooDbUpdater abstract class file.
+ *
+ * @author Richard Myers <richard.myers@hotmail.co.uk>
+ * @link http://www.doophp.com/
+ * @copyright Copyright &copy; 2009 Leng Sheng Hong
+ * @license http://www.doophp.com/license
+ * @package doo.db
+ * @since 1.3
+ */
 abstract class DooDbUpdater {
 
 	/**

@@ -1,7 +1,7 @@
 <?php
 /**
  * DooFile class file.
- *
+ * @package doo.helper
  * @author Leng Sheng Hong <darkredz@gmail.com>
  * @link http://www.doophp.com/
  * @copyright Copyright &copy; 2009-2010 Leng Sheng Hong
