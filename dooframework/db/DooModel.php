@@ -178,6 +178,40 @@ class DooModel{
     public function relate($rmodel, $opt=null){
         return Doo::db()->relate($this, $rmodel, $opt);
     }
+    
+    /**
+     * Combine relational search results (combine multiple relates).
+     *
+     * Example:
+     * <code>
+     * $food = new Food;
+     * $food->relateMany(array('Recipe','Article','FoodType'))
+     * </code>
+     *
+     * @param array $rmodel The related models class names.
+     * @param array $opt Array of options for each related model to generate the SELECT statement. Supported: <i>where, limit, select, param, joinType, match, asc, desc, custom, asArray, include, includeWhere, includeParam</i>
+     * @return mixed A list of model objects of the queried result
+     */
+	public function relateMany($rmodel, $opt=null){
+        return Doo::db()->relateMany($this, $rmodel, $opt);
+    }
+	
+    /**
+     * Expand related models (Tree Relationships).
+     *
+     * Example:
+     * <code>
+     * $recipe = new Recipe;
+     * $recipe->relateExpand(array('Food','Article'))
+     * </code>
+     *
+     * @param array $rmodel The related models class names.
+     * @param array $opt Array of options for each related model to generate the SELECT statement. Supported: <i>where, limit, select, param, joinType, match, asc, desc, custom, asArray, include, includeWhere, includeParam</i>
+     * @return mixed A list of model objects of the queried result
+     */	
+	public function relateExpand($rmodel, $opt=null){
+        return Doo::db()->relateExpand($this, $rmodel, $opt);
+    }
 
     /**
      * Adds a new record. (Prepares and execute the INSERT statements)
