@@ -140,10 +140,16 @@ class DooMailer {
 
 	/**
 	* Set email subject
+	* @param string $subject Email subject
+	* @param bool $encode Force encoding of subject
 	*/
 
-	public function setSubject($subject) {
-		$this->_subject = $subject;
+	public function setSubject($subject, $encode=false) {
+		if ($encode == true) {
+			$this->_subject = '=?'.$this->_charset.'?B?'.base64_encode($subject).'?=';
+		} else {
+			$this->_subject = $subject;
+		}
 	}
 
 	/**
@@ -225,7 +231,7 @@ class DooMailer {
 		$from = $this->_from;
 		$fromName = (isset($from['name']))?$from['name']:'';
 		$fromEmail = (isset($from['email']))?$from['email']:'';
-		$mime_boundary = 'Multipart_Boundary_x'.md5(time()).'x';		
+		$mime_boundary = 'Multipart_Boundary_x'.md5(time()).'x';
 		$header = "From: ".$fromName." <{$fromEmail}>" . $this->_headerEOL;
 		// add to
 		$header .= "To: " . $this->getTo(true) . $this->_headerEOL;
@@ -237,7 +243,7 @@ class DooMailer {
 		$header .= "Content-Type: multipart/alternative; boundary=\"{$mime_boundary}\"" . $this->_headerEOL;
 		$header .= "--{$mime_boundary}" . $this->_headerEOL;
 		// add content
-		if (isset($this->_bodyText) && ($this->_bodyText != "") && ($this->_bodyHtml == "")) {			
+		if (isset($this->_bodyText) && ($this->_bodyText != "") && ($this->_bodyHtml == "")) {
 			$body.= "--{$mime_boundary}" . $this->_headerEOL;
 			$body.= "Content-Type: text/plain; charset=\"charset={$this->_charset}\"" . $this->_headerEOL;
 			$body.= "Content-Transfer-Encoding: 7bit" . $this->_headerEOL . $this->_headerEOL;
