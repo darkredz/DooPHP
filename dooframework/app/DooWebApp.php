@@ -48,18 +48,30 @@ class DooWebApp{
         if($routeRs[0]!=NULL && $routeRs[1]!=NULL){
             //dispatch, call Controller class
             require_once(Doo::conf()->BASE_PATH ."controller/DooController.php");
-            require_once(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/{$routeRs[0]}.php");
+            if($routeRs[0][0]!='[')
+                require_once(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/{$routeRs[0]}.php");
+            else{
+                $moduleParts = explode(']', $routeRs[0]);
+                $moduleName = substr($moduleParts[0],1);
+                require_once(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'module/'. $moduleName .'/controller/'.$moduleParts[1].'.php');
+
+                //set class name
+                $routeRs[0] = $moduleParts[1];
+                Doo::conf()->PROTECTED_FOLDER_ORI = Doo::conf()->PROTECTED_FOLDER;
+                Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI . 'module/'.$moduleName.'/';
+            }
+
             if(strpos($routeRs[0], '/')!==FALSE){
                 $clsname = explode('/', $routeRs[0]);
                 $routeRs[0] = $clsname[ sizeof($clsname)-1 ];
             }
 
-			//if defined class name, use the class name to create the Controller object
-			$clsnameDefined = (sizeof($routeRs)===4);
-			if($clsnameDefined)
-				$controller = new $routeRs[3];
-			else
-				$controller = new $routeRs[0];
+            //if defined class name, use the class name to create the Controller object
+            $clsnameDefined = (sizeof($routeRs)===4);
+            if($clsnameDefined)
+                $controller = new $routeRs[3];
+            else
+                $controller = new $routeRs[0];
             $controller->params = $routeRs[2];
 
             if(isset($controller->params['__extension'])){
@@ -73,16 +85,17 @@ class DooWebApp{
 
             if($_SERVER['REQUEST_METHOD']==='PUT')
                 $controller->init_put_vars();
-			//before run, normally used for ACL auth
-			if($clsnameDefined){
-				if($rs = $controller->beforeRun($routeRs[3], $routeRs[1])){
-					return $rs;
-				}
-			}else{
-				if($rs = $controller->beforeRun($routeRs[0], $routeRs[1])){
-					return $rs;
-				}
-			}
+
+            //before run, normally used for ACL auth
+            if($clsnameDefined){
+                if($rs = $controller->beforeRun($routeRs[3], $routeRs[1])){
+                    return $rs;
+                }
+            }else{
+                if($rs = $controller->beforeRun($routeRs[0], $routeRs[1])){
+                    return $rs;
+                }
+            }
 
             return $controller->$routeRs[1]();
         }

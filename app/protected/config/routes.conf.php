@@ -13,7 +13,7 @@
  * Use lowercase for Request Method
  *
  * If you have your controller file name different from its class name, eg. home.php HomeController
- * $route['*']['/'] = array('HomeController', 'index', 'className'=>'HomeController');
+ * $route['*']['/'] = array('home', 'index', 'className'=>'HomeController');
  * 
  * If you need to reverse generate URL based on route ID with DooUrlBuilder in template view, please defined the id along with the routes
  * $route['*']['/'] = array('HomeController', 'index', 'id'=>'home');
@@ -23,6 +23,16 @@
  *
  * If you need to catch unlimited parameters at the end of the url, eg. http://localhost/paramA/paramB/param1/param2/param.../.../..
  * Use the key 'catchall': $route['*']['catchall']['/:first'] = array('TestController', 'showAllParams');
+ * 
+  * If you have placed your controllers in a sub folder, eg. /protected/admin/EditStuffController.php
+ * $route['*']['/'] = array('admin/EditStuffController', 'action');
+ * 
+  * If you want a module to be publicly accessed (without using Doo::app()->getModule() ) , use [module name] ,   eg. /protected/module/forum/PostController.php
+ * $route['*']['/'] = array('[forum]PostController', 'action');
+ * 
+  * If you create subfolders in a module,  eg. /protected/module/forum/post/ListController.php, the module here is forum, subfolder is post
+ * $route['*']['/'] = array('[forum]post/PostController', 'action');
+ *
  */
 $admin = array('admin'=>'1234');
  
