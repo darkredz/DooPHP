@@ -268,7 +268,7 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
     }
 	echo '</code>'.$Xpre;
 
-    echo '<br/><hr/><h2 style="background-color:#4370A4;color:#fff;width:220px;padding:5px;"> * Stack Trace...</h2>';
+    echo '<br/><hr/><h2 style="background-color:#4370A4;color:#fff;width:320px;padding:5px;"> * Stack Trace...</h2>';
 	global $errTrace;
 	if(!empty($errTrace)){
 		echo '<pre>';
@@ -278,7 +278,7 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
 	    errorBacktrace();
 	}
     
-    echo '<br/><hr/><h2 class="var" style="background-color:#4370A4;color:#fff;width:680px;padding:5px;"> * Variables... <a id="bpanelConf" href="javascript:code(0);">&nbsp;Conf </a> . <a id="bpanelGet" href="javascript:code(1);">&nbsp;GET&nbsp;</a> . <a id="bpanelPost" href="javascript:code(2);">&nbsp;POST&nbsp;</a> . <a id="bpanelSession" href="javascript:code(3);">&nbsp;Session&nbsp;</a> . <a id="bpanelCookie" href="javascript:code(4);">&nbsp;Cookie&nbsp;</a></h2>';
+    echo '<br/><hr/><h2 class="var" style="background-color:#4370A4;color:#fff;width:760px;padding:5px;"> * Variables... <a id="bpanelConf" href="javascript:code(0);">&nbsp;Conf </a> . <a id="bpanelGet" href="javascript:code(1);">&nbsp;GET&nbsp;</a> . <a id="bpanelPost" href="javascript:code(2);">&nbsp;POST&nbsp;</a> . <a id="bpanelSession" href="javascript:code(3);">&nbsp;Session&nbsp;</a> . <a id="bpanelCookie" href="javascript:code(4);">&nbsp;Cookie&nbsp;</a></h2>';
 	
 	//config data
     echo '<pre id="goVar">';
