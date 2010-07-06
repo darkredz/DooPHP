@@ -119,6 +119,10 @@ class DooUriRouter{
             DooDigestAuth::http_auth($route['authName'],$route['auth'], $route['authFail'], $route['authFailURL']);
         }
 
+		if (isset($route['params'])) {
+			$params = array_merge((array)$params, $route['params']);
+		}
+
         if(isset($route['className']))
 			return array($route[0],$route[1],$params,$route['className']);
 
