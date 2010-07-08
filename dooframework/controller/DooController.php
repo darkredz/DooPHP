@@ -361,6 +361,96 @@ class DooController {
         return FALSE;
     }
 
+    /**
+     * Convert DB result into XML string for RESTful api.
+     * <code>
+     * public function listUser(){
+     *     $user = new User;
+     *     $rs = $user->find();
+     *     $this->toXML($rs, true);
+     * }
+     * </code>
+     * @param mixed $result Result of a DB query. eg. $user->find();
+     * @param bool $output Output the result automatically.
+     * @param bool $setXMLContentType Set content type.
+     * @param string $encoding Encoding of the result content. Default utf-8.
+     * @return string XML string
+     */
+    public function toXML($result, $output=false, $setXMLContentType=false, $encoding='utf-8'){
+        $str = '<?xml version="1.0" encoding="utf-8"?><result>';
+        foreach($result as $kk=>$vv){
+            $cls = get_class($vv);
+            $str .= '<' . $cls . '>';
+            foreach($vv as $k=>$v){
+                if($k!='_table' && $k!='_fields' && $k!='_primarykey'){
+                    if(is_array($v)){
+                        //print_r($v);
+                        //exit;
+                        $str .= '<' . $k . '>';
+                        foreach($v as $v0){
+                            $str .= '<data>';
+                            foreach($v0 as $k1=>$v1){
+                                if($k1!='_table' && $k1!='_fields' && $k1!='_primarykey'){
+                                    if(is_array($v1)){
+                                        $str .= '<' . $k1 . '>';
+                                        foreach($v1 as $v2){
+                                            $str .= '<data>';
+                                            foreach($v2 as $k3=>$v3){
+                                                if($k3!='_table' && $k3!='_fields' && $k3!='_primarykey'){
+                                                    $str .= '<'. $k3 . '><![CDATA[' . $v3 . ']]></'. $k3 . '>';
+                                                }
+                                            }
+                                            $str .= '</data>';
+                                        }
+                                        $str .= '</' . $k1 . '>';
+                                    }else{
+                                        $str .= '<'. $k1 . '><![CDATA[' . $v1 . ']]></'. $k1 . '>';
+                                    }
+                                }
+                            }
+                            $str .= '</data>';
+                        }
+                        $str .= '</' . $k . '>';
+
+                    }else{
+                        $str .= '<'. $k . '>' . $v . '</'. $k . '>';
+                    }
+                }
+            }
+            $str .= '</' . $cls . '>';
+        }
+        $str .= '</result>';
+        if($setXMLContentType===true)
+            $this->setContentType('xml', $encoding);
+        if($output===true)
+            echo $str;
+        return $str;
+    }
+
+    /**
+     * Convert DB result into JSON string for RESTful api.
+     * <code>
+     * public function listUser(){
+     *     $user = new User;
+     *     $rs = $user->find();
+     *     $this->toJSON($rs, true);
+     * }
+     * </code>
+     * @param mixed $result Result of a DB query. eg. $user->find();
+     * @param bool $output Output the result automatically.
+     * @param bool $setJSONContentType Set content type.
+     * @param string $encoding Encoding of the result content. Default utf-8.
+     * @return string JSON string
+     */
+    public function toJSON($result, $output=false, $setJSONContentType=false, $encoding='utf-8'){
+        $rs = preg_replace(array('/\,\"\_table\"\:\".*\"/U', '/\,\"\_primarykey\"\:\".*\"/U', '/\,\"\_fields\"\:\[\".*\"\]/U'), '', json_encode($result));
+        if($setJSONContentType===true)
+            $this->setContentType('json', $encoding);
+        if($output===true)
+            echo $rs;
+        return $rs;
+    }	
+	
 	public function  __call($name,  $arguments) {
 		if ($name == 'renderLayout') {
 			throw new Exception('renderLayout is no longer supported by DooController. Please use $this->view()->renderLayout instead');
