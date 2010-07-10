@@ -110,7 +110,7 @@ class DooFile {
             $fp = fopen($filename, $writeFileMode);
             $rs = fwrite($fp, $content);
             fclose($fp);
-			chmod($filename, $this->chmod);
+            
             return ($rs>0);
 		}else{
 			if (!file_exists($path)) {
