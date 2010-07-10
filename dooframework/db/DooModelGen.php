@@ -44,10 +44,15 @@ class DooModelGen{
      * @param bool $vrules Generate validation rules along with the Model class
      * @param string $extends make Model class to extend DooModel or DooSmartModel
      * @param bool $createBase Generate base model class, will not rewrite/replace model classes if True.
+     * @param int $chmod Chmod for file manager
      */
-	public static function gen_mysql($comments=true, $vrules=true, $extends='', $createBase=false) {
+	public static function gen_mysql($comments=true, $vrules=true, $extends='', $createBase=false, $chmod=null) {
 		Doo::loadHelper('DooFile');
-		$fileManager = new DooFile(0777);
+                if($chmod===null){
+                    $fileManager = new DooFile();
+                }else{
+                    $fileManager = new DooFile($chmod);
+                }
 		$dbconf = Doo::db()->getDefaultDbConfig();
 		if(!isset($dbconf) || empty($dbconf)) {
 			echo "<html><head><title>DooPHP Model Generator - DB: Error</title></head><body bgcolor=\"#2e3436\"><span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Please setup the DB first in index.php and db.conf.php</span></span>";
