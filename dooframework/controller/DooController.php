@@ -438,12 +438,16 @@ class DooController {
      * </code>
      * @param mixed $result Result of a DB query. eg. $user->find();
      * @param bool $output Output the result automatically.
+     * @param bool $removeNullField Remove fields with null value from JSON string.
      * @param bool $setJSONContentType Set content type.
      * @param string $encoding Encoding of the result content. Default utf-8.
      * @return string JSON string
      */
-    public function toJSON($result, $output=false, $setJSONContentType=false, $encoding='utf-8'){
+    public function toJSON($result, $output=false, $removeNullField=false, $setJSONContentType=false, $encoding='utf-8'){
         $rs = preg_replace(array('/\,\"\_table\"\:\".*\"/U', '/\,\"\_primarykey\"\:\".*\"/U', '/\,\"\_fields\"\:\[\".*\"\]/U'), '', json_encode($result));
+        if($removeNullField){
+            $rs = preg_replace('/\,\"[^\"]+\"\:null/U', '', $rs);
+        }
         if($setJSONContentType===true)
             $this->setContentType('json', $encoding);
         if($output===true)
