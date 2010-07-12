@@ -439,23 +439,34 @@ class DooController {
      * @param mixed $result Result of a DB query. eg. $user->find();
      * @param bool $output Output the result automatically.
      * @param bool $removeNullField Remove fields with null value from JSON string.
+     * @param array $exceptField Remove fields that are null except the ones in this list.
      * @param bool $setJSONContentType Set content type.
      * @param string $encoding Encoding of the result content. Default utf-8.
      * @return string JSON string
      */
-    public function toJSON($result, $output=false, $removeNullField=false, $setJSONContentType=false, $encoding='utf-8'){
+    public function toJSON($result, $output=false, $removeNullField=false, $exceptField=null, $setJSONContentType=false, $encoding='utf-8'){
         $rs = preg_replace(array('/\,\"\_table\"\:\".*\"/U', '/\,\"\_primarykey\"\:\".*\"/U', '/\,\"\_fields\"\:\[\".*\"\]/U'), '', json_encode($result));
         if($removeNullField){
-            $rs = preg_replace('/\,\"[^\"]+\"\:null/U', '', $rs);
+            if($exceptField===null)
+                $rs = preg_replace('/\,\"[^\"]+\"\:null/U', '', $rs);
+            else{
+                $func =  create_function('$matches',
+                            'if(in_array($matches[1], array(\''. implode("','",$exceptField) .'\'))===false){
+                                return "";
+                            }
+                            return $matches[0];');
+
+                $rs = preg_replace_callback('/\,\"([^\"]+)\"\:null/U', $func, $rs);
+            }
         }
         if($setJSONContentType===true)
             $this->setContentType('json', $encoding);
         if($output===true)
             echo $rs;
         return $rs;
-    }	
-	
-	public function  __call($name,  $arguments) {
+    }
+
+        public function  __call($name,  $arguments) {
 		if ($name == 'renderLayout') {
 			throw new Exception('renderLayout is no longer supported by DooController. Please use $this->view()->renderLayout instead');
 		} else {
