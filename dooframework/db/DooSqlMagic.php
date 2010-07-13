@@ -1588,9 +1588,9 @@ class DooSqlMagic {
         }
 
         if(isset($rOpt['where'])){
-           $rOpt['where'] = $newrm->_table.'.id IN ('. implode(',', $id) .') AND ( ' . $rOpt['where'] .' )';
+           $rOpt['where'] = $newrm->_table.'.'. $newrm->_primarykey .' IN ('. implode(',', $id) .') AND ( ' . $rOpt['where'] .' )';
         }else{
-           $rOpt['where'] = $newrm->_table.'.id IN ('. implode(',', $id) .') ';
+           $rOpt['where'] = $newrm->_table.'.'. $newrm->_primarykey .' IN ('. implode(',', $id) .') ';
         }
 
         $r = Doo::db()->relate($rm, $rm2, $rOpt);
@@ -1606,7 +1606,7 @@ class DooSqlMagic {
 							}
 						}
 					}else{
-						if($v->{$rm}->id == $v2->id){
+						if($v->{$rm}->{$v2->_primarykey} == $v2->{$v2->_primarykey}){
 							$mainR[$k]->{$rm}->{$rm2} = $v2->{$rm2};
 						}
 					}
@@ -1641,7 +1641,11 @@ class DooSqlMagic {
                     $values[] = $v;
                     $valuestr .= '?,';
                 }
-                $fieldstr .= $o .',';
+                if($this->dbconfig[4]=='mysql'){
+                    $fieldstr .= '`'.$o .'`,';
+                }else{
+                    $fieldstr .= $o .',';
+                }
             }
         }
 
@@ -1679,7 +1683,11 @@ class DooSqlMagic {
                     $values[] = $v;
                     $valuestr .= '?,';
                 }
-                $fieldstr .= $o .',';
+                if($this->dbconfig[4]=='mysql'){
+                    $fieldstr .= '`'.$o .'`,';
+                }else{
+                    $fieldstr .= $o .',';
+                }
             }
         }
 
