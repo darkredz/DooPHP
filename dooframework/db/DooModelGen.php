@@ -44,9 +44,10 @@ class DooModelGen{
      * @param bool $vrules Generate validation rules along with the Model class
      * @param string $extends make Model class to extend DooModel or DooSmartModel
      * @param bool $createBase Generate base model class, will not rewrite/replace model classes if True.
+     * @param string $baseSuffix Suffix string for the base model.
      * @param int $chmod Chmod for file manager
      */
-	public static function gen_mysql($comments=true, $vrules=true, $extends='', $createBase=false, $chmod=null) {
+	public static function gen_mysql($comments=true, $vrules=true, $extends='', $createBase=false, $baseSuffix='Base', $chmod=null) {
 		Doo::loadHelper('DooFile');
                 if($chmod===null){
                     $fileManager = new DooFile();
@@ -99,15 +100,15 @@ class DooModelGen{
 						$filestr = "<?php\nDoo::loadClass('$extends');\n\nclass $classname extends $extends{\n";
 				}else {
 					if($extends==DooModelGen::EXTEND_MODEL || $extends==DooModelGen::EXTEND_SMARTMODEL)
-						$filestr = "<?php\nDoo::loadCore('db/$extends');\n\nclass {$classname}Base extends $extends{\n";
+						$filestr = "<?php\nDoo::loadCore('db/$extends');\n\nclass {$classname}{$baseSuffix} extends $extends{\n";
 					else
-						$filestr = "<?php\nDoo::loadClass('$extends');\n\nclass {$classname}Base extends $extends{\n";
+						$filestr = "<?php\nDoo::loadClass('$extends');\n\nclass {$classname}{$baseSuffix} extends $extends{\n";
 				}
 			}else {
 				if($createBase!=True)
 					$filestr = "<?php\nclass $classname{\n";
 				else
-					$filestr = "<?php\nclass {$classname}Base{\n";
+					$filestr = "<?php\nclass {$classname}{$baseSuffix}{\n";
 			}
 
 			$pkey = '';
@@ -196,11 +197,11 @@ class DooModelGen{
 				}
 			}else {
 
-				if($fileManager->create(Doo::conf()->MODEL_PATH."base/{$classname}Base.php", $filestr, 'w+')) {
-					echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Base model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">{$classname}Base</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
+				if($fileManager->create(Doo::conf()->MODEL_PATH."base/{$classname}{$baseSuffix}.php", $filestr, 'w+')) {
+					echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Base model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">{$classname}{$baseSuffix}</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
 					$clsfile = Doo::conf()->MODEL_PATH . "$classname.php";
 					if(!file_exists($clsfile)) {
-						$filestr = "<?php\nDoo::loadModel('base/{$classname}Base');\n\nclass $classname extends {$classname}Base{\n}\n?>";
+						$filestr = "<?php\nDoo::loadModel('base/{$classname}{$baseSuffix}');\n\nclass $classname extends {$classname}{$baseSuffix}{\n}\n?>";
 						if ($fileManager->create($clsfile, $filestr, 'w+')) {
 							echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
 							$clsExtendedNum++;
@@ -209,7 +210,7 @@ class DooModelGen{
 						}
 					}
 				} else {
-					echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#f00;\">Base model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#f00;\"> could not be generated. File - </span><strong><span style=\"color:#729fbe;\">{$classname}Base</span></strong><span style=\"color:#f00;\">.php</span></span><br/><br/>";
+					echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#f00;\">Base model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#f00;\"> could not be generated. File - </span><strong><span style=\"color:#729fbe;\">{$classname}{$baseSuffix}</span></strong><span style=\"color:#f00;\">.php</span></span><br/><br/>";
 				}
 			}
 		}
