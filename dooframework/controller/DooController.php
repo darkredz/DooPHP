@@ -440,11 +440,12 @@ class DooController {
      * @param bool $output Output the result automatically.
      * @param bool $removeNullField Remove fields with null value from JSON string.
      * @param array $exceptField Remove fields that are null except the ones in this list.
+     * @param array $mustRemoveFieldList Remove fields in this list.
      * @param bool $setJSONContentType Set content type.
      * @param string $encoding Encoding of the result content. Default utf-8.
      * @return string JSON string
      */
-    public function toJSON($result, $output=false, $removeNullField=false, $exceptField=null, $setJSONContentType=false, $encoding='utf-8'){
+    public function toJSON($result, $output=false, $removeNullField=false, $exceptField=null, $mustRemoveFieldList=null, $setJSONContentType=false, $encoding='utf-8'){
         $rs = preg_replace(array('/\,\"\_table\"\:\".*\"/U', '/\,\"\_primarykey\"\:\".*\"/U', '/\,\"\_fields\"\:\[\".*\"\]/U'), '', json_encode($result));
         if($removeNullField){
             if($exceptField===null)
@@ -459,6 +460,19 @@ class DooController {
                 $rs = preg_replace_callback('/\,\"([^\"]+)\"\:null/U', $func, $rs);
             }
         }
+
+        //remove fields in this array
+        if($mustRemoveFieldList!==null){
+            $func2 =  create_function('$matches',
+                        'if(in_array($matches[1], array(\''. implode("','",$mustRemoveFieldList) .'\'))){
+                            return "";
+                        }
+                        return $matches[0];');
+
+            $rs = preg_replace_callback('/\,\"([^\"]+)\"\:\".*\"/U', $func2, $rs);
+            $rs = preg_replace_callback('/\,\"([^\"]+)\"\:\{.*\}/U', $func2, $rs);
+        }
+
         if($setJSONContentType===true)
             $this->setContentType('json', $encoding);
         if($output===true)
