@@ -45,6 +45,8 @@
  * clientIP()
  * saveRendered()
  * saveRenderedC()
+ * toXML()
+ * toJSON()
  * </code>
  *
  * You still have a lot of freedom to name your methods and properties other than names mentioned.
@@ -449,30 +451,46 @@ class DooController {
         $rs = preg_replace(array('/\,\"\_table\"\:\".*\"/U', '/\,\"\_primarykey\"\:\".*\"/U', '/\,\"\_fields\"\:\[\".*\"\]/U'), '', json_encode($result));
         if($removeNullField){
             if($exceptField===null)
-                $rs = preg_replace('/\,\"[^\"]+\"\:null/U', '', $rs);
+                $rs = preg_replace(array('/\,\"[^\"]+\"\:null/U', '/\{\"[^\"]+\"\:null\,/U'), array('','{'), $rs);
             else{
-                $func =  create_function('$matches',
+                $funca1 =  create_function('$matches',
                             'if(in_array($matches[1], array(\''. implode("','",$exceptField) .'\'))===false){
                                 return "";
                             }
                             return $matches[0];');
 
-                $rs = preg_replace_callback('/\,\"([^\"]+)\"\:null/U', $func, $rs);
+                $funca2 =  create_function('$matches',
+                            'if(in_array($matches[1], array(\''. implode("','",$exceptField) .'\'))===false){
+                                return "{";
+                            }
+                            return $matches[0];');
+
+                $rs = preg_replace_callback('/\,\"([^\"]+)\"\:null/U', $funca1, $rs);
+                $rs = preg_replace_callback('/\{\"([^\"]+)\"\:null\,/U', $funca2, $rs);
             }
         }
 
         //remove fields in this array
         if($mustRemoveFieldList!==null){
-            $func2 =  create_function('$matches',
+            $funcb1 =  create_function('$matches',
                         'if(in_array($matches[1], array(\''. implode("','",$mustRemoveFieldList) .'\'))){
                             return "";
                         }
                         return $matches[0];');
 
-            $rs = preg_replace_callback('/\,\"([^\"]+)\"\:\".*\"/U', $func2, $rs);
-            $rs = preg_replace_callback('/\,\"([^\"]+)\"\:\{.*\}/U', $func2, $rs);
+            $funcb2 =  create_function('$matches',
+                        'if(in_array($matches[1], array(\''. implode("','",$mustRemoveFieldList) .'\'))){
+                            return "{";
+                        }
+                        return $matches[0];');
+
+            $rs = preg_replace_callback(array('/\,\"([^\"]+)\"\:\".*\"/U', '/\,\"([^\"]+)\"\:\{.*\}/U'), $funcb1, $rs);
+            
+            $rs = preg_replace_callback(array('/\{\"([^\"]+)\"\:\".*\"\,/U','/\{\"([^\"]+)\"\:\{.*\}\,/U'), $funcb2, $rs);
         }
 
+        //$rs = str_replace(array('[,',',,'), array('[{',',{'), $rs);
+        
         if($setJSONContentType===true)
             $this->setContentType('json', $encoding);
         if($output===true)
