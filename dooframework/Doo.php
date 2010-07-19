@@ -409,5 +409,3 @@ class Doo{
         return '1.3';
     }
 }
-
-?>

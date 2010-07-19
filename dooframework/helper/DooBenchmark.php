@@ -154,5 +154,3 @@ class DooBenchmark {
         return self::$savedPoints;
     }
 }
-
-?>

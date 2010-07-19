@@ -1119,4 +1119,3 @@ class DooSmartModel{
         return $obj;
     }
 }
-?>

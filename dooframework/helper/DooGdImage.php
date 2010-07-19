@@ -975,5 +975,3 @@ class DooGdImage {
     }
 
 }
-
-?>

@@ -2114,5 +2114,3 @@ class SqlMagicException extends Exception {
   const DBConfigNotFound = 2;
   const DBConnectionError = 3;
 }
-
-?>

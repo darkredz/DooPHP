@@ -137,4 +137,3 @@ class DooLoader {
         return $status;
     }
 }
-?>

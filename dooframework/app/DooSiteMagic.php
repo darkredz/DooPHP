@@ -138,5 +138,3 @@ class DooSiteMagic{
         echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;color:#fff;\">Total $total file(s) generated.</span></body></html>";
     }
 }
-
-?>

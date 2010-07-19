@@ -328,5 +328,3 @@ class DooTextHelper {
         return $output;
     }
 }
-
-?>

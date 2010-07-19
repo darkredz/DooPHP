@@ -39,4 +39,3 @@ class DooDbExpression {
         return $this->expression;
     }
 }
-?>

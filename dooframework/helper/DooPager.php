@@ -414,4 +414,3 @@ a:hover .paginate{
     }
 
 }
-?>

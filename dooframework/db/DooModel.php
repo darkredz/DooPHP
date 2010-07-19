@@ -752,5 +752,3 @@ class DooModel{
     }
 
 }
-
-?>

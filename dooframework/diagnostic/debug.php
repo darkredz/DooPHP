@@ -366,4 +366,3 @@ class DooDebugException extends Exception{
         $this->var = $var;
     }
 }
-?>

@@ -580,5 +580,3 @@ class DooFile {
 	}
 
 }
-
-?>

@@ -180,4 +180,3 @@ class DooMasterSlave extends DooSqlMagic {
         return parent::query($query, $param);
     }
 }
-?>

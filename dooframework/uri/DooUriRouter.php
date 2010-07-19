@@ -624,5 +624,3 @@ class DooUriRouter{
     }
 
 }
-
-?>
