@@ -221,14 +221,17 @@ class DooValidator {
                 $customRequireMsg = null;
                 if(isset($missingKey[$fieldname][0])){
                     if($missingKey[$fieldname][0]=='required'){
-                        //print_r($missingKey[$fieldname][1]);
-                        $customRequireMsg = $missingKey[$fieldname][1];
+                        if($missingKey[$fieldname][1])
+                            $customRequireMsg = $missingKey[$fieldname][1];
+                        else
+                            $customRequireMsg = $fieldname . ' field is required.';
                     }
                     else if(is_array($missingKey[$fieldname][0])){
-                        foreach($missingKey[$fieldname] as $f)
+                        foreach($missingKey[$fieldname] as $f){
                             if($f[0]=='required'){
                                 $customRequireMsg = $f[1];
                             }
+                        }
                     }
                 }
 
@@ -257,7 +260,7 @@ class DooValidator {
             $cRule = $rules[$k];
             foreach($cRule as $v2){
                 if(is_array($v2)){
-                    //print_r(array_slice($v2, 1));
+                    //array_slice($v2, 1);
                     $vv = array_merge(array($v),array_slice($v2, 1));
                     //echo 'test'.$v2[0];
                     //call func
@@ -266,12 +269,25 @@ class DooValidator {
                         $optErrorRemove[] = $k;
                     }
                     if($err = call_user_func_array(array(&$this, 'test'.$v2[0]), $vv) ){
-                        if($this->checkMode==DooValidator::CHECK_ALL)
+                        if($this->checkMode==DooValidator::CHECK_ALL){
                             $errors[$k][$v2[0]] = $err;
-                        else if($this->checkMode==DooValidator::CHECK_SKIP && !empty($v) && $v2[0]!='optional'){
+                        }else if($this->checkMode==DooValidator::CHECK_SKIP && !empty($v) && $v2[0]!='optional'){
                             return $err;
-                        }else if($this->checkMode==DooValidator::CHECK_ALL_ONE)
+                        }else if($this->checkMode==DooValidator::CHECK_ALL_ONE){
                             $errors[$k] = $err;
+                        }
+                        //if CHECK_SKIP and rule is a double array.
+                        else if($this->checkMode==DooValidator::CHECK_SKIP && empty($v) && $v2[0]!='optional'){
+                            foreach($cRule as $cRule_inner){
+                                if($cRule_inner[0]=='required'){
+                                    if(isset($cRule_inner[1]))
+                                        return $cRule_inner[1];
+                                    else
+                                        return  $k . ' field is required.';
+                                }
+                            }
+                           return $k . ' field is required.';
+                        }
                     }
                 }
                 else if(is_string($cRule[0])){
@@ -289,8 +305,11 @@ class DooValidator {
                         if($err = $this->{'test'.$cRule[0]}($v) ){
                             if($this->checkMode==DooValidator::CHECK_ALL || $this->checkMode==DooValidator::CHECK_ALL_ONE)
                                 $errors[$k] = $err;
-                            else if($this->checkMode==DooValidator::CHECK_SKIP)
+                            else if($this->checkMode==DooValidator::CHECK_SKIP){
+                                if($err=='This field is required!')
+                                    return $k . ' field is required.';
                                 return $err;
+                            }
                         }
                     }
                     continue 2;
@@ -311,7 +330,7 @@ class DooValidator {
     }
 
     public function testOptional($value){}
-    public function testRequired($value, $msg){
+    public function testRequired($value, $msg=NULL){
         if(empty($value)){
             if($msg!==null) return $msg;
             return 'This field is required!';
