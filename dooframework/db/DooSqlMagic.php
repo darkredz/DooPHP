@@ -1561,6 +1561,8 @@ class DooSqlMagic {
         $mainR = Doo::db()->relate($model, $rm, (isset($opt[$rm])) ? $opt[$rm] : null );
         $id = array();
 
+        if($mainR===NULL) return;
+        
         foreach($mainR as $mr){
             if($m = $mr->{$rm}){
                 if(is_array($m)){
