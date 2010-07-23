@@ -549,6 +549,9 @@ class DooUriRouter{
             $controller_name = substr_replace($controller_name, strtoupper($controller_name[$camelpos+1]), $camelpos, 2) ;
         }
 
+        if(isset($controller_name[0])===FALSE){
+            return;
+        }
         $controller_name = substr_replace($controller_name, strtoupper($controller_name[0]), 0, 1) . 'Controller';
 
         //if method is empty, make it access index
