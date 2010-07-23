@@ -204,110 +204,103 @@ class DooValidator {
             $rules = include(Doo::conf()->SITE_PATH .  Doo::conf()->PROTECTED_FOLDER . 'config/forms/'.$rules.'.php');
         }
 
-        if($missingKey = array_diff_key($rules, $data) ){
-            foreach($missingKey as $opt){
-                foreach($opt as $oo=>$o){
-                    if($o[0]=='optional'){
-                        $o='optional';
-                        break 2;
-                    }
-                }
-            }
+        $optErrorRemove = array();
 
-            if( !(isset($o) && $o=='optional') ){
-                $fieldname = array_keys($missingKey);
-                $fieldname = $fieldname[0];
-
-                $customRequireMsg = null;
-                if(isset($missingKey[$fieldname][0])){
-                    if($missingKey[$fieldname][0]=='required'){
-                        if($missingKey[$fieldname][1])
-                            $customRequireMsg = $missingKey[$fieldname][1];
-                        else
-                            $customRequireMsg = $fieldname . ' field is required.';
-                    }
-                    else if(is_array($missingKey[$fieldname][0])){
-                        foreach($missingKey[$fieldname] as $f){
-                            if($f[0]=='required'){
-                                $customRequireMsg = $f[1];
-                            }
-                        }
-                    }
-                }
-
-                if($this->checkMode==DooValidator::CHECK_ALL){
-                    if($customRequireMsg!==null)
-                        $errors[$fieldname] = $customRequireMsg;
-                    else
-                        $errors[$fieldname] = $fieldname . ' field is required.';
-                }else if($this->checkMode==DooValidator::CHECK_SKIP){
-                    if($customRequireMsg!==null)
-                        return $customRequireMsg;
-                    return $fieldname . ' field is required.';
-                }else if($this->checkMode==DooValidator::CHECK_ALL_ONE){
-                    if($customRequireMsg!==null)
-                        $errors[$fieldname] = $customRequireMsg;
-                    else
-                        $errors[$fieldname] = $fieldname . ' field is required.';
-                }
+        foreach($data as $dk=>$dv){
+            if($dv=='' || $dv===NULL){
+                unset($data[$dk]);
             }
         }
 
-        $optErrorRemove = array();
+        if($missingKey = array_diff_key($rules, $data) ){
+                $fieldnames = array_keys($missingKey);
+                $customRequireMsg = null;
+
+                foreach($fieldnames as $fieldname){
+                    if(isset($missingKey[$fieldname])){
+                        if( in_array('required', $missingKey[$fieldname]) ){
+                            $customRequireMsg = $missingKey[$fieldname][1];
+                        }
+                        else if(is_array($missingKey[$fieldname][0])){
+                            foreach($missingKey[$fieldname] as $f)
+                                if($f[0]=='required'){
+                                    if(isset($f[1]))
+                                        $customRequireMsg = $f[1];
+                                    break;
+                                }
+                        }
+                    }
+
+                    //remove optional fields from error
+                    if(is_array($missingKey[$fieldname][0])){
+                       foreach($missingKey[$fieldname] as $innerArrayRules){
+                           if($innerArrayRules[0]=='optional'){
+                               //echo $fieldname.' - 1 this is not set and optional, should be removed from error';
+                               $optErrorRemove[] = $fieldname;
+                               break;
+                           }
+                       }
+                    }
+
+                    if($this->checkMode==DooValidator::CHECK_ALL){
+                        if($customRequireMsg!==null)
+                            $errors[$fieldname] = $customRequireMsg;
+                        else
+                            $errors[$fieldname] = $fieldname . ' field is required.';
+                    }else if($this->checkMode==DooValidator::CHECK_SKIP){
+                        if(in_array($fieldname, $optErrorRemove))
+                            continue;
+                        if($customRequireMsg!==null)
+                            return $customRequireMsg;
+                        return $fieldname . ' field is required.';
+                    }else if($this->checkMode==DooValidator::CHECK_ALL_ONE){
+                        if($customRequireMsg!==null)
+                            $errors[$fieldname] = $customRequireMsg;
+                        else
+                            $errors[$fieldname] = $fieldname . ' field is required.';
+                    }
+                }
+        }
 
         foreach($data as $k=>$v){
             if(!isset($rules[$k])) continue;
             $cRule = $rules[$k];
             foreach($cRule as $v2){
                 if(is_array($v2)){
-                    //array_slice($v2, 1);
+                    //print_r(array_slice($v2, 1));
                     $vv = array_merge(array($v),array_slice($v2, 1));
-                    //echo 'test'.$v2[0];
+
                     //call func
                     if(empty($v) && $v2[0]=='optional'){
                         //echo $k.' - this is not set and optional, should be removed from error';
                         $optErrorRemove[] = $k;
                     }
                     if($err = call_user_func_array(array(&$this, 'test'.$v2[0]), $vv) ){
-                        if($this->checkMode==DooValidator::CHECK_ALL){
+                        if($this->checkMode==DooValidator::CHECK_ALL)
                             $errors[$k][$v2[0]] = $err;
-                        }else if($this->checkMode==DooValidator::CHECK_SKIP && !empty($v) && $v2[0]!='optional'){
+                        else if($this->checkMode==DooValidator::CHECK_SKIP && !empty($v) && $v2[0]!='optional'){
                             return $err;
-                        }else if($this->checkMode==DooValidator::CHECK_ALL_ONE){
+                        }else if($this->checkMode==DooValidator::CHECK_ALL_ONE)
                             $errors[$k] = $err;
-                        }
-                        //if CHECK_SKIP and rule is a double array.
-                        else if($this->checkMode==DooValidator::CHECK_SKIP && empty($v) && $v2[0]!='optional'){
-                            foreach($cRule as $cRule_inner){
-                                if($cRule_inner[0]=='required'){
-                                    if(isset($cRule_inner[1]))
-                                        return $cRule_inner[1];
-                                    else
-                                        return  $k . ' field is required.';
-                                }
-                            }
-                           return $k . ' field is required.';
-                        }
                     }
                 }
                 else if(is_string($cRule[0])){
                     if(sizeof($cRule)>1){
                         //print_r(array_slice($cRule, 1));
                         $vv = array_merge(array($v),array_slice($cRule, 1));
-                        //print_r($vv);
+
                         if($err = call_user_func_array(array(&$this, 'test'.$cRule[0]), $vv) ){
                             if($this->checkMode==DooValidator::CHECK_ALL || $this->checkMode==DooValidator::CHECK_ALL_ONE)
                                 $errors[$k] = $err;
-                            else if($this->checkMode==DooValidator::CHECK_SKIP)
+                            else if($this->checkMode==DooValidator::CHECK_SKIP){
                                 return $err;
+                            }
                         }
                     }else{
                         if($err = $this->{'test'.$cRule[0]}($v) ){
                             if($this->checkMode==DooValidator::CHECK_ALL || $this->checkMode==DooValidator::CHECK_ALL_ONE)
                                 $errors[$k] = $err;
                             else if($this->checkMode==DooValidator::CHECK_SKIP){
-                                if($err=='This field is required!')
-                                    return $k . ' field is required.';
                                 return $err;
                             }
                         }
@@ -330,7 +323,7 @@ class DooValidator {
     }
 
     public function testOptional($value){}
-    public function testRequired($value, $msg=NULL){
+    public function testRequired($value, $msg){
         if(empty($value)){
             if($msg!==null) return $msg;
             return 'This field is required!';
@@ -1131,3 +1124,4 @@ class DooValidator {
 
 }
 
+?>
