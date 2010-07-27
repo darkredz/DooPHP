@@ -133,7 +133,7 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
 		$lines[sizeof($lines)-1] = str_replace('</code>','',$lines[sizeof($lines)-1]);
 	}
 	
-    $imgloader = Doo::conf()->SUBFOLDER . '?doodiagnostic_pic=';
+    $imgloader = Doo::conf()->SUBFOLDER . 'index.php?doodiagnostic_pic=';
 
 	if (ob_get_level() !== 0) {
 		ob_clean();
