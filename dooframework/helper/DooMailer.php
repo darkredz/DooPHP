@@ -21,67 +21,51 @@ class DooMailer {
 	* Mail charset set
 	* @var string
 	*/
-
 	protected $_charset = null;
 
 	/**
 	* Mail headers
 	*/
-
 	protected $_headers = null;
 
 	/**
 	* From address
 	* @var string
 	*/
-
     protected $_from = null;
 
 	/**
 	* To address
 	* @var string
 	*/
-
     protected $_to = array();
-
-    /**
-    * List of recipients
-    * @var array
-    */
-
-    protected $_recipients = array();
 
 	/**
 	* Email subject
 	* @var string
 	*/
-
     protected $_subject = null;
 
     /**
     * Email date
     * @var string
     */
-
     protected $_date = null;
 
 	/**
 	* Email body text
 	* @var string
 	*/
-
     protected $_bodyText = false;
 
 	/**
 	* Email body HTML
 	*/
-
     protected $_bodyHtml = false;
 
 	/**
 	* Email content type
 	*/
-
     protected $_type = null;
 
 	/**
@@ -89,7 +73,6 @@ class DooMailer {
 	*
 	* @var array
 	*/
-
 	protected $_attachments = array();
 
 	/**
@@ -103,7 +86,6 @@ class DooMailer {
 	* Flag if email has attachments
 	* @var bool
 	*/
-
     public $hasAttachments = false;
 
 	/**
@@ -112,7 +94,6 @@ class DooMailer {
 	* @param string $charset Charset for mail, default (utf-8)
 	* @param string $headerEOL The string to use for end of line in the mail headers (Note: Use double quotes when defining this)
 	*/
-
 	public function __construct($charset = 'utf-8', $headerEOL = "\r\n") {
 		$this->_charset = $charset;
 		$this->_headerEOL = $headerEOL;
@@ -133,7 +114,6 @@ class DooMailer {
 	*
 	* @param string $bodyHtml HTML for message body
 	*/
-
 	public function setBodyHtml($bodyHtml) {
 		$this->_bodyHtml = $bodyHtml;
 	}
@@ -143,7 +123,6 @@ class DooMailer {
 	* @param string $subject Email subject
 	* @param bool $encode Force encoding of subject
 	*/
-
 	public function setSubject($subject, $encode=false) {
 		if ($encode == true) {
 			$this->_subject = '=?'.$this->_charset.'?B?'.base64_encode($subject).'?=';
@@ -158,7 +137,6 @@ class DooMailer {
 	* @param string $email Email address for from field
 	* @param string $name Name of sender
 	*/
-
 	public function setFrom($email, $name=null) {
 		$this->_from = array('email' => $email, 'name' => $name);
 	}
@@ -169,7 +147,6 @@ class DooMailer {
 	* @param string $email Email for reciever
 	* @param string $name Name of person you are sending email
 	*/
-
 	public function addTo($email, $name=null) {
 		if ($email != "") {
 			array_push($this->_to, array($email, $name));
@@ -181,7 +158,6 @@ class DooMailer {
 	*
 	* @var string $file
 	*/
-
 	public function addAttachment($file) {
 		if (file_exists($file) && (is_file($file))) {
 			// read file
@@ -204,7 +180,6 @@ class DooMailer {
 	* @param bool $header If header is true (first value true) it will return
 	* to params for header.
 	*/
-
 	private function getTo($headers=false) {
 		$tmp = "";
 		foreach ($this->_to as $to) {
@@ -224,7 +199,6 @@ class DooMailer {
 	*
 	* @return bool Returns true if mail is sent.
 	*/
-
 	public function send() {
 		$body = "";
 		// add from
@@ -232,13 +206,7 @@ class DooMailer {
 		$fromName = (isset($from['name']))?$from['name']:'';
 		$fromEmail = (isset($from['email']))?$from['email']:'';
 		$mime_boundary = 'Multipart_Boundary_x'.md5(time()).'x';
-		$header = "From: ".$fromName." <{$fromEmail}>" . $this->_headerEOL;
-		// add to
-		$header .= "To: " . $this->getTo(true) . $this->_headerEOL;
-		$header .= "Subject: ".$this->_subject . $this->_headerEOL;
-		// add recipients
-		if ($this->_recipients)
-		$header .= "Reply-To: {$replyto}" . $this->_headerEOL;
+		$header = "From: ".$fromName." <{$fromEmail}>" . $this->_headerEOL;        
 		$header .= "MIME-Version: 1.0" . $this->_headerEOL;
 		$header .= "Content-Type: multipart/alternative; boundary=\"{$mime_boundary}\"" . $this->_headerEOL;
 		$header .= "--{$mime_boundary}" . $this->_headerEOL;
@@ -269,7 +237,7 @@ class DooMailer {
 			}
 		}
 		// mail it
-		if (mail($this->getTo(), $this->_subject, $body, $header)) {
+		if (mail($this->getTo(true), $this->_subject, $body, $header)) {
 			return true;
 		}
 		return false;
