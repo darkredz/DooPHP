@@ -207,7 +207,7 @@ class DooValidator {
         $optErrorRemove = array();
 
         foreach($data as $dk=>$dv){
-            if($dv===NULL){
+            if($dv=='' || $dv===NULL){
                 unset($data[$dk]);
             }
         }
