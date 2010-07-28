@@ -1123,5 +1123,3 @@ class DooValidator {
 	}
 
 }
-
-?>
