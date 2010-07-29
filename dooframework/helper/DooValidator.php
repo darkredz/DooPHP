@@ -271,7 +271,7 @@ class DooValidator {
                     $vv = array_merge(array($v),array_slice($v2, 1));
 
                     //call func
-                    if(empty($v) && $v2[0]=='optional'){
+                    if(($v=='' || $v===NULL) && $v2[0]=='optional'){
                         //echo $k.' - this is not set and optional, should be removed from error';
                         $optErrorRemove[] = $k;
                     }
