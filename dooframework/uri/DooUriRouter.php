@@ -192,6 +192,12 @@ class DooUriRouter{
 		//$this->log('Type: ' . $type);
 		//$this->log('Requested Uri: ' . $requestedUri);
 
+		// Remove get part of url (eg example.com/test/?foo=bar trimed to example.com/test/)
+		if (false !== ($getPosition = strpos($requestedUri, '?'))) {
+			$requestedUri = substr($requestedUri, 0, $getPosition);
+			//$this->log('Trimmed off get (?) to give Request Uri: ' . $requestedUri);
+		}
+
 		// Remove Subfolder
 		$requestedUri = substr($requestedUri, strlen($subfolder)-1);
 		//$this->log('Trimmed off subfolder from Request Uri to give: ' . $requestedUri);
@@ -203,12 +209,6 @@ class DooUriRouter{
 			if ($requestedUri == '') {
 				$requestedUri = '/';
 			}
-		}
-
-		// Remove get part of url (eg example.com/test/?foo=bar trimed to example.com/test/)
-		if (false !== ($getPosition = strpos($requestedUri, '?'))) {
-			$requestedUri = substr($requestedUri, 0, $getPosition);
-			//$this->log('Trimmed off get (?) to give Request Uri: ' . $requestedUri);
 		}
 
 		// Remove any trailing slashes from Uri except the first / of a uri (Root)
