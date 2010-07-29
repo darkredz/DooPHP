@@ -32,7 +32,7 @@
  * $route['*']['/products/promotion.html'] = array('ProductController', 'promo');
  *
  * //dynamic route, add 'extension'=>'.html'
- * $route['*']['/products/promotion/:month'] = array('ProductController', 'promo', array('extension'=>'.html'));
+ * $route['*']['/products/promotion/:month'] = array('ProductController', 'promo', 'extension'=>'.html');
  * </code>
  * </p>
  *
@@ -279,6 +279,7 @@ class DooUriRouter{
 		if (false !== ($pos = strpos($uriPartsOrig[$uriPartsSize-1], '.')) ) {
 			$uriExtension = substr($uriPartsOrig[$uriPartsSize-1], $pos);
 			$uriLastPartNoExtension = substr($uriPartsOrig[$uriPartsSize-1], 0, $pos);
+			//$this->log('URI Extension is: ' . $uriExtension);
 		}
 
 		if (!$skipNormalRoutes) {
@@ -327,7 +328,7 @@ class DooUriRouter{
 				}
 
 				//$this->log('Got a route match. RouteKey: ' . $routeKey);
-				if ($uriExtension !== false) {
+				if (isset($routeData['extension']) && $uriExtension !== false) {
 					$uriParts[$uriPartsSize - 1] = $uriLastPartNoExtension;
 				}
 
@@ -392,7 +393,7 @@ class DooUriRouter{
 					}
 
 					//$this->log('Got a route match. RouteKey: ' . $routeKey);
-					if ($uriExtension !== false) {
+					if (isset($routeData['extension']) && $uriExtension !== false) {
 						$uriParts[$uriPartsSize - 1] = $uriLastPartNoExtension;
 					}
 
@@ -458,7 +459,7 @@ class DooUriRouter{
 					}
 				}
 
-				if ($uriExtension !== false) {
+				if (isset($routeData['extension']) && $uriExtension !== false) {
 					$uriParts[$uriPartsSize - 1] = $uriLastPartNoExtension;
 				}
 
