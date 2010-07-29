@@ -123,13 +123,15 @@ class DooSmartModel{
      * Validate the Model with the rules defined in getVRules()
      *
      * @param string $checkMode Validation mode. all, all_one, skip
+	 * @param string $requireMode Require Check Mode. null, nullempty
      * @return array Return array of errors if exists. Return null if data passes the validation rules.
      */
-    public function validate($checkMode='all'){
+    public function validate($checkMode='all', $requireMode='null'){
         //all, all_one, skip
         Doo::loadHelper('DooValidator');
         $v = new DooValidator;
         $v->checkMode = $checkMode;
+		$v->requiredMode = $requireMode;
         return $v->validate(get_object_vars($this), $this->getVRules());
     }
 
@@ -138,13 +140,15 @@ class DooSmartModel{
      *
      * @param object $model Model object to be validated.
      * @param string $checkMode Validation mode. all, all_one, skip
+	 * @param string $requireMode Require Check Mode. null, nullempty
      * @return array Return array of errors if exists. Return null if data passes the validation rules.
      */
-    public static function _validate($model, $checkMode='all'){
+    public static function _validate($model, $checkMode='all', $requireMode='null'){
         //all, all_one, skip
         Doo::loadHelper('DooValidator');
         $v = new DooValidator;
         $v->checkMode = $checkMode;
+		$v->requiredMode = $requireMode;
         return $v->validate(get_object_vars($model), $model->getVRules());
     }
 
