@@ -294,12 +294,7 @@ class DooWebApp{
                     }
                     //execute route to handler 404 display if ERROR_404_ROUTE is defined, the route handler shouldn't send any headers or return 404
                     elseif(!empty(Doo::conf()->ERROR_404_ROUTE)){
-						if (isset($this->route[Doo::conf()->ERROR_404_ROUTE])) {
-							$this->reroute(Doo::conf()->ERROR_404_ROUTE, true);
-						} else {
-							throw new Exception("404 Route Not Found in Route Settings");
-							exit;
-						}
+						$this->reroute(Doo::conf()->ERROR_404_ROUTE, true);
                     }
                     exit;
                 }
