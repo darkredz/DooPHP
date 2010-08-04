@@ -1603,7 +1603,7 @@ class DooSqlMagic {
 					$rml = $v->{$rm};
 					if( is_array($rml) ){
 						foreach($rml as $k3=>$v3){
-							if($v3->id == $v2->{$v2->_primarykey}){
+							if($v3->{$v3->_primarykey} == $v2->{$v2->_primarykey}){
 								$mainR[$k]->{$rm}[$k3]->{$rm2} = $v2->{$rm2};
 							}
 						}
