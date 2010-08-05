@@ -161,11 +161,8 @@ class DooSmartModel{
      */
     protected static function toCacheId($model, $accessMethod, $options=null){
         if($options!==null){
-            $ostr = '';
-            foreach($options as $os=>$v){
-                $ostr .= '-'.$os.'='.$v;
-            }
-            $id = self::$className.'-'. $accessMethod . $ostr;
+            ksort($options);
+            $id = self::$className.'-'. $accessMethod . serialize($options);
         }else
             $id = self::$className.'-'. $accessMethod ;
 
