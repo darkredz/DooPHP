@@ -288,8 +288,8 @@ class DooValidator {
                     //print_r(array_slice($v2, 1));
                     $vv = array_merge(array($v),array_slice($v2, 1));
 
-					$vIsEmpty = ($this->requireMode == DooValidator::REQ_MODE_NULL_EMPTY && ($dv === null || $dv === '') ||
-								 $this->requireMode == DooValidator::REQ_MODE_NULL_ONLY  && $dv === null) ? true : false;
+					$vIsEmpty = ($this->requireMode == DooValidator::REQ_MODE_NULL_EMPTY && ($v === null || $v === '') ||
+								 $this->requireMode == DooValidator::REQ_MODE_NULL_ONLY  && $v === null) ? true : false;
 
                     //call func
                     if($vIsEmpty && $v2[0]=='optional'){
