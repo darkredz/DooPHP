@@ -345,8 +345,8 @@ class DooValidator {
 
     public function testOptional($value){}
     public function testRequired($value, $msg){
-		if ($this->requireMode == DooValidator::REQ_MODE_NULL_EMPTY && ($dv === null || $dv === '') ||
-			$this->requireMode == DooValidator::REQ_MODE_NULL_ONLY  && $dv === null) {
+		if ($this->requireMode == DooValidator::REQ_MODE_NULL_EMPTY && ($value === null || $value === '') ||
+			$this->requireMode == DooValidator::REQ_MODE_NULL_ONLY  && $value === null) {
 
             if($msg!==null) return $msg;
             return 'This field is required!';
