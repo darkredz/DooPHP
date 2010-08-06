@@ -1233,9 +1233,11 @@ class DooViewBasic {
 								$arrayIndexContentToken .= $str[$j];
 						}
 					}
-					$i = $j - 1;
+					$i = $j-1;
 					$result .= $currentToken . '[' . $this->extractDataPath($arrayIndexContentToken, true) . ']';
+					$arrayIndexContentToken = '';
 					$currentToken = '';
+					$processingArrayIndex = false;
 					break;
 				case '-':
 					if (isset($str[$i+1])) {
