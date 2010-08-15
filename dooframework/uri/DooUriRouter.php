@@ -240,7 +240,7 @@ class DooUriRouter{
 
 			if(isset($routes['*'])){
 				if($possibleRoutes != null)
-					$possibleRoutes = array_merge($possibleRoutes, $routes['*']);
+					$possibleRoutes = array_merge($routes['*'], $possibleRoutes);
 				else
 					$possibleRoutes = $routes['*'];
 			}
