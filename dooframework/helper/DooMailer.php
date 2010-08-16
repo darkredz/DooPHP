@@ -206,11 +206,11 @@ class DooMailer {
 		$fromName = (isset($from['name']))?$from['name']:'';
 		$fromEmail = (isset($from['email']))?$from['email']:'';
 		$mime_boundary = 'Multipart_Boundary_x'.md5(time()).'x';
-		$header = "From: ".$fromName." <{$fromEmail}>" . $this->_headerEOL;        
+		$header = "From: ".$fromName." <{$fromEmail}>" . $this->_headerEOL;
 		$header .= "MIME-Version: 1.0" . $this->_headerEOL;
 		$header .= "Content-Type: multipart/alternative; boundary=\"{$mime_boundary}\"" . $this->_headerEOL;
-		$header .= "--{$mime_boundary}" . $this->_headerEOL;
-		// add content
+
+        // add content
 		if (isset($this->_bodyText) && ($this->_bodyText != "") && ($this->_bodyHtml == "")) {
 			$body.= "--{$mime_boundary}" . $this->_headerEOL;
 			$body.= "Content-Type: text/plain; charset=\"charset={$this->_charset}\"" . $this->_headerEOL;
@@ -224,18 +224,18 @@ class DooMailer {
 			$body.= $this->_bodyHtml;
 			$body.= $this->_headerEOL . $this->_headerEOL;
 		}
-		$body .= "--{$mime_boundary}--" . $this->_headerEOL;
 		// add attachments if there are any
 		if ($this->hasAttachments == true) {
-			$header .= "--{$mime_boundary}" . $this->_headerEOL;
 			foreach ($this->_attachments as $attachment => $a) {
-				$header .= 'Content-Type: "'.$a['file_type'].'"; name="'.$a['file_name'] . $this->_headerEOL;
-				$header .= 'Content-Disposition: attachment; filename="'.$a['file_name'] .'"'. $this->_headerEOL;
-				$header .= "Content-Transfer-Encoding: base64" . $this->_headerEOL;
-				$header .= chunk_split(base64_encode($a['file_data'])) . $this->_headerEOL;
-				$header .= "--{$mime_boundary}" . $this->_headerEOL;
+				$body .= "--{$mime_boundary}" . $this->_headerEOL;
+				$body .= 'Content-Type: "'.$a['file_type'].'"; name="'.$a['file_name'] . $this->_headerEOL;
+				$body .= 'Content-Disposition: attachment; filename="'.$a['file_name'] .'"'. $this->_headerEOL;
+				$body .= "Content-Transfer-Encoding: base64" . $this->_headerEOL;
+				$body .= chunk_split(base64_encode($a['file_data'])) . $this->_headerEOL;
 			}
 		}
+		$body .= "--{$mime_boundary}--" . $this->_headerEOL;
+
 		// mail it
 		if (mail($this->getTo(true), $this->_subject, $body, $header)) {
 			return true;
