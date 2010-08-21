@@ -351,7 +351,7 @@ class DooFrontCache{
 	*/
 
 	public function endApc() {
-		Doo::cache('apc')->set($this->_cachefile, ob_get_contents());
+		Doo::cache('apc')->set($this->_cachefile, ob_get_contents(), 60);
 		ob_end_flush();
 	}
 
@@ -363,11 +363,11 @@ class DooFrontCache{
 	*/
 
 	public function getPartApc($id, $secondsCache=3600) {
-		if (($this->_cachefile = Doo::cache("apc")->get($id)) && time() - $secondsCache < filemtime($this->_cachefile)) {
-			return $this->_cachefile;
-			//echo "<h1> Cached loaded, generated time".date('H:i', filemtime($this->_cachefile ))." </h1>\n";
+		if (false !== ($data = Doo::cache("apc")->get($id))) {
+			echo $data;
 			return true;
 		}
+		return false;
 	}
 
 	/**
@@ -398,6 +398,9 @@ class DooFrontCache{
                 $this->_cachefile = str_replace('?', '_q.', $this->_cachefile);
             }
         }
+		if (!is_dir(dirname($this->_cachefile))) {
+			mkdir(dirname($this->_cachefile), 0770, true);
+		}
 		file_put_contents($this->_cachefile, ob_get_contents(), LOCK_EX);
 		ob_end_flush();
 	}
