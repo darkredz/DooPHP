@@ -395,20 +395,32 @@ class DooSqlMagic {
                 if(isset($v) && in_array($o, $model->_fields)){
                     if( is_object($v) ){
                         $firstChr = substr($v, 0, 1);
+						$andOrStr = ($v->useOrStatement) ? 'OR ' : 'AND';
+
                         if(ctype_punct($firstChr)){
-                            $wheresql .= " AND {$obj['_table']}.$o$firstChr?";
-                            $where_values[] = substr($v, 1);
+							if(ctype_punct(substr($v, 1, 1))){
+								$firstChr .= substr($v, 1, 1);
+								$wvalue = substr($v, 2);
+							}else{
+								$wvalue = substr($v, 1);
+							}
+							if($v->skipBinding === TRUE){
+								$wheresql .= " {$andOrStr} {$obj['_table']}.$o $firstChr " . $wvalue;
+							}else{
+								$wheresql .= " {$andOrStr} {$obj['_table']}.$o $firstChr ?";
+								$where_values[] = substr($v, 1);
+							}
                         }else{
                             if(strpos(strtoupper($v), 'LIKE')===0){
                                 preg_match('/^LIKE[ ]{1,}[\'\"]{1}(.+)[\'\"]{1}[ ]{1,}$/i', $v, $matches);
-                                $wheresql .= " AND {$obj['_table']}.$o LIKE ?";
+                                $wheresql .= " {$andOrStr} {$obj['_table']}.$o LIKE ?";
                                 $where_values[] = $matches[1];
                             }
                             else if(strpos(strtoupper($v), 'IS')===0){
-                                $wheresql .= " AND {$obj['_table']}.$o $v";
+                                $wheresql .= " {$andOrStr} {$obj['_table']}.$o $v";
                             }
                             else{
-                                $wheresql .= " AND {$obj['_table']}.$o=?";
+                                $wheresql .= " {$andOrStr} {$obj['_table']}.$o=?";
                                 $where_values[] = $v;
                             }
                         }
@@ -611,20 +623,32 @@ class DooSqlMagic {
                 if(isset($v) && in_array($o, $model->_fields)){
                     if( is_object($v) ){
                         $firstChr = substr($v, 0, 1);
+						$andOrStr = ($v->useOrStatement) ? 'OR ' : 'AND';
+
                         if(ctype_punct($firstChr)){
-                            $wheresql .= " AND {$obj['_table']}.$o$firstChr?";
-                            $where_values[] = substr($v, 1);
+							if(ctype_punct(substr($v, 1, 1))){
+								$firstChr .= substr($v, 1, 1);
+								$wvalue = substr($v, 2);
+							}else{
+								$wvalue = substr($v, 1);
+							}
+							if($v->skipBinding === TRUE){
+								$wheresql .= " {$andOrStr} {$obj['_table']}.$o $firstChr " . $wvalue;
+							}else{
+								$wheresql .= " {$andOrStr} {$obj['_table']}.$o $firstChr ?";
+								$where_values[] = substr($v, 1);
+							}
                         }else{
                             if(strpos(strtoupper($v), 'LIKE')===0){
                                 preg_match('/^LIKE[ ]{1,}[\'\"]{1}(.+)[\'\"]{1}[ ]{1,}$/i', $v, $matches);
-                                $wheresql .= " AND {$obj['_table']}.$o LIKE ?";
+                                $wheresql .= " {$andOrStr} {$obj['_table']}.$o LIKE ?";
                                 $where_values[] = $matches[1];
                             }
                             else if(strpos(strtoupper($v), 'IS')===0){
-                                $wheresql .= " AND {$obj['_table']}.$o $v";
+                                $wheresql .= " {$andOrStr} {$obj['_table']}.$o $v";
                             }
                             else{
-                                $wheresql .= " AND {$obj['_table']}.$o=?";
+                                $wheresql .= " {$andOrStr} {$obj['_table']}.$o=?";
                                 $where_values[] = $v;
                             }
                         }
@@ -731,20 +755,32 @@ class DooSqlMagic {
 
                     if( is_object($v) ){
                         $firstChr = substr($v, 0, 1);
+						$andOrStr = ($v->useOrStatement) ? 'OR ' : 'AND';
+
                         if(ctype_punct($firstChr)){
-                            $nestedwheresql .= " AND {$obj['_table']}.$o$firstChr?";
-                            $nested_where_values[] = substr($v, 1);
+							if(ctype_punct(substr($v, 1, 1))){
+								$firstChr .= substr($v, 1, 1);
+								$wvalue = substr($v, 2);
+							}else{
+								$wvalue = substr($v, 1);
+							}
+							if($v->skipBinding === TRUE){
+								$nestedwheresql .= " {$andOrStr} {$obj['_table']}.$o $firstChr " . $wvalue;
+							}else{
+								$nestedwheresql .= " {$andOrStr} {$obj['_table']}.$o $firstChr ?";
+								$nestedwheresql[] = substr($v, 1);
+							}
                         }else{
                             if(strpos(strtoupper($v), 'LIKE')===0){
                                 preg_match('/^LIKE[ ]{1,}[\'\"]{1}(.+)[\'\"]{1}[ ]{1,}$/i', $v, $matches);
-                                $nestedwheresql .= " AND {$obj['_table']}.$o LIKE ?";
+                                $nestedwheresql .= " {$andOrStr} {$obj['_table']}.$o LIKE ?";
                                 $nested_where_values[] = $matches[1];
                             }
                             else if(strpos(strtoupper($v), 'IS')===0){
-                                $nestedwheresql .= " AND {$obj['_table']}.$o $v";
+                                $nestedwheresql .= " {$andOrStr} {$obj['_table']}.$o $v";
                             }
                             else{
-                                $nestedwheresql .= " AND {$obj['_table']}.$o=?";
+                                $nestedwheresql .= " {$andOrStr} {$obj['_table']}.$o=?";
                                 $nested_where_values[] = $v;
                             }
                         }
