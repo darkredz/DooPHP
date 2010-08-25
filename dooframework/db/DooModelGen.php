@@ -187,7 +187,7 @@ class DooModelGen{
 	}\n\n";
 				}
 			}
-			$filestr .= "}\n?>";
+			$filestr .= "}";
 
 			if($createBase!=True) {
 				if($fileManager->create(Doo::conf()->MODEL_PATH . "$classname.php", $filestr, 'w+')) {
@@ -201,7 +201,7 @@ class DooModelGen{
 					echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Base model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">{$classname}{$baseSuffix}</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
 					$clsfile = Doo::conf()->MODEL_PATH . "$classname.php";
 					if(!file_exists($clsfile)) {
-						$filestr = "<?php\nDoo::loadModel('base/{$classname}{$baseSuffix}');\n\nclass $classname extends {$classname}{$baseSuffix}{\n}\n?>";
+						$filestr = "<?php\nDoo::loadModel('base/{$classname}{$baseSuffix}');\n\nclass $classname extends {$classname}{$baseSuffix}{\n}";
 						if ($fileManager->create($clsfile, $filestr, 'w+')) {
 							echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
 							$clsExtendedNum++;
