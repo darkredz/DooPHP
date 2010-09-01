@@ -344,6 +344,21 @@ class DooSqlMagic {
         return $this->pdo->quote($string, $type);
     }
 
+	public function quoteArray($array, $type=null) {
+		if (!is_array($array)) {
+			return $this->quote($array, $type);
+		}
+		$numItems = count($array);
+		for($i=0; $i<$numItems; $i++) {
+			if (is_array($array[$i])) {
+				$array[$i] = $this->quoteArray($array[$i], $type);
+			} else {
+				$array[$i] = $this->quote($array[$i]);
+			}
+		}
+		return $array;
+	}
+
     /**
      * Returns the last inserted record's id
      * @return int
