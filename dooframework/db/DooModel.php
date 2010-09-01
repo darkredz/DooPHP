@@ -103,7 +103,7 @@ class DooModel{
 
     /**
      * Validate the Model with the rules defined in getVRules()
-     * 
+     *
      * @param string $checkMode Validation mode. all, all_one, skip
 	 * @param string $requireMode Require Check Mode. null, nullempty
      * @return array Return array of errors if exists. Return null if data passes the validation rules.
@@ -113,7 +113,7 @@ class DooModel{
         Doo::loadHelper('DooValidator');
         $v = new DooValidator;
         $v->checkMode = $checkMode;
-		$v->requireMode = $requireMode;
+		$v->requiredMode = $requireMode;
         return $v->validate(get_object_vars($this), $this->getVRules());
     }
 
@@ -130,7 +130,7 @@ class DooModel{
         Doo::loadHelper('DooValidator');
         $v = new DooValidator;
         $v->checkMode = $checkMode;
-		$v->requireMode = $requireMode;
+		$v->requiredMode = $requireMode;
         return $v->validate(get_object_vars($model), $model->getVRules());
     }
 
@@ -166,7 +166,7 @@ class DooModel{
 
     /**
      * Find a record. (Prepares and execute the SELECT statements)
-     * @param array $opt Associative array of options to generate the SELECT statement. Supported: <i>where, limit, select, param, asc, desc, custom, asArray</i>
+     * @param array $opt Associative array of options to generate the SELECT statement. Supported: <i>where, limit, select, param, groupby, asc, desc, custom, asArray</i>
      * @return mixed A model object or associateve array of the queried result
      */
     public function find($opt=null){
@@ -176,13 +176,13 @@ class DooModel{
     /**
      * Find a record and its associated model. Relational search. (Prepares and execute the SELECT statements)
      * @param string $rmodel The related model class name.
-     * @param array $opt Associative array of options to generate the SELECT statement. Supported: <i>where, limit, select, param, joinType, match, asc, desc, custom, asArray, include, includeWhere, includeParam</i>
+     * @param array $opt Associative array of options to generate the SELECT statement. Supported: <i>where, limit, select, param, joinType, groupby, match, asc, desc, custom, asArray, include, includeWhere, includeParam</i>
      * @return mixed A list of model object(s) or associateve array of the queried result
      */
     public function relate($rmodel, $opt=null){
         return Doo::db()->relate($this, $rmodel, $opt);
     }
-    
+
     /**
      * Combine relational search results (combine multiple relates).
      *
@@ -193,13 +193,13 @@ class DooModel{
      * </code>
      *
      * @param array $rmodel The related models class names.
-     * @param array $opt Array of options for each related model to generate the SELECT statement. Supported: <i>where, limit, select, param, joinType, match, asc, desc, custom, asArray, include, includeWhere, includeParam</i>
+     * @param array $opt Array of options for each related model to generate the SELECT statement. Supported: <i>where, limit, select, param, joinType, groupby, match, asc, desc, custom, asArray, include, includeWhere, includeParam</i>
      * @return mixed A list of model objects of the queried result
      */
 	public function relateMany($rmodel, $opt=null){
         return Doo::db()->relateMany($this, $rmodel, $opt);
     }
-	
+
     /**
      * Expand related models (Tree Relationships).
      *
@@ -210,9 +210,9 @@ class DooModel{
      * </code>
      *
      * @param array $rmodel The related models class names.
-     * @param array $opt Array of options for each related model to generate the SELECT statement. Supported: <i>where, limit, select, param, joinType, match, asc, desc, custom, asArray, include, includeWhere, includeParam</i>
+     * @param array $opt Array of options for each related model to generate the SELECT statement. Supported: <i>where, limit, select, param, joinType, groupby, match, asc, desc, custom, asArray, include, includeWhere, includeParam</i>
      * @return mixed A list of model objects of the queried result
-     */	
+     */
 	public function relateExpand($rmodel, $opt=null){
         return Doo::db()->relateExpand($this, $rmodel, $opt);
     }
@@ -526,7 +526,7 @@ class DooModel{
 		} else {
 			$options['select'] = 'COUNT('. $model->_table . '.' . $model->_fields[0] .') as _doototal';
 		}
-		
+
         $options['asArray'] = true;
         $options['limit'] = 1;
         $rs = Doo::db()->find($model, $options);
