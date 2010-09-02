@@ -426,18 +426,22 @@ class DooSqlMagic {
 								$where_values[] = substr($v, 1);
 							}
                         }else{
-                            if(strpos(strtoupper($v), 'LIKE')===0){
-                                preg_match('/^LIKE[ ]{1,}[\'\"]{1}(.+)[\'\"]{1}[ ]{1,}$/i', $v, $matches);
-                                $wheresql .= " {$andOrStr} {$obj['_table']}.$o LIKE ?";
-                                $where_values[] = $matches[1];
-                            }
-                            else if(strpos(strtoupper($v), 'IS')===0){
+							if($v->skipBinding === TRUE){
                                 $wheresql .= " {$andOrStr} {$obj['_table']}.$o $v";
-                            }
-                            else{
-                                $wheresql .= " {$andOrStr} {$obj['_table']}.$o=?";
-                                $where_values[] = $v;
-                            }
+							}else{
+								if(strpos(strtoupper($v), 'LIKE')===0){
+									preg_match('/^LIKE[ ]{1,}[\'\"]{1}(.+)[\'\"]{1}[ ]{1,}$/i', $v, $matches);
+									$wheresql .= " {$andOrStr} {$obj['_table']}.$o LIKE ?";
+									$where_values[] = $matches[1];
+								}
+								else if(strpos(strtoupper($v), 'IS')===0){
+									$wheresql .= " {$andOrStr} {$obj['_table']}.$o $v";
+								}
+								else{
+									$wheresql .= " {$andOrStr} {$obj['_table']}.$o=?";
+									$where_values[] = $v;
+								}
+							}
                         }
                     }else{
                         $wheresql .= " AND {$obj['_table']}.$o=?";
@@ -654,18 +658,22 @@ class DooSqlMagic {
 								$where_values[] = substr($v, 1);
 							}
                         }else{
-                            if(strpos(strtoupper($v), 'LIKE')===0){
-                                preg_match('/^LIKE[ ]{1,}[\'\"]{1}(.+)[\'\"]{1}[ ]{1,}$/i', $v, $matches);
-                                $wheresql .= " {$andOrStr} {$obj['_table']}.$o LIKE ?";
-                                $where_values[] = $matches[1];
-                            }
-                            else if(strpos(strtoupper($v), 'IS')===0){
+							if($v->skipBinding === TRUE){
                                 $wheresql .= " {$andOrStr} {$obj['_table']}.$o $v";
-                            }
-                            else{
-                                $wheresql .= " {$andOrStr} {$obj['_table']}.$o=?";
-                                $where_values[] = $v;
-                            }
+							}else{
+								if(strpos(strtoupper($v), 'LIKE')===0){
+									preg_match('/^LIKE[ ]{1,}[\'\"]{1}(.+)[\'\"]{1}[ ]{1,}$/i', $v, $matches);
+									$wheresql .= " {$andOrStr} {$obj['_table']}.$o LIKE ?";
+									$where_values[] = $matches[1];
+								}
+								else if(strpos(strtoupper($v), 'IS')===0){
+									$wheresql .= " {$andOrStr} {$obj['_table']}.$o $v";
+								}
+								else{
+									$wheresql .= " {$andOrStr} {$obj['_table']}.$o=?";
+									$where_values[] = $v;
+								}
+							}
                         }
                     }else{
                         $wheresql .= " AND {$obj['_table']}.$o=?";
@@ -786,18 +794,22 @@ class DooSqlMagic {
 								$nestedwheresql[] = substr($v, 1);
 							}
                         }else{
-                            if(strpos(strtoupper($v), 'LIKE')===0){
-                                preg_match('/^LIKE[ ]{1,}[\'\"]{1}(.+)[\'\"]{1}[ ]{1,}$/i', $v, $matches);
-                                $nestedwheresql .= " {$andOrStr} {$obj['_table']}.$o LIKE ?";
-                                $nested_where_values[] = $matches[1];
-                            }
-                            else if(strpos(strtoupper($v), 'IS')===0){
+							if($v->skipBinding === TRUE){
                                 $nestedwheresql .= " {$andOrStr} {$obj['_table']}.$o $v";
-                            }
-                            else{
-                                $nestedwheresql .= " {$andOrStr} {$obj['_table']}.$o=?";
-                                $nested_where_values[] = $v;
-                            }
+							}else{
+								if(strpos(strtoupper($v), 'LIKE')===0){
+									preg_match('/^LIKE[ ]{1,}[\'\"]{1}(.+)[\'\"]{1}[ ]{1,}$/i', $v, $matches);
+									$nestedwheresql .= " {$andOrStr} {$obj['_table']}.$o LIKE ?";
+									$nested_where_values[] = $matches[1];
+								}
+								else if(strpos(strtoupper($v), 'IS')===0){
+									$nestedwheresql .= " {$andOrStr} {$obj['_table']}.$o $v";
+								}
+								else{
+									$nestedwheresql .= " {$andOrStr} {$obj['_table']}.$o=?";
+									$nested_where_values[] = $v;
+								}
+							}
                         }
                     }else{
                         $nestedwheresql .= " AND {$obj['_table']}.$o=?";
@@ -954,7 +966,7 @@ class DooSqlMagic {
 				$sqladd['select'] = substr($sqladd['select'], 2);
 				$sqladd['select'] = "{$model->_table}.*, {$relatedmodel->_table}.*, $tselect_field" . $sqladd['select'];
 			}
-            
+
         }else{
             $sqladd['include']='';
         }
@@ -1613,7 +1625,7 @@ class DooSqlMagic {
         $id = array();
 
         if($mainR===NULL) return;
-        
+
         foreach($mainR as $mr){
             if($m = $mr->{$rm}){
                 if(is_array($m)){
