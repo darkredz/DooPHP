@@ -335,7 +335,7 @@ abstract class DooManageDb {
 	}
 
 	protected function _sqlAddColumn($table, $name, array $attributes) {
-		$columnDefinition = $this->buildColumnDefinition(name, $attributes);
+		$columnDefinition = $this->buildColumnDefinition($name, $attributes);
 		$table = $this->quoteName($table);
 		return "ALTER TABLE $table ADD COLUMN $columnDefinition";
 	}
@@ -364,9 +364,9 @@ abstract class DooManageDb {
 
         $this->checkIdentifier('column', $name);
 
-        // If we have a string use the default settings for that 'type'
+        // If we have a string use this as the type and it will use 'defaults' for said type
         if (is_string($attributes)) {
-            $attributes = array('type' => $info);
+            $attributes = array('type' => $attributes);
         }
 
         // set default values for these variables
