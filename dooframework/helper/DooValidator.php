@@ -626,7 +626,7 @@ class DooValidator {
      */
     public function testColorHex($value, $msg=null){
         //#ff0000
-        if (!preg_match('/^#(?:(?:[a-fd]{3}){1,2})$/i', $value)) {
+        if (!preg_match('/^#([0-9a-f]{1,2}){3}$/i', $value)) {
             if($msg!==null) return $msg;
             return 'Invalid color code!';
         }
