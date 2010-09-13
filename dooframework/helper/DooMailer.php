@@ -213,13 +213,13 @@ class DooMailer {
         // add content
 		if (isset($this->_bodyText) && ($this->_bodyText != "") && ($this->_bodyHtml == "")) {
 			$body.= "--{$mime_boundary}" . $this->_headerEOL;
-			$body.= "Content-Type: text/plain; charset=\"charset={$this->_charset}\"" . $this->_headerEOL;
+			$body.= "Content-Type: text/plain; charset={$this->_charset}" . $this->_headerEOL;
 			$body.= "Content-Transfer-Encoding: 7bit" . $this->_headerEOL . $this->_headerEOL;
 			$body.= $this->_bodyText;
 			$body.= $this->_headerEOL . $this->_headerEOL;
 		} else if (isset($this->_bodyHtml)) {
 			$body.= "--{$mime_boundary}" . $this->_headerEOL;
-			$body.= "Content-Type: text/html; charset=\"{$this->_charset}\"" . $this->_headerEOL;
+			$body.= "Content-Type: text/html; charset={$this->_charset}" . $this->_headerEOL;
 			$body.= "Content-Transfer-Encoding: 7bit" . $this->_headerEOL . $this->_headerEOL;
 			$body.= $this->_bodyHtml;
 			$body.= $this->_headerEOL . $this->_headerEOL;
