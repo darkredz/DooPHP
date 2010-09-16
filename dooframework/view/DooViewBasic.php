@@ -24,6 +24,7 @@ class DooViewBasic {
 	protected $tagVariable_end = '}}';
 	protected $tagComment_start = '{#';
 	protected $tagComment_end = '#}';
+	protected $layoutFileName = 'layout';
 
 	protected $rootViewPath = null;
 	protected $defaultRootViewPath = null;
@@ -82,6 +83,14 @@ class DooViewBasic {
 	 */
 	public function setFilterFunctionPrefix($prefix = 'filter_') {
 		$this->filterFunctionPrefix = $prefix;
+	}
+
+	/**
+	 * Specify the name of the layout file to be used for processing this request
+	 * @param string $filename name of the layout file including extension. Eg 'layout.html'
+	 */
+	public function setLayoutFileName($filename) {
+		$this->layoutFileName = $filename;
 	}
 
 	/**
@@ -366,11 +375,11 @@ class DooViewBasic {
         if($process==false){
 			//includes user defined template tags for template use
             $this->loadTagClass();
-            include $this->rootCompiledPath . $viewFolder . '/index.php';
+            include $this->rootCompiledPath . $this->layoutFileName . '/' . $viewFolder . '/index.php';
         }
         else{
-            $lfilename = $this->rootViewPath . "/layout.html";
-			$cfilename = $this->rootCompiledPath . $viewFolder . '/index.php';
+            $lfilename = $this->rootViewPath . "/" . $this->layoutFileName . '.html';
+			$cfilename = $this->rootCompiledPath . $this->layoutFileName . '/' . $viewFolder . '/index.php';
 
             if(!$forceCompile){
                 if(file_exists($cfilename)){
