@@ -73,6 +73,8 @@ class DooModelGen{
 			}else {
 				$tblname = $tbl['Tables_in_'.$dbname];
 			}
+			$smt2 = null;
+			unset($smt2);
 			$smt2 = Doo::db()->query("DESC `$tblname`");
 			$fields = $smt2->fetchAll();
 			//print_r($fields);
