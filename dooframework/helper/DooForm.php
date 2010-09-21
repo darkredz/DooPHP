@@ -149,7 +149,7 @@ class DooForm {
         foreach ($this->_attr as $attribute => $c) {
             $attributes .= $attribute . '="' . htmlspecialchars($c) . '" ';
         }
-        $formOpenHtml = '<form action="' . $this->_action . '" method="' . $this->_method . '" ' . $enctype . ' ' . $attributes . '">';
+        $formOpenHtml = '<form action="' . $this->_action . '" method="' . $this->_method . '" ' . $enctype . ' ' . $attributes . '>';
         $formCloseHtml = '</form>';
         if ($this->_renderFormat == 'array') {
             $formOutput = array(
