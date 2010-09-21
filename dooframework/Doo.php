@@ -46,10 +46,14 @@ class Doo{
     /**
      * @return DooWebApp the application singleton, auto create if the singleton has not been created yet.
      */
-    public static function app(){
+    public static function app($class = 'DooWebApp'){
         if(self::$_app===NULL){
-            self::loadCore('app/DooWebApp');
-            self::$_app = new DooWebApp;
+			if (is_object($class)) {	// Likely to drop this after some further development! (RichardM)
+				self::$_app = $class;
+			} else {
+				self::loadCore('app/' . $class);
+				self::$_app = new $class;
+			}
         }
         return self::$_app;
     }
