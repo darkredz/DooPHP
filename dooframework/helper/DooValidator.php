@@ -495,7 +495,8 @@ class DooValidator {
      * @return string
      */
     public function testEmail($value, $msg=null){
-        if(!preg_match('/^\w[-.\w]*@([-a-z0-9]+\.)+[a-z]{2,4}$/i', $value) ||
+		// Regex based on best solution from here: http://fightingforalostcause.net/misc/2006/compare-email-regex.php
+        if(!preg_match('/^([\w\!\#$\%\&\'\*\+\-\/\=\?\^\`{\|\}\~]+\.)*[\w\!\#$\%\&\'\*\+\-\/\=\?\^\`{\|\}\~]+@((((([a-z0-9]{1}[a-z0-9\-]{0,62}[a-z0-9]{1})|[a-z])\.)+[a-z]{2,6})|(\d{1,3}\.){3}\d{1,3}(\:\d{1,5})?)$/i', $value) ||
             strpos($value, '--')!==False || strpos($value, '-.')!==False
         ){
             if($msg!==null) return $msg;
