@@ -171,7 +171,7 @@ class DooValidator {
      */
     public static function getAvailableRules(){
         return array('alpha', 'alphaNumeric', 'between', 'betweenInclusive', 'ccAmericanExpress', 'ccDinersClub', 'ccDiscover', 'ccMasterCard',
-                    'ccVisa', 'ccColorHex', 'creditCard', 'custom', 'date', 'datetime', 'digit', 'digit', 'email', 'equal', 'float',
+                    'ccVisa', 'colorHex', 'creditCard', 'custom', 'date', 'datetime', 'digit', 'digit', 'email', 'equal', 'float',
                     'greaterThan', 'greaterThanOrEqual', 'ip', 'integer', 'lessThan', 'lessThanOrEqual', 'lowercase', 'max',
                     'maxlength', 'min', 'minlength', 'notEmpty', 'notEqual', 'notNull', 'password', 'passwordComplex', 'price', 'regex',
                     'uppercase', 'url', 'username','dbExist','dbNotExist','alphaSpace','notInList','inList'
@@ -702,7 +702,8 @@ class DooValidator {
      * @return string
      */
     public function testDateBetween($value, $dateStart, $dateEnd, $msg=null){
-        if(!( strtotime($value) > strtotime($dateStart) && strtotime($value) < strtotime($dateEnd) ) ) {
+		$value = strtotime($value);
+        if(!( $value > strtotime($dateStart) && $value < strtotime($dateEnd) ) ) {
             if($msg!==null) return $msg;
             return "Date must be between $dateStart and $dateEnd";
         }
