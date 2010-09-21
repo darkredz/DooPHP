@@ -113,7 +113,7 @@ class DooRbAcl extends DooAcl{
                     }
                 }
             }
-         return (is_string($this->defaultFailedRoute)) ? array($this->defaultFailedRoute, 404) : $this->defaultFailedRoute;
+			return (is_string($this->defaultFailedRoute)) ? array($this->defaultFailedRoute, 404) : $this->defaultFailedRoute;
 
         } else if ($allowed==false) {
             //echo 'Not in allow list<br>';
@@ -133,7 +133,7 @@ class DooRbAcl extends DooAcl{
                     }
                 }
             }
-         return (is_string($this->defaultFailedRoute)) ? array($this->defaultFailedRoute, 404) : $this->defaultFailedRoute;
+			return (is_string($this->defaultFailedRoute)) ? array($this->defaultFailedRoute, 404) : $this->defaultFailedRoute;
         }
     }
 }

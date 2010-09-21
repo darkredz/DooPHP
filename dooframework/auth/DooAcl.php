@@ -205,11 +205,11 @@ class DooAcl {
 						return (is_string($rs))? array($rs, 'internal') : $rs;
 					} elseif (isset( $route['_default'] )) {
 						return (is_string($route['_default']))? array($route['_default'], 'internal') : $route['_default'];
-					} else {
-						return (is_string($this->defaultFailedRoute))? array($this->defaultFailedRoute, 404) : $this->defaultFailedRoute;
 					}
 				}
 			}
+			return (is_string($this->defaultFailedRoute))? array($this->defaultFailedRoute, 404) : $this->defaultFailedRoute;
+
 		} else if($this->isAllowed($role, $resource, $action)==false) {
 			//echo 'Not in allow list<br>';
 
@@ -226,11 +226,10 @@ class DooAcl {
 						return (is_string($rs))? array($rs, 'internal') : $rs;
 					} elseif (isset( $route['_default'] )) {
 						return (is_string($route['_default']))? array($route['_default'], 'internal') : $route['_default'];
-					} else {
-						return (is_string($this->defaultFailedRoute))? array($this->defaultFailedRoute, 404) : $this->defaultFailedRoute;
 					}
 				}
 			}
+			return (is_string($this->defaultFailedRoute))? array($this->defaultFailedRoute, 404) : $this->defaultFailedRoute;
 		}
 	}
 }
