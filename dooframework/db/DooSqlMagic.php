@@ -1161,11 +1161,11 @@ class DooSqlMagic {
                                     if(isset($opt['param'])){
                                         $rStmtLimit = $this->query("SELECT {$relatedmodel->_table}.{$relatedmodel->_primarykey} FROM {$relatedmodel->_table} WHERE {$rlimitMatch} LIMIT 1", $opt['param']);
                                         $rStmtId = $rStmtLimit->fetch();
-                                        $rStmtId = $rStmtId['id'];
+                                        $rStmtId = $rStmtId[$relatedmodel->_primarykey];
                                     }else{
                                         $rStmtLimit = $this->query("SELECT {$relatedmodel->_table}.{$relatedmodel->_primarykey} FROM {$relatedmodel->_table} WHERE {$rlimitMatch} LIMIT 1");
                                         $rStmtId = $rStmtLimit->fetch();
-                                        $rStmtId = $rStmtId['id'];
+                                        $rStmtId = $rStmtId[$relatedmodel->_primarykey];
                                     }
 
                                     $mIdStmt = $this->query("SELECT {$mparams['through']}.{$rparams['foreign_key']} FROM {$mparams['through']} WHERE {$rparams['through']}.{$mparams['foreign_key']}=? ORDER BY {$mparams['through']}.{$rparams['foreign_key']} DESC", array($rStmtId));
@@ -1208,7 +1208,7 @@ class DooSqlMagic {
 
                         $limitModelStr = array();
                         foreach($stmtLimit as $rlimit){
-                            $limitModelStr[] = $rlimit['id'];
+                            $limitModelStr[] = $rlimit[$model->_primarykey];
                         }
 
                         //combine if exists
