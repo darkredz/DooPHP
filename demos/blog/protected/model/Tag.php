@@ -38,12 +38,13 @@ class Tag extends DooModel{
             );
     }
 
-    public function validate($checkMode='all'){
+    public function validate($checkMode='all', $requireMode='null'){
         //You do not need this if you extend DooModel or DooSmartModel
         //MODE: all, all_one, skip
         Doo::loadHelper('DooValidator');
         $v = new DooValidator;
         $v->checkMode = $checkMode;
+		$v->requiredMode = $requireMode;
         return $v->validate(get_object_vars($this), $this->getVRules());
     }
 
