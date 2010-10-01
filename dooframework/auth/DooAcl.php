@@ -208,7 +208,7 @@ class DooAcl {
 					}
 				}
 			}
-			return (is_string($this->defaultFailedRoute))? array($this->defaultFailedRoute, 404) : $this->defaultFailedRoute;
+			return $this->defaultFailedRoute;
 
 		} else if($this->isAllowed($role, $resource, $action)==false) {
 			//echo 'Not in allow list<br>';
@@ -229,7 +229,7 @@ class DooAcl {
 					}
 				}
 			}
-			return (is_string($this->defaultFailedRoute))? array($this->defaultFailedRoute, 404) : $this->defaultFailedRoute;
+			return $this->defaultFailedRoute;
 		}
 	}
 }
