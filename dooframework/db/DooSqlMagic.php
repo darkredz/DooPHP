@@ -1825,6 +1825,7 @@ class DooSqlMagic {
                 $this->query( "INSERT INTO {$rparams['through']} ({$model_linked_key},{$rparams['foreign_key']})  VALUES (?,?)", array($mId,$rId));
             }
             else if(isset($rparams['foreign_key'])){
+				list($rtype,$rparams) = self::relationType($this->map, $class_name, $rclass_name);
                 $rmodel->{$rparams['foreign_key']} = $main_id;
                 $this->insert($rmodel);
             }
@@ -2018,6 +2019,7 @@ class DooSqlMagic {
                 }
                 else if(isset($rparams['foreign_key'])){
                     //echo '<h2>Insert 1to1 or 1tomany</h2>';
+					list($rtype,$rparams) = self::relationType($this->map, $class_name, $rclass_name);
                     $rmodel->{$rparams['foreign_key']} = $model->{$model->_primarykey};
                     $this->insert($rmodel);
                 }
