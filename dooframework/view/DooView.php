@@ -715,7 +715,8 @@ class DooView {
     }
 
     private function convertCache($matches){
-        $data = explode(',', $matches[1]);
+		$data = str_replace(array('<?php echo ', '; ?>'), '', $matches[1]);
+        $data = explode(',', $data);
         if(sizeof($data)==2){
             $data[1] = intval($data[1]);
             return "<?php if (!Doo::cache('front')->getPart({$data[0]}, {$data[1]})): ?>\n<?php Doo::cache('front')->start({$data[0]}); ?>";
