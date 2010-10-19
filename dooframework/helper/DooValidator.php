@@ -171,7 +171,7 @@ class DooValidator {
      */
     public static function getAvailableRules(){
         return array('alpha', 'alphaNumeric', 'between', 'betweenInclusive', 'ccAmericanExpress', 'ccDinersClub', 'ccDiscover', 'ccMasterCard',
-                    'ccVisa', 'colorHex', 'creditCard', 'custom', 'date', 'datetime', 'digit', 'digit', 'email', 'equal', 'float',
+                    'ccVisa', 'colorHex', 'creditCard', 'custom', 'date', 'dateBetween', 'datetime', 'digit', 'email', 'equal', 'equalAs', 'float',
                     'greaterThan', 'greaterThanOrEqual', 'ip', 'integer', 'lessThan', 'lessThanOrEqual', 'lowercase', 'max',
                     'maxlength', 'min', 'minlength', 'notEmpty', 'notEqual', 'notNull', 'password', 'passwordComplex', 'price', 'regex',
                     'uppercase', 'url', 'username','dbExist','dbNotExist','alphaSpace','notInList','inList'
