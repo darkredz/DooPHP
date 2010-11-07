@@ -113,7 +113,7 @@ class DooLoader {
      * @param bool $retbytes
      * @return mixed
      */
-    private function readfile_chunked($filename, $retbytes = TRUE) {
+    private function readfile_chunked($filename, $retbytes = TRUE, $chunk_size = 1024) {
         $buffer = '';
         $cnt =0;
         // $handle = fopen($filename, 'rb');
@@ -122,7 +122,7 @@ class DooLoader {
             return false;
         }
         while (!feof($handle)) {
-            $buffer = fread($handle, CHUNK_SIZE);
+            $buffer = fread($handle, $chunk_size);
             echo $buffer;
             ob_flush();
             flush();
