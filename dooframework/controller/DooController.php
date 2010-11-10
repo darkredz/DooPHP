@@ -447,7 +447,7 @@ class DooController {
      * @param string $encoding Encoding of the result content. Default utf-8.
      * @return string JSON string
      */
-    public function toJSON($result, $output=false, $removeNullField=false, $exceptField=null, $mustRemoveFieldList=null, $setJSONContentType=false, $encoding='utf-8'){
+    public function toJSON($result, $output=false, $removeNullField=false, $exceptField=null, $mustRemoveFieldList=null, $setJSONContentType=true, $encoding='utf-8'){
         $rs = preg_replace(array('/\,\"\_table\"\:\".*\"/U', '/\,\"\_primarykey\"\:\".*\"/U', '/\,\"\_fields\"\:\[\".*\"\]/U'), '', json_encode($result));
         if($removeNullField){
             if($exceptField===null)
@@ -491,10 +491,11 @@ class DooController {
 
         //$rs = str_replace(array('[,',',,'), array('[{',',{'), $rs);
         
-        if($setJSONContentType===true)
-            $this->setContentType('json', $encoding);
-        if($output===true)
+        if($output===true){
+			if($setJSONContentType===true)
+				$this->setContentType('json', $encoding);
             echo $rs;
+		}
         return $rs;
     }
 
