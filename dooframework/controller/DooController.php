@@ -27,6 +27,8 @@
  * $puts
  * $extension
  * $autoroute
+ * $data
+ * $renderMethod
  * init_put_vars()
  * load()
  * language()
@@ -47,6 +49,7 @@
  * saveRenderedC()
  * toXML()
  * toJSON()
+ * viewRenderAutomation()
  * </code>
  *
  * You still have a lot of freedom to name your methods and properties other than names mentioned.
@@ -80,7 +83,25 @@ class DooController {
      * @var bool
      */
     public $autoroute = TRUE;
-    
+
+	/**
+	 * Data to be pass from controller to view to be rendered
+	 * @var mixed
+	 */
+    public $data;
+
+	/**
+	 * Enable auto render of view at the end of a controller -> method request
+	 * @var bool
+	 */
+	public $autorender = FALSE;
+
+	/**
+	 * Render method for auto render. You can use 'renderc' & 'render' or your own method in the controller.
+	 * @var string Default is renderc
+	 */
+	public $renderMethod = 'renderc';
+
     protected $_load;
     protected $_view;
 
@@ -123,7 +144,7 @@ class DooController {
     /**
      * This will be called before the actual action is executed
      */
-    public function beforeRun($resource, $action){}	
+    public function beforeRun($resource, $action){}
 
     /**
      * Returns the cache singleton, shorthand to Doo::cache()
@@ -132,7 +153,7 @@ class DooController {
     public function cache($cacheType='file'){
         return Doo::cache($cacheType);
     }
-	
+
     /**
      * Writes the generated output produced by render() to file.
      * @param string $path Path to save the generated output.
@@ -160,7 +181,7 @@ class DooController {
             return $this->view()->saveRenderedC($file, $data, null, $includeTagClass);
         }
 	}
-	
+
     /**
      * The view singleton, auto create if the singleton has not been created yet.
      * @return DooView|DooViewBasic
@@ -220,7 +241,7 @@ class DooController {
 
     /**
      * Get the client specified accept type from the header sent
-     * 
+     *
      * <p>Instead of appending a extension name like '.json' to a URL,
      * clients can use 'Accept: application/json' for RESTful APIs.</p>
      * @return string Client accept type
@@ -296,7 +317,7 @@ class DooController {
      */
     public function setContentType($type, $charset='utf-8'){
         if(headers_sent())return;
-        
+
         $extensions = array('html'=>'text/html',
                             'xml'=>'application/xml',
                             'json'=>'application/json',
@@ -315,7 +336,7 @@ class DooController {
         if(isset($extensions[$type]))
             header("Content-Type: {$extensions[$type]}; charset=$charset");
     }
-	
+
     /**
      * Get client's IP
      * @return string
@@ -332,6 +353,24 @@ class DooController {
         }
     }
 
+	public function __destruct() {
+		if($this->autorender===true){
+			$this->viewRenderAutomation();
+		}
+	}
+
+	protected function viewRenderAutomation(){
+		if(is_string(Doo::conf()->AUTO_VIEW_RENDER_PATH)){
+			$path = Doo::conf()->AUTO_VIEW_RENDER_PATH;
+			$path = str_replace(':', '@', substr($path, 1));
+			//echo $path;
+			$this->{$this->renderMethod}($path, $this->data);
+		}else{
+			//echo '<br>'.strtolower(Doo::conf()->AUTO_VIEW_RENDER_PATH[0]) .'/'. strtolower(Doo::conf()->AUTO_VIEW_RENDER_PATH[1]);
+			$this->{$this->renderMethod}(strtolower(Doo::conf()->AUTO_VIEW_RENDER_PATH[0]) .'/'. strtolower(Doo::conf()->AUTO_VIEW_RENDER_PATH[1]), $this->data);
+		}
+	}
+
     /**
      * Check if the request is an AJAX request usually sent with JS library such as JQuery/YUI/MooTools
      * @return bool
@@ -347,7 +386,7 @@ class DooController {
     public function is_SSL(){
         if(!isset($_SERVER['HTTPS']))
             return FALSE;
-            
+
         //Apache
         if($_SERVER['HTTPS'] === 1) {
             return TRUE;
@@ -485,12 +524,12 @@ class DooController {
                         return $matches[0];');
 
             $rs = preg_replace_callback(array('/\,\"([^\"]+)\"\:\".*\"/U', '/\,\"([^\"]+)\"\:\{.*\}/U'), $funcb1, $rs);
-            
+
             $rs = preg_replace_callback(array('/\{\"([^\"]+)\"\:\".*\"\,/U','/\{\"([^\"]+)\"\:\{.*\}\,/U'), $funcb2, $rs);
         }
 
         //$rs = str_replace(array('[,',',,'), array('[{',',{'), $rs);
-        
+
         if($output===true){
 			if($setJSONContentType===true)
 				$this->setContentType('json', $encoding);
@@ -499,7 +538,7 @@ class DooController {
         return $rs;
     }
 
-        public function  __call($name,  $arguments) {
+	public function  __call($name,  $arguments) {
 		if ($name == 'renderLayout') {
 			throw new Exception('renderLayout is no longer supported by DooController. Please use $this->view()->renderLayout instead');
 		} else {

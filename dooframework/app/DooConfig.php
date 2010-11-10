@@ -35,11 +35,11 @@ class DooConfig{
      * @var string
      */
     public $PROTECTED_FOLDER = 'protected/';
-	
-	
+
+
     /**
      * Path to the location of Doo framework directory. eg. /var/lib/dooframework/
-     * @var string 
+     * @var string
      */
     public $BASE_PATH;
 
@@ -52,41 +52,41 @@ class DooConfig{
 
     /**
      * URL of your app. eg. http://localhost/doophp/
-     * @var string 
+     * @var string
      */
     public $APP_URL;
 
     /**
      * Please define SUBFOLDER if your app is not in the root directory of the domain. eg. http://localhost/doophp , you should set '/doophp/'
-     * @var string 
+     * @var string
      */
     public $SUBFOLDER;
 
     /**
      * Application mode(<b>dev</b>, <b>prod</b>). In dev mode, view templates are always checked and compiled
-     * @var string 
+     * @var string
      */
     public $APP_MODE;
 
     /**
      * Enable/disable Auto routing.
-     * 
+     *
      * <p>Every controller can deny being accessed by auto routes
      * just by setting <code>public $autoroute = false;</code> in the Controller class.</p>
-     * @var bool 
+     * @var bool
      */
     public $AUTOROUTE;
 
     /**
      * Enable/disable debug mode. If debug mode is on, debug trace will be logged.
      * Debug tool can be viewed if <code>Doo::logger()->showDebugger()</code> is called
-     * @var bool 
+     * @var bool
      */
     public $DEBUG_ENABLED;
 
     /**
      * If defined, the document specified will be included when a 404 header is sent (route not found).
-     * @var string 
+     * @var string
      */
     public $ERROR_404_DOCUMENT;
 
@@ -102,6 +102,12 @@ class DooConfig{
      * @var string
      */
     public $CACHE_PATH;
+
+    /**
+     * Auto view render path based on URI(defined route) or resource and action string parts in URI(autoroute)
+     * @var string|array
+     */
+    public $AUTO_VIEW_RENDER_PATH;
 
     /**
      * Settings for Memcache servers, defined in arrays: array(host, port, persistent, weight)
@@ -151,7 +157,7 @@ class DooConfig{
 	 * @param string
 	 */
 	public $MODEL_PATH;
-	
+
     /**
      * Set the configurations. SITE_PATH, BASE_PATH and APP_URL is required
      * @param array $confArr associative array of the configs.
@@ -160,7 +166,7 @@ class DooConfig{
         foreach($confArr as $k=>$v){
             $this->{$k} = $v;
         }
-        
+
         if($this->SUBFOLDER==NULL)
            $this->SUBFOLDER='/';
 

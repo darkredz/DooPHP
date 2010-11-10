@@ -215,7 +215,7 @@ class DooUriRouter{
 		$this->strip_slashes($requestedUri);
 		//$this->log('Trimmed off trailing slashes from Request Uri: ' . $requestedUri);
 
-		
+
 		// Got a root url (ie. Homepage)
 		if ($requestedUri == '/') {
 			//$this->log('Got a root URL');
@@ -252,6 +252,7 @@ class DooUriRouter{
 				// Ensure the url does not contain : in it
 				if (false === strpos($requestedUri, ':')) {
 					//$this->log('Got Perfect Match');
+					Doo::conf()->AUTO_VIEW_RENDER_PATH = $requestedUri;
 					return array($possibleRoutes[$requestedUri], null);
 				}
 			}
@@ -267,7 +268,7 @@ class DooUriRouter{
 		 * but with each expecting different parameter formats for example
 		 * /news/:title     - to show a news by passing the title which will maybe call the controller action News->show_by_title
 		 * /news/:id     - to show a news by passing the ID which will maybe call the controller action News->show_by_id
-		 * 
+		 *
 		 * Note that Identical Routes MUST have different REQUIREMENT (match) for the param,
 		 * if not the first which is defined will matched, therefore preventing any others being matched
 		 */
@@ -348,6 +349,7 @@ class DooUriRouter{
 				}
 				$params['__routematch'] = $routeData;
 				//$this->log('Got a Match');
+				Doo::conf()->AUTO_VIEW_RENDER_PATH = $routeKey;
 				return array($routeData, $params);
 			}
 
@@ -413,6 +415,7 @@ class DooUriRouter{
 					}
 					$params['__routematch'] = $routeData;
 					//$this->log('Got a Match');
+					Doo::conf()->AUTO_VIEW_RENDER_PATH = $routeKey;
 					return array($routeData, $params);
 				}
 			}
@@ -478,7 +481,7 @@ class DooUriRouter{
 				}
 
 				$params['__routematch'] = $routeData;
-
+				Doo::conf()->AUTO_VIEW_RENDER_PATH = $routeKey;
 				return array($routeData, $params);
 			}
 		}
@@ -495,8 +498,8 @@ class DooUriRouter{
 	}
 
 
-    
-   
+
+
 
     /**
      * Handles auto routing.
@@ -544,6 +547,7 @@ class DooUriRouter{
         //spilt out GET variable first
         $uri = explode('/',$uri);
         $controller_name = $uri[0];
+		Doo::conf()->AUTO_VIEW_RENDER_PATH = array($controller_name);
 
         $camelpos = strpos($controller_name, '-');
         if($camelpos!==FALSE){
@@ -555,22 +559,24 @@ class DooUriRouter{
         }
         $controller_name = substr_replace($controller_name, strtoupper($controller_name[0]), 0, 1) . 'Controller';
 
-        //if method is empty, make it access index
+        //if method is in uri, replace - to camelCase. else method is empty, make it access index
         if(isset($uri[1]) && $uri[1]!=NULL && $uri[1]!=''){
             $method_name = $uri[1];
 			$camelpos = strpos($method_name, '-');
 			if($camelpos!==FALSE){
 				$method_name = substr_replace($method_name, strtoupper($method_name[$camelpos+1]), $camelpos, 2) ;
 			}
-		}else
+			Doo::conf()->AUTO_VIEW_RENDER_PATH[] = $uri[1];
+		}else{
             $method_name = 'index';
+			Doo::conf()->AUTO_VIEW_RENDER_PATH[] = 'index';
+		}
 
         //the first 2 would be Controller and Method, the others will be params if available, access through Array arr[0], arr[1], arr[3]
         $params = NULL;
         if(sizeof($uri)>2){
             $params=array_slice($uri, 2);
         }
-
         return array($controller_name, $method_name, $params);
     }
 

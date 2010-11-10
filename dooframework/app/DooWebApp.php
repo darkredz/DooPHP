@@ -108,6 +108,13 @@ class DooWebApp{
             if(file_exists($controller_file)){
                 require_once(Doo::conf()->BASE_PATH ."controller/DooController.php");
                 require_once($controller_file);
+
+				//check if method name exists in controller
+				if( in_array($method_name, get_class_methods($controller_name))===FALSE ){
+					$this->throwHeader(404);
+					return;
+				}
+
                 $controller = new $controller_name;
 
                 if(!$controller->autoroute)
@@ -119,14 +126,11 @@ class DooWebApp{
                 if($_SERVER['REQUEST_METHOD']==='PUT')
                     $controller->init_put_vars();
 
-                if(method_exists($controller, $method_name)){
-                    //before run, normally used for ACL auth
-                    if($rs = $controller->beforeRun($controller_name, $method_name)){
-                        return $rs;
-                    }
-                    return $controller->$method_name();
-                }else
-                    $this->throwHeader(404);
+                //before run, normally used for ACL auth
+				if($rs = $controller->beforeRun($controller_name, $method_name)){
+					return $rs;
+				}
+				return $controller->$method_name();
             }
             else{
                 $this->throwHeader(404);
