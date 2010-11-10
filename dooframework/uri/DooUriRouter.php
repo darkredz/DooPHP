@@ -556,9 +556,13 @@ class DooUriRouter{
         $controller_name = substr_replace($controller_name, strtoupper($controller_name[0]), 0, 1) . 'Controller';
 
         //if method is empty, make it access index
-        if(isset($uri[1]) && $uri[1]!=NULL && $uri[1]!='')
+        if(isset($uri[1]) && $uri[1]!=NULL && $uri[1]!=''){
             $method_name = $uri[1];
-        else
+			$camelpos = strpos($method_name, '-');
+			if($camelpos!==FALSE){
+				$method_name = substr_replace($method_name, strtoupper($method_name[$camelpos+1]), $camelpos, 2) ;
+			}
+		}else
             $method_name = 'index';
 
         //the first 2 would be Controller and Method, the others will be params if available, access through Array arr[0], arr[1], arr[3]
