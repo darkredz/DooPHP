@@ -854,24 +854,25 @@ class DooViewBasic {
 		}
 		 */
 
-		if(substr($file, 0,1)=='/'){
-            $file = substr($file, 1);
-            $cfilename = str_replace('\\', '/', "{$this->rootCompiledPath}{$this->mainRenderFolder}/$file.php");
-            if (file_exists("{$this->rootViewPath}/{$file}.html")) {
+		$cfilename = $vfilename = "";
+
+		if (substr($file, 0, 1) == '/') {
+			$file = substr($file, 1);
+			$cfilename = str_replace('\\', '/', "{$this->rootCompiledPath}{$this->mainRenderFolder}/$file.php");
+			if (file_exists("{$this->rootViewPath}/{$file}.html")) {
 				$vfilename = "{$this->rootViewPath}/{$file}.html";
 			} else {
 				$vfilename = "{$this->defaultRootViewPath}/{$file}.html";
 			}
-        }
-        else{
+		} else {
 
-            $cfilename = str_replace('\\', '/', "{$this->rootCompiledPath}{$this->mainRenderFolder}/$file.php");
+			$cfilename = str_replace('\\', '/', "{$this->rootCompiledPath}{$this->mainRenderFolder}/$file.php");
 
 			if ($this->usingRecursiveRender == true) {
 				$fileName = '/' . $file . '.html';
 				$path = $this->mainRenderFolder;
 
-				while(($found = file_exists($this->rootViewPath . $path . $fileName)) == false) {
+				while (($found = file_exists($this->rootViewPath . $path . $fileName)) == false) {
 					//echo $path . "<br />";
 					if ($path == '.' || $path == '')
 						break;
@@ -882,7 +883,7 @@ class DooViewBasic {
 					$vfilename = $this->rootViewPath . $path . $fileName;
 				} else {
 					$path = $this->mainRenderFolder;
-					while(($found = file_exists($this->defaultRootViewPath . $path . $fileName)) == false) {
+					while (($found = file_exists($this->defaultRootViewPath . $path . $fileName)) == false) {
 						//echo $path . "<br />";
 						if ($path == '.' || $path == '')
 							break;
@@ -890,29 +891,28 @@ class DooViewBasic {
 					}
 					$vfilename = $this->defaultRootViewPath . $path . $fileName;
 				}
-
 			} else {
 				if (file_exists("{$this->rootViewPath}{$this->mainRenderFolder}/{$file}.html")) {
 					$vfilename = "{$this->rootViewPath}{$this->mainRenderFolder}/{$file}.html";
 				} else {
-					$vfilename = "{$this->defaultRootViewPath}{$this->defaultRootViewPath}/{$file}.html";
+					$vfilename = "{$this->defaultRootViewPath}{$this->mainRenderFolder}/{$file}.html";
 				}
 			}
-        }
+		}
 
-        if(!file_exists($vfilename)){
-            return array(false, "<span style=\"color:#ff0000\">View file <strong>{$file}.html</strong> not found</span>");
-        }else{
-            if(!$this->forceCompile && file_exists($cfilename)){
-                if(filemtime($vfilename)>filemtime($cfilename)){
-                    $this->compile($file, $vfilename, $cfilename);
-                }
-            }else{
-                $this->compile($file, $vfilename, $cfilename);
-            }
-        }
+		if (!file_exists($vfilename)) {
+			return array(false, "<span style=\"color:#ff0000\">View file <strong>{$file}.html</strong> not found</span>");
+		} else {
+			if (!$this->forceCompile && file_exists($cfilename)) {
+				if (filemtime($vfilename) > filemtime($cfilename)) {
+					$this->compile($file, $vfilename, $cfilename);
+				}
+			} else {
+				$this->compile($file, $vfilename, $cfilename);
+			}
+		}
 
-        return array(true, $cfilename);
+		return array(true, $cfilename);
 	}
 
 
