@@ -27,7 +27,7 @@
  * $puts
  * $extension
  * $autoroute
- * $data
+ * $vdata
  * $renderMethod
  * init_put_vars()
  * load()
@@ -88,7 +88,7 @@ class DooController {
 	 * Data to be pass from controller to view to be rendered
 	 * @var mixed
 	 */
-    public $data;
+    public $vdata;
 
 	/**
 	 * Enable auto render of view at the end of a controller -> method request
@@ -364,10 +364,10 @@ class DooController {
 			$path = Doo::conf()->AUTO_VIEW_RENDER_PATH;
 			$path = str_replace(':', '@', substr($path, 1));
 			//echo $path;
-			$this->{$this->renderMethod}($path, $this->data);
+			$this->{$this->renderMethod}($path, $this->vdata);
 		}else{
 			//echo '<br>'.strtolower(Doo::conf()->AUTO_VIEW_RENDER_PATH[0]) .'/'. strtolower(Doo::conf()->AUTO_VIEW_RENDER_PATH[1]);
-			$this->{$this->renderMethod}(strtolower(Doo::conf()->AUTO_VIEW_RENDER_PATH[0]) .'/'. strtolower(Doo::conf()->AUTO_VIEW_RENDER_PATH[1]), $this->data);
+			$this->{$this->renderMethod}(strtolower(Doo::conf()->AUTO_VIEW_RENDER_PATH[0]) .'/'. strtolower(Doo::conf()->AUTO_VIEW_RENDER_PATH[1]), $this->vdata);
 		}
 	}
 
