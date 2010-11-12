@@ -100,7 +100,7 @@ class DooRestClient {
 
     /**
      * Send request to a URL and returns the HEAD request HTTP code.
-     * 
+     *
      * @param string $url Url of the page
      * @return int returns the HTTP code
      */
@@ -126,7 +126,7 @@ class DooRestClient {
             $this->curl_opt['CONNECTTIMEOUT'] = $sec;
         return $this;
     }
-    
+
     /**
      * Get/set data for the REST request.
      *
@@ -173,7 +173,7 @@ class DooRestClient {
      *                      'SSL_VERIFYPEER'=>false,
      *                      'timeout'=>10
      *                  ));
-     * 
+     *
      * $client->execute('get');
      * //or $client->get();
      * </code>
@@ -208,7 +208,7 @@ class DooRestClient {
 
         $this->auth_user = $username;
         $this->auth_pwd = $password;
-        
+
         $this->curl_opt['HTTPAUTH'] = ($basic)?CURLAUTH_BASIC : CURLAUTH_DIGEST;
 
         return $this;
@@ -236,8 +236,35 @@ class DooRestClient {
                 return str_replace('Accept: ', '', $this->curl_opt['HTTPHEADER'][0]);
             else
                 return;
-            
+
         $this->curl_opt['HTTPHEADER'] = array("Accept: $type");
+        return $this;
+    }
+
+    /**
+     * Get/set desired content type to be post to the server
+     * <p>This should be used if the REST server analyze Content-Type header to parse what format
+     * you're posting to the API. eg. json, xml, rss, atom.
+     * DooRestClient provides a list of common used format to be used in your code.</p>
+     * Example to retrieve result in JSON:
+     * <code>
+     * $client = new DooRestClient;
+     * $client->connect_to("http://twitter.com/post_status")
+     *        ->auth('username', 'password', true)
+     *        ->setContentType(DooRestClient::JSON)
+     *        ->post();
+     * </code>
+     * @param string $type
+     * @return mixed
+     */
+    public function setContentType($type=NULL){
+        if($type==NULL)
+            if(isset($this->curl_opt['HTTPHEADER']) && $this->curl_opt['HTTPHEADER'][0])
+                return str_replace('Content-Type: ', '', $this->curl_opt['HTTPHEADER'][0]);
+            else
+                return;
+
+        $this->curl_opt['HTTPHEADER'] = array("Content-Type: $type");
         return $this;
     }
 
@@ -282,7 +309,7 @@ class DooRestClient {
         $arr[CURLOPT_HTTPGET] = true;
 
         curl_setopt_array($ch, $arr);
-        
+
         $this->result = curl_exec($ch);
         $this->header_code_received = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $this->content_type_received = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
