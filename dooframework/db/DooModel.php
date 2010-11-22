@@ -113,7 +113,7 @@ class DooModel{
         Doo::loadHelper('DooValidator');
         $v = new DooValidator;
         $v->checkMode = $checkMode;
-		$v->requiredMode = $requireMode;
+		$v->requireMode = $requireMode;
         return $v->validate(get_object_vars($this), $this->getVRules());
     }
 
