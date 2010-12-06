@@ -57,7 +57,7 @@ class DooSession {
 	*
 	* <code>
 	* $session = new DooSession('mywebsite', $mySessionId)
-	* </code]
+	* </code>
 	*/
 	public function __construct($namespace = 'Default', $sessionId = null) {
 
