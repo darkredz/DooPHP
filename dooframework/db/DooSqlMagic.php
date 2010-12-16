@@ -1542,7 +1542,22 @@ class DooSqlMagic {
      */
     public function relateMany($model, $rmodel, $opt=null){
         //---------------------Model has many other rmodels (has_many, has_one & belongs_to relationship only) ----------------
-        $mainR = Doo::db()->relate($model, $rmodel[0], (isset($opt[$rmodel[0]])) ? $opt[$rmodel[0]] : null );
+		//add main model primary key to select list to link the related model results
+		if( isset($opt[$rmodel[0]]) ){			
+            $mdl_pk = $model->_primarykey;
+            $mdl_tbl = $model->_table;
+
+			$rOpt = $opt[$rmodel[0]];
+			
+			if(isset($rOpt['select'])){
+				$rOpt['select'] = "$mdl_tbl.$mdl_pk, " . $rOpt['select'];
+			}
+
+	        $mainR = Doo::db()->relate($model, $rmodel[0], $rOpt );
+		}else{
+	        $mainR = Doo::db()->relate($model, $rmodel[0]);
+		}
+
 
         if($mainR===Null)
             return;
@@ -1575,6 +1590,7 @@ class DooSqlMagic {
                 if($rm==$rmodel[0])continue;
                 Doo::loadModel($rm);
                 $newrm = new $rm;
+
                 $rOpt = (isset($opt[$rm])) ? $opt[$rm] : null;
                 if(isset($rOpt['select'])){
                     $rOpt['select'] = "$mdl_tbl.$mdl_pk, " . $rOpt['select'];
@@ -1597,13 +1613,25 @@ class DooSqlMagic {
 					}
 				}
 				if (!isset($mainR[$k1]->{$cls})) {
-					$mainR[$k1]->{$cls} = array();
+					if( is_string($model) ) {
+						$relationType = self::relationType($this->map, $model, $cls);
+					} else {
+						$relationType = self::relationType($this->map, get_class($model), $cls);
+					}
+
+					$relationType = $relationType[0];
+					
+					if( $relationType == 'has_one' || $relationType == 'belongs_to' ) {
+						$mainR[$k1]->{$cls} = null;
+					} else {
+						$mainR[$k1]->{$cls} = array();
+					}
 				}
             }
         }
-        //-----------------------------------------------
-        return $mainR;
-    }
+		
+        return $mainR;		
+	}
 
 
     /**
