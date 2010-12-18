@@ -264,18 +264,18 @@ class DooValidator {
                         if($customRequireMsg!==null)
                             $errors[$fieldname] = $customRequireMsg;
                         else
-                            $errors[$fieldname] = 'This field is required.';
+                            $errors[$fieldname] = $fieldname . ' field is required.';
                     }else if($this->checkMode==DooValidator::CHECK_SKIP){
                         if(in_array($fieldname, $optErrorRemove))
                             continue;
                         if($customRequireMsg!==null)
                             return $customRequireMsg;
-                        return 'This field is required.';
+                        return $fieldname . ' field is required.';
                     }else if($this->checkMode==DooValidator::CHECK_ALL_ONE){
                         if($customRequireMsg!==null)
                             $errors[$fieldname] = $customRequireMsg;
                         else
-                            $errors[$fieldname] = 'This field is required.';
+                            $errors[$fieldname] = $fieldname . ' field is required.';
                     }
                 }
         }
