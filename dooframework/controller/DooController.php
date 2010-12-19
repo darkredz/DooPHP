@@ -523,9 +523,9 @@ class DooController {
                         }
                         return $matches[0];');
 
-            $rs = preg_replace_callback(array('/\,\"([^\"]+)\"\:\".*\"/U', '/\,\"([^\"]+)\"\:\{.*\}/U'), $funcb1, $rs);
+            $rs = preg_replace_callback(array('/\,\"([^\"]+)\"\:\".*\"/U', '/\,\"([^\"]+)\"\:[\{\[].*[\}\]]/U', '/\,\"([^\"]+)\"\:([false|true|0-9|\.\-|null]+)/'), $funcb1, $rs);
 
-            $rs = preg_replace_callback(array('/\{\"([^\"]+)\"\:\".*\"\,/U','/\{\"([^\"]+)\"\:\{.*\}\,/U'), $funcb2, $rs);
+            $rs = preg_replace_callback(array('/\{\"([^\"]+)\"\:\".*\"\,/U','/\{\"([^\"]+)\"\:[\{\[].*[\}\]]\,/U'), $funcb2, $rs);
         }
 
         //$rs = str_replace(array('[,',',,'), array('[{',',{'), $rs);
