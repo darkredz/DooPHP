@@ -378,7 +378,7 @@ class DooViewBasic {
             include $this->rootCompiledPath . $this->layoutFileName . '/' . $viewFolder . '/index.php';
         }
         else{
-            $lfilename = $this->rootViewPath . "/" . $this->layoutFileName . '.html';
+            $lfilename = $this->rootViewPath . $this->layoutFileName . '.html';
 			$cfilename = $this->rootCompiledPath . $this->layoutFileName . '/' . $viewFolder . '/index.php';
 
             if(!$forceCompile){
