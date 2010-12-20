@@ -120,53 +120,64 @@ class DooTimezone {
 
 	/**
 	 * Get select list's option HTML for common timezones with its offset from UTC as key, eg. Western European Time, Central Standard Time, Chinese Standard Time
+	 * @param int|float $selectedOffset Default selected offset in hour in the options. By default none is selected. Use offset from UTC as value, eg. 0, 6.5, 8, -7
 	 * @param string $prefix Prefix string for $timeformat
 	 * @param string $suffix Suffix string for $timeformat
 	 * @param string $timeformat Formats the time offset to be displayed in the list
 	 * @param string $optionFormat Formats the time offset in option's value attribute
 	 * @return string
 	 */
-	public static function getCommonTimezoneHTMLList( $prefix = '[UTC ', $suffix = '] ', $timeformat = 'H:i', $optionFormat = 'hour' ){
+	public static function getCommonTimezoneHTMLList( $selectedOffset = null, $prefix = '[UTC ', $suffix = '] ', $timeformat = 'H:i', $optionFormat = 'hour' ){
 		$list = self::getCommonTimezone('second');
 		$options = '';
 
 		foreach( $list as $offset => $tz){
+			$selected = '';
+
 			if($offset==0){
 				$prefix0 = rtrim($prefix);
 				$suffix0 = ltrim($suffix);
-				$tzlist[] = '<option value="'. $offset .'">'. $prefix0 . $suffix0 . $tz .'</option>';
-				continue;
-			}
 
-			if( $timeformat == 'H:i' ){
-				$sign = ($offset<0)?'-':'+';
-				$sign = ($offset==0)?'':$sign;
-				$offsetFormatted = date($sign . $timeformat, strtotime('1 Jan 2010 00:00') + abs($offset) );
-			}
-			else if( $timeformat == 'hour' ){
-				$sign = ($offset<=0)?'':'+';
-				$offsetFormatted = $sign . $offset/3600;
-			}
-			else if( $timeformat == 'minute' ){
-				$offsetFormatted = $offset/60;
-			}
-			else if( $timeformat == 'second' ){
-				$offsetFormatted = $offset;
-			}
+				if( (is_int($selectedOffset) || is_float($selectedOffset)) && $selectedOffset == 0)
+					$selected = ' selected';
 
-			if( $optionFormat == 'H:i' ){
-				$sign = ($offset<0)?'-':'+';
-				$sign = ($offset==0)?'':$sign;
-				$offset = date($sign . $optionFormat, strtotime('1 Jan 2010 00:00') + abs($offset) );
+				$tzlist[] = '<option value="'. $offset .'"'. $selected .'>'. $prefix0 . $suffix0 . $tz .'</option>';
 			}
-			else if( $optionFormat == 'hour' ){
-				$offset = $offset/3600;
-			}
-			else if( $optionFormat == 'minute' ){
-				$offset = $offset/60;
-			}
+			else{
 
-			$tzlist[] = '<option value="'. $offset .'">'. $prefix . $offsetFormatted . $suffix . $tz .'</option>';
+				if( (is_int($selectedOffset) || is_float($selectedOffset)) && $selectedOffset*3600 == $offset)
+					$selected = ' selected';
+
+				if( $timeformat == 'H:i' ){
+					$sign = ($offset<0)?'-':'+';
+					$sign = ($offset==0)?'':$sign;
+					$offsetFormatted = date($sign . $timeformat, strtotime('1 Jan 2010 00:00') + abs($offset) );
+				}
+				else if( $timeformat == 'hour' ){
+					$sign = ($offset<=0)?'':'+';
+					$offsetFormatted = $sign . $offset/3600;
+				}
+				else if( $timeformat == 'minute' ){
+					$offsetFormatted = $offset/60;
+				}
+				else if( $timeformat == 'second' ){
+					$offsetFormatted = $offset;
+				}
+
+				if( $optionFormat == 'H:i' ){
+					$sign = ($offset<0)?'-':'+';
+					$sign = ($offset==0)?'':$sign;
+					$offset = date($sign . $optionFormat, strtotime('1 Jan 2010 00:00') + abs($offset) );
+				}
+				else if( $optionFormat == 'hour' ){
+					$offset = $offset/3600;
+				}
+				else if( $optionFormat == 'minute' ){
+					$offset = $offset/60;
+				}
+
+				$tzlist[] = '<option value="'. $offset .'"'. $selected .'>'. $prefix . $offsetFormatted . $suffix . $tz .'</option>';
+			}
 		}
 
 		return implode("\n", $tzlist);
@@ -174,24 +185,28 @@ class DooTimezone {
 
 	/**
 	 * Get select list's option HTML for all PHP timezones with its offset from UTC as key, eg. Western European Time, Central Standard Time, Chinese Standard Time
+	 * @param string $selectedTimezone Default selected timezone in the options. By default none is selected. Use timezone identifier as value, eg. 'Asia/Hong_Kong'
 	 * @param string $prefix Prefix string for $timeformat
 	 * @param string $suffix Suffix string for $timeformat
 	 * @param string $timeformat Formats the time offset to be displayed in the list
 	 * @param string $optionFormat Formats the time offset in option's value attribute
 	 * @return string
 	 */
-	public static function getTimezoneHTMLList( $prefix = '[UTC ', $suffix = '] ', $timeformat = 'H:i', $optionFormat = 'hour' ){
+	public static function getTimezoneHTMLList( $selectedTimezone = '', $prefix = '[UTC ', $suffix = '] ', $timeformat = 'H:i', $optionFormat = 'hour' ){
 		$list = self::getTimezoneWithOffset('second', 'offset');
 		ksort($list);
 		$options = '';
 
 		foreach( $list as $offset => $tz){
+
 			if($offset==0){
 				$prefix0 = rtrim($prefix);
 				$suffix0 = ltrim($suffix);
 
 				foreach( $tz as $tzname ) {
-					$tzlist[] = '<option value="'. $offset .'">'. $prefix0 . $suffix0 . $tzname .'</option>';
+					if($selectedTimezone == $tzname)
+						$selected = ' selected';
+					$tzlist[] = '<option value="'. $offset .'"'. $selected .'>'. $prefix0 . $suffix0 . $tzname .'</option>';
 				}
 			}
 			else {
@@ -225,7 +240,12 @@ class DooTimezone {
 				}
 
 				foreach( $tz as $tzname ) {
-					$tzlist[] = '<option value="'. $offset .'">'. $prefix . $offsetFormatted . $suffix . $tzname .'</option>';
+					$selected = '';
+
+					if($selectedTimezone == $tzname)
+						$selected = ' selected';
+
+					$tzlist[] = '<option value="'. $offset .'"'. $selected .'>'. $prefix . $offsetFormatted . $suffix . $tzname .'</option>';
 				}
 			}
 		}
