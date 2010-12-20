@@ -385,6 +385,7 @@ class Doo{
 		$class['DooViewBasic'] = 'view/DooViewBasic';
 		$class['DooSession'] = 'session/DooSession';
 		$class['DooTranslator'] = 'translate/DooTranslator';
+		$class['DooTimezone'] = 'helper/DooTimezone';
 
         if(isset($class[$classname]))
             self::loadCore($class[$classname]);
