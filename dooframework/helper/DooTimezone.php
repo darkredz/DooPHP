@@ -139,14 +139,14 @@ class DooTimezone {
 				$suffix0 = ltrim($suffix);
 
 				if( (is_int($selectedOffset) || is_float($selectedOffset)) && $selectedOffset == 0)
-					$selected = ' selected';
+					$selected = ' selected="selected"';
 
 				$tzlist[] = '<option value="'. $offset .'"'. $selected .'>'. $prefix0 . $suffix0 . $tz .'</option>';
 			}
 			else{
 
 				if( (is_int($selectedOffset) || is_float($selectedOffset)) && $selectedOffset*3600 == $offset)
-					$selected = ' selected';
+					$selected = ' selected="selected"';
 
 				if( $timeformat == 'H:i' ){
 					$sign = ($offset<0)?'-':'+';
@@ -206,7 +206,7 @@ class DooTimezone {
 
 				foreach( $tz as $tzname ) {
 					if($selectedTimezone == $tzname)
-						$selected = ' selected';
+						$selected = ' selected="selected"';
 
 					if($useOffsetAsValue)
 						$tzlist[] = '<option value="'. $offset .'"'. $selected .'>'. $prefix0 . $suffix0 . $tzname .'</option>';
@@ -250,7 +250,7 @@ class DooTimezone {
 					$selected = '';
 
 					if($selectedTimezone == $tzname)
-						$selected = ' selected';
+						$selected = ' selected="selected"';
 
 					if($useOffsetAsValue)
 						$tzlist[] = '<option value="'. $offset .'"'. $selected .'>'. $prefix . $offsetFormatted . $suffix . $tzname .'</option>';
@@ -260,7 +260,7 @@ class DooTimezone {
 			}
 		}
 
-		return implode("", $tzlist);
+		return implode("\n", $tzlist);
 	}
 
 	/**
