@@ -186,13 +186,14 @@ class DooTimezone {
 	/**
 	 * Get select list's option HTML for all PHP timezones with its offset from UTC as key, eg. Western European Time, Central Standard Time, Chinese Standard Time
 	 * @param string $selectedTimezone Default selected timezone in the options. By default none is selected. Use timezone identifier as value, eg. 'Asia/Hong_Kong'
+	 * @param bool $useOffsetAsValue Use UTC offset as option value. Default is true. If false, timezone identifier will be used
 	 * @param string $prefix Prefix string for $timeformat
 	 * @param string $suffix Suffix string for $timeformat
 	 * @param string $timeformat Formats the time offset to be displayed in the list
 	 * @param string $optionFormat Formats the time offset in option's value attribute
 	 * @return string
 	 */
-	public static function getTimezoneHTMLList( $selectedTimezone = '', $prefix = '[UTC ', $suffix = '] ', $timeformat = 'H:i', $optionFormat = 'hour' ){
+	public static function getTimezoneHTMLList( $selectedTimezone = '', $useOffsetAsValue = true, $prefix = '[UTC ', $suffix = '] ', $timeformat = 'H:i', $optionFormat = 'hour' ){
 		$list = self::getTimezoneWithOffset('second', 'offset');
 		ksort($list);
 		$options = '';
@@ -206,7 +207,11 @@ class DooTimezone {
 				foreach( $tz as $tzname ) {
 					if($selectedTimezone == $tzname)
 						$selected = ' selected';
-					$tzlist[] = '<option value="'. $offset .'"'. $selected .'>'. $prefix0 . $suffix0 . $tzname .'</option>';
+
+					if($useOffsetAsValue)
+						$tzlist[] = '<option value="'. $offset .'"'. $selected .'>'. $prefix0 . $suffix0 . $tzname .'</option>';
+					else
+						$tzlist[] = '<option value="'. $tzname .'"'. $selected .'>'. $prefix0 . $suffix0 . $tzname .'</option>';
 				}
 			}
 			else {
@@ -227,16 +232,18 @@ class DooTimezone {
 					$offsetFormatted = $offset;
 				}
 
-				if( $optionFormat == 'H:i' ){
-					$sign = ($offset<0)?'-':'+';
-					$sign = ($offset==0)?'':$sign;
-					$offset = date($sign . $optionFormat, strtotime('1 Jan 2010 00:00') + abs($offset) );
-				}
-				else if( $optionFormat == 'hour' ){
-					$offset = $offset/3600;
-				}
-				else if( $optionFormat == 'minute' ){
-					$offset = $offset/60;
+				if($useOffsetAsValue){
+					if( $optionFormat == 'H:i' ){
+						$sign = ($offset<0)?'-':'+';
+						$sign = ($offset==0)?'':$sign;
+						$offset = date($sign . $optionFormat, strtotime('1 Jan 2010 00:00') + abs($offset) );
+					}
+					else if( $optionFormat == 'hour' ){
+						$offset = $offset/3600;
+					}
+					else if( $optionFormat == 'minute' ){
+						$offset = $offset/60;
+					}
 				}
 
 				foreach( $tz as $tzname ) {
@@ -245,12 +252,15 @@ class DooTimezone {
 					if($selectedTimezone == $tzname)
 						$selected = ' selected';
 
-					$tzlist[] = '<option value="'. $offset .'"'. $selected .'>'. $prefix . $offsetFormatted . $suffix . $tzname .'</option>';
+					if($useOffsetAsValue)
+						$tzlist[] = '<option value="'. $offset .'"'. $selected .'>'. $prefix . $offsetFormatted . $suffix . $tzname .'</option>';
+					else
+						$tzlist[] = '<option value="'. $tzname .'"'. $selected .'>'. $prefix . $offsetFormatted . $suffix . $tzname .'</option>';
 				}
 			}
 		}
 
-		return implode("\n", $tzlist);
+		return implode("", $tzlist);
 	}
 
 	/**
