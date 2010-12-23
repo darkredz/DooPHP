@@ -94,12 +94,14 @@ class DooAcl {
 		} else {
 			if(isset($this->rules[$role]['allow'][$resource])) {
 				$actionlist = $this->rules[$role]['allow'][$resource];
-
 				if ($actionlist==='*')
 					return true;
 				else
 					return in_array($action, $actionlist);
 			} else {
+				if( isset($this->rules[$role]['allow']) && is_array($this->rules[$role]['allow']) && isset($this->rules[$role]['allow'][0]) ){
+					return ($this->rules[$role]['allow'][0] == '*');
+				}
 				return false;
 			}
 		}
@@ -143,6 +145,10 @@ class DooAcl {
 		if ($action=='') {
 			return isset($this->rules[$role]['deny'][$resource]);
 		} else {
+			if( isset($this->rules[$role]['deny']) && $this->rules[$role]['deny']=='*'){
+				$this->rules[$role]['deny'] = array('*');
+			}
+
 			if (isset($this->rules[$role]['deny'][$resource])) {
 				$actionlist = $this->rules[$role]['deny'][$resource];
 
