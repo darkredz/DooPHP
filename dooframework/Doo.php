@@ -379,13 +379,14 @@ class Doo{
         $class['DooPager'] = 'helper/DooPager';
         $class['DooGdImage'] = 'helper/DooGdImage';
 		$class['DooBenchmark'] = 'helper/DooBenchmark';
+        $class['DooFile'] = 'helper/DooFile';
+		$class['DooTimezone'] = 'helper/DooTimezone';
         $class['DooLog'] = 'logging/DooLog';
         $class['DooLoader'] = 'uri/DooLoader';
         $class['DooView'] = 'view/DooView';
 		$class['DooViewBasic'] = 'view/DooViewBasic';
 		$class['DooSession'] = 'session/DooSession';
 		$class['DooTranslator'] = 'translate/DooTranslator';
-		$class['DooTimezone'] = 'helper/DooTimezone';
 
         if(isset($class[$classname]))
             self::loadCore($class[$classname]);
