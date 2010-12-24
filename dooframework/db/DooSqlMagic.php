@@ -1574,10 +1574,8 @@ class DooSqlMagic {
 			if(isset($rOpt['select'])){
 				$rOpt['select'] = "$mdl_tbl.$mdl_pk, " . $rOpt['select'];
 			}else{
-				if (is_string($rm)) {
-					Doo::loadModel($rm);
-					$newrm = new $rm;
-				}
+				Doo::loadModel($rm);
+                $newrm = new $rm;
 				$rOpt['select'] = "$mdl_tbl.$mdl_pk, {$newrm->_table}.*";
 			}
 			$r[] = Doo::db()->relate($model, $rm, $rOpt);
