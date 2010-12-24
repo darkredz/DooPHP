@@ -1543,63 +1543,45 @@ class DooSqlMagic {
     public function relateMany($model, $rmodel, $opt=null){
         //---------------------Model has many other rmodels (has_many, has_one & belongs_to relationship only) ----------------
 		//add main model primary key to select list to link the related model results
-		if( isset($opt[$rmodel[0]]) ){			
-            $mdl_pk = $model->_primarykey;
-            $mdl_tbl = $model->_table;
 
+		$modelObj = $model;
+		if (is_string($modelObj)) {
+			Doo::loadModel($modelObj);
+			$modelObj = new $modelObj();
+		}
+		$mdl_pk = $modelObj->_primarykey;
+        $mdl_tbl = $modelObj->_table;
+
+		$rOpt = null;
+		if( isset($opt[$rmodel[0]]) ){
 			$rOpt = $opt[$rmodel[0]];
-			
 			if(isset($rOpt['select'])){
 				$rOpt['select'] = "$mdl_tbl.$mdl_pk, " . $rOpt['select'];
 			}
-
-	        $mainR = Doo::db()->relate($model, $rmodel[0], $rOpt );
-		}else{
-	        $mainR = Doo::db()->relate($model, $rmodel[0]);
 		}
+		$mainR = Doo::db()->relate($model, $rmodel[0], $rOpt);
 
-
-        if($mainR===Null)
+        if($mainR===null)
             return;
 
         $r=array();
 
-        if(is_string($model)){
-            Doo::loadModel($model);
-            $newm = new $model;
-            $mdl_pk = $newm->_primarykey;
-            $mdl_tbl = $newm->_table;
+        foreach($rmodel as $rm){
+			if($rm==$rmodel[0])
+				continue;
 
-            foreach($rmodel as $rm){
-                if($rm==$rmodel[0])continue;
-                Doo::loadModel($rm);
-                $newrm = new $rm;
-                $rOpt = (isset($opt[$rm])) ? $opt[$rm] : null;
-                if(isset($rOpt['select'])){
-                    $rOpt['select'] = "$mdl_tbl.$mdl_pk, " . $rOpt['select'];
-                }else{
-                    $rOpt['select'] = "$mdl_tbl.$mdl_pk, {$newrm->_table}.*";
-                }
-                $r[] = Doo::db()->relate($model, $rm, $rOpt);
-            }
-        }else{
-            $mdl_pk = $model->_primarykey;
-            $mdl_tbl = $model->_table;
-
-            foreach($rmodel as $rm){
-                if($rm==$rmodel[0])continue;
-                Doo::loadModel($rm);
-                $newrm = new $rm;
-
-                $rOpt = (isset($opt[$rm])) ? $opt[$rm] : null;
-                if(isset($rOpt['select'])){
-                    $rOpt['select'] = "$mdl_tbl.$mdl_pk, " . $rOpt['select'];
-                }else{
-                    $rOpt['select'] = "$mdl_tbl.$mdl_pk, {$newrm->_table}.*";
-                }
-                $r[] = Doo::db()->relate($model, $rm, $rOpt);
-            }
-        }
+			$rOpt = (isset($opt[$rm])) ? $opt[$rm] : null;
+			if(isset($rOpt['select'])){
+				$rOpt['select'] = "$mdl_tbl.$mdl_pk, " . $rOpt['select'];
+			}else{
+				if (is_string($rm)) {
+					Doo::loadModel($rm);
+					$newrm = new $rm;
+				}
+				$rOpt['select'] = "$mdl_tbl.$mdl_pk, {$newrm->_table}.*";
+			}
+			$r[] = Doo::db()->relate($model, $rm, $rOpt);
+		}
 
         $relatedClass = $rmodel;
 
