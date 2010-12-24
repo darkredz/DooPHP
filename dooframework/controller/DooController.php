@@ -353,7 +353,7 @@ class DooController {
         }
     }
 
-	public function __destruct() {
+	public function afterRun() {
 		if($this->autorender===true){
 			$this->viewRenderAutomation();
 		}
@@ -523,12 +523,25 @@ class DooController {
                         }
                         return $matches[0];');
 
-            $rs = preg_replace_callback(array('/\,\"([^\"]+)\"\:\".*\"/U', '/\,\"([^\"]+)\"\:[\{].*[\}]/U', '/\,\"([^\"]+)\"\:[\[].*[\]]/U', '/\,\"([^\"]+)\"\:([false|true|0-9|\.\-|null]+)/'), $funcb1, $rs);
+            $rs = preg_replace_callback(array('/\,\"([^\"]+)\"\:\".*\"/U', '/\,\"([^\"]+)\"\:\{.*\}/U', '/\,\"([^\"]+)\"\:\[.*\]/U', '/\,\"([^\"]+)\"\:([false|true|0-9|\.\-|null]+)/'), $funcb1, $rs);
 
-            $rs = preg_replace_callback(array('/\{\"([^\"]+)\"\:\".*\"\,/U','/\{\"([^\"]+)\"\:[\{\[].*[\}\]]\,/U'), $funcb2, $rs);
+            $rs = preg_replace_callback(array('/\{\"([^\"]+)\"\:\".*\"\,/U','/\{\"([^\"]+)\"\:\{.*\}\,/U'), $funcb2, $rs);
+
+            preg_match('/(.*)(\[\{.*)\"('. implode('|',$mustRemoveFieldList) .')\"\:\[(.*)/', $rs, $m);
+
+            if($m){
+                if( $pos = strpos($m[4], '"}],"') ){
+                    $d = substr($m[4], $pos+4);
+                }
+                else{
+                    $rs = preg_replace('/(\[\{.*)\"('. implode('|',$mustRemoveFieldList) .')\"\:\[((?!Q).)*\]\}(\,)?/U', '$1}', $rs);
+                }
+
+                if(isset($d)){
+                    $rs = $m[1].$m[2].$d;
+                }
+            }
         }
-
-        //$rs = str_replace(array('[,',',,'), array('[{',',{'), $rs);
 
         if($output===true){
 			if($setJSONContentType===true)
