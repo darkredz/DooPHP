@@ -534,7 +534,8 @@ class DooController {
                     $d = substr($m[4], $pos+4);
                 }
                 else{
-                    $rs = preg_replace('/(\[\{.*)\"('. implode('|',$mustRemoveFieldList) .')\"\:\[((?!Q).)*\]\}(\,)?/U', '$1}', $rs);
+                    $rs = preg_replace('/(\[\{.*)\"('. implode('|',$mustRemoveFieldList) .')\"\:\[.*\]\}(\,)?/U', '$1}', $rs);
+                    $rs = preg_replace('/(\".*\"\:\".*\")\,\}\,/U', '$1},', $rs);
                 }
 
                 if(isset($d)){
