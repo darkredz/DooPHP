@@ -535,7 +535,7 @@ class DooController {
                 }
                 else{
                     $rs = preg_replace('/(\[\{.*)\"('. implode('|',$mustRemoveFieldList) .')\"\:\[.*\]\}(\,)?/U', '$1}', $rs);
-                    $rs = preg_replace('/(\".*\"\:\".*\")\,\}\,/U', '$1},', $rs);
+                    $rs = preg_replace('/(\".*\"\:\".*\")\,\}(\,)?/U', '$1}$2', $rs);
                 }
 
                 if(isset($d)){
