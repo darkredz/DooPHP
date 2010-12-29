@@ -531,7 +531,14 @@ class DooController {
 
             if($m){
                 if( $pos = strpos($m[4], '"}],"') ){
-                    $d = substr($m[4], $pos+4);
+                    if($pos2 = strpos($m[4], '"}]},{')){
+                        $d = substr($m[4], $pos2+5);
+                        if(substr($m[2],-1)==','){
+                            $m[2] = substr_replace($m[2], '},', -1);
+                        }
+                    }else{
+                        $d = substr($m[4], $pos+4);
+                    }
                 }
                 else{
                     $rs = preg_replace('/(\[\{.*)\"('. implode('|',$mustRemoveFieldList) .')\"\:\[.*\]\}(\,)?/U', '$1}', $rs);
