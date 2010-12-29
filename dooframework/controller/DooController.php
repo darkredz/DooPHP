@@ -536,7 +536,14 @@ class DooController {
                         if(substr($m[2],-1)==','){
                             $m[2] = substr_replace($m[2], '},', -1);
                         }
-                    }else{
+                    }
+                    else if(strpos($m[4], ']},{')!==false){
+                        $d = substr($m[4], strpos($m[4], ']},{')+3);  
+                        if(substr($m[2],-1)==','){
+                            $m[2] = substr_replace($m[2], '},', -1);
+                        }
+                    }                    
+                    else{
                         $d = substr($m[4], $pos+4);
                     }
                 }
