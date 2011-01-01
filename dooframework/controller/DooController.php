@@ -555,11 +555,8 @@ class DooController {
 
             $rs = preg_replace_callback(array('/\{\"([^\"]+)\"\:\".*\"\,/U','/\{\"([^\"]+)\"\:\{.*\}\,/U'), $funcb2, $rs);
 
-//            $rs = preg_replace('/(\[\{.*)\"('. implode('|',$mustRemoveFieldList) .')\"\:\[((?!Q).)*\]\}(\,)?/U', '$1}', $rs);
-
             preg_match('/(.*)(\[\{.*)\"('. implode('|',$mustRemoveFieldList) .')\"\:\[(.*)/', $rs, $m);
-//           echo '<pre>';
-//            print_r($m);
+            
             if($m){
                 if( $pos = strpos($m[4], '"}],"') ){
                     if($pos2 = strpos($m[4], '"}]},{')){
@@ -567,35 +564,26 @@ class DooController {
                         if(substr($m[2],-1)==','){
                             $m[2] = substr_replace($m[2], '},', -1);
                         }
-//                        echo $d."\n\n";                        
                     }
                     else if(strpos($m[4], ']},{')!==false){
                         $d = substr($m[4], strpos($m[4], ']},{')+3);  
                         if(substr($m[2],-1)==','){
                             $m[2] = substr_replace($m[2], '},', -1);
                         }
-//                        echo "asdasd\n\n";
-//                        echo $d."\n\n";
                     }
                     else{
                         $d = substr($m[4], $pos+4);
-//                        echo $d."\n\n";
                     }
-//                    exit;
                 }
                 else{
                     $rs = preg_replace('/(\[\{.*)\"('. implode('|',$mustRemoveFieldList) .')\"\:\[.*\]\}(\,)?/U', '$1}', $rs);
                     $rs = preg_replace('/(\".*\"\:\".*\")\,\}(\,)?/U', '$1}$2', $rs);
-//                    print_r($rs);
                 }
 
                 if(isset($d)){
                     $rs = $m[1].$m[2].$d;
                 }
             }
-//            exit;
-            
-            //"}]},{"
         }
 
         if($output===true){
