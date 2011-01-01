@@ -35,11 +35,11 @@ class DooConfig{
      * @var string
      */
     public $PROTECTED_FOLDER = 'protected/';
-
-
+	
+	
     /**
      * Path to the location of Doo framework directory. eg. /var/lib/dooframework/
-     * @var string
+     * @var string 
      */
     public $BASE_PATH;
 
@@ -52,41 +52,41 @@ class DooConfig{
 
     /**
      * URL of your app. eg. http://localhost/doophp/
-     * @var string
+     * @var string 
      */
     public $APP_URL;
 
     /**
      * Please define SUBFOLDER if your app is not in the root directory of the domain. eg. http://localhost/doophp , you should set '/doophp/'
-     * @var string
+     * @var string 
      */
     public $SUBFOLDER;
 
     /**
      * Application mode(<b>dev</b>, <b>prod</b>). In dev mode, view templates are always checked and compiled
-     * @var string
+     * @var string 
      */
     public $APP_MODE;
 
     /**
      * Enable/disable Auto routing.
-     *
+     * 
      * <p>Every controller can deny being accessed by auto routes
      * just by setting <code>public $autoroute = false;</code> in the Controller class.</p>
-     * @var bool
+     * @var bool 
      */
     public $AUTOROUTE;
 
     /**
      * Enable/disable debug mode. If debug mode is on, debug trace will be logged.
      * Debug tool can be viewed if <code>Doo::logger()->showDebugger()</code> is called
-     * @var bool
+     * @var bool 
      */
     public $DEBUG_ENABLED;
 
     /**
      * If defined, the document specified will be included when a 404 header is sent (route not found).
-     * @var string
+     * @var string 
      */
     public $ERROR_404_DOCUMENT;
 
@@ -125,6 +125,7 @@ class DooConfig{
 	/**
 	 * The template engine to use by default
 	 * Options are: DooView and DooBasicView
+     * @var string
 	 */
 	public $TEMPLATE_ENGINE;
 
@@ -154,10 +155,22 @@ class DooConfig{
 
 	/**
 	 * Path to model files. Allows you to share models between apps
-	 * @param string
+	 * @var string
 	 */
 	public $MODEL_PATH;
-
+    
+    /**
+     * Defines modules that are allowed to be accessed from an auto route URI.
+     * Example:
+     * <code>
+     * //We have a module in SITE_PATH/PROTECTED_FOLDER/module/example
+     * //It can be accessed via http://localhost/example/controller/method/parameters
+     * $config['MODULES'] = array('example');
+     * </code>
+     * @var array
+     */
+    public $MODULES;
+	
     /**
      * Set the configurations. SITE_PATH, BASE_PATH and APP_URL is required
      * @param array $confArr associative array of the configs.
@@ -166,7 +179,7 @@ class DooConfig{
         foreach($confArr as $k=>$v){
             $this->{$k} = $v;
         }
-
+        
         if($this->SUBFOLDER==NULL)
            $this->SUBFOLDER='/';
 

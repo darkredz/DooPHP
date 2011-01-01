@@ -215,7 +215,7 @@ class DooUriRouter{
 		$this->strip_slashes($requestedUri);
 		//$this->log('Trimmed off trailing slashes from Request Uri: ' . $requestedUri);
 
-
+		
 		// Got a root url (ie. Homepage)
 		if ($requestedUri == '/') {
 			//$this->log('Got a root URL');
@@ -268,7 +268,7 @@ class DooUriRouter{
 		 * but with each expecting different parameter formats for example
 		 * /news/:title     - to show a news by passing the title which will maybe call the controller action News->show_by_title
 		 * /news/:id     - to show a news by passing the ID which will maybe call the controller action News->show_by_id
-		 *
+		 * 
 		 * Note that Identical Routes MUST have different REQUIREMENT (match) for the param,
 		 * if not the first which is defined will matched, therefore preventing any others being matched
 		 */
@@ -498,8 +498,8 @@ class DooUriRouter{
 	}
 
 
-
-
+    
+   
 
     /**
      * Handles auto routing.
@@ -546,26 +546,44 @@ class DooUriRouter{
 
         //spilt out GET variable first
         $uri = explode('/',$uri);
+        
+        $module = null;
+        if(isset(Doo::conf()->MODULES) && in_array($uri[0], Doo::conf()->MODULES)){
+            $module = $uri[0];
+            array_shift($uri);
+        }
+        
         $controller_name = $uri[0];
 		Doo::conf()->AUTO_VIEW_RENDER_PATH = array($controller_name);
 
-        $camelpos = strpos($controller_name, '-');
-        if($camelpos!==FALSE){
-            $controller_name = substr_replace($controller_name, strtoupper($controller_name[$camelpos+1]), $camelpos, 2) ;
-        }
-
-        if(isset($controller_name[0])===FALSE){
+        //controller name can't start with a -, and it can't have more than 1 -
+        if( strpos($controller_name, '-')===0 || strpos($controller_name, '--')!==FALSE ){
             return;
         }
-        $controller_name = substr_replace($controller_name, strtoupper($controller_name[0]), 0, 1) . 'Controller';
 
+        //if - detected, make controller name camelcase
+        if(strpos($controller_name, '-')!==FALSE){
+            $controller_name = str_replace(' ', '', ucwords( str_replace('-', ' ', $controller_name) ) ) ;
+        }
+        $controller_name = ucfirst($controller_name);
+        $controller_name .= 'Controller' ;
+        
         //if method is in uri, replace - to camelCase. else method is empty, make it access index
         if(isset($uri[1]) && $uri[1]!=NULL && $uri[1]!=''){
             $method_name = $uri[1];
-			$camelpos = strpos($method_name, '-');
-			if($camelpos!==FALSE){
-				$method_name = substr_replace($method_name, strtoupper($method_name[$camelpos+1]), $camelpos, 2) ;
+
+            //controller name can't start with a -, and it can't have more than 1 -
+            if( strpos($method_name, '-')===0 || strpos($method_name, '--')!==FALSE ){
+                return;
+            }
+            
+            //if - detected, make method name camelcase
+			if( strpos($method_name, '-') !== FALSE ){
+                //$method_name = lcfirst( str_replace(' ', '', ucwords( str_replace('-', ' ', $method_name) ) ) );
+                $method_name =  str_replace(' ', '', ucwords( str_replace('-', ' ', $method_name) ) ) ;
+                $method_name{0} = strtolower($method_name{0});
 			}
+            
 			Doo::conf()->AUTO_VIEW_RENDER_PATH[] = $uri[1];
 		}else{
             $method_name = 'index';
@@ -576,8 +594,9 @@ class DooUriRouter{
         $params = NULL;
         if(sizeof($uri)>2){
             $params=array_slice($uri, 2);
-        }
-        return array($controller_name, $method_name, $params);
+        }        
+        
+        return array($controller_name, $method_name, $params, $module);
     }
 
     /**

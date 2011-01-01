@@ -50,6 +50,8 @@
  * toXML()
  * toJSON()
  * viewRenderAutomation()
+ * getKeyParam()
+ * afterRun()
  * </code>
  *
  * You still have a lot of freedom to name your methods and properties other than names mentioned.
@@ -353,21 +355,47 @@ class DooController {
         }
     }
 
+    /**
+     * This will be called if the action method returns null or success status(200 to 299 not including 204) after the actual action is executed
+     */    
 	public function afterRun() {
 		if($this->autorender===true){
 			$this->viewRenderAutomation();
 		}
 	}
-
-	protected function viewRenderAutomation(){
+    
+    /**
+     * Retrieve value of a key from URI accessed from an auto route.
+     * Example with a controller named UserController and a method named listAll(): 
+     * <code>
+     * //URI is http://localhost/user/list-all/id/11
+     * $this->getKeyParam('id');   //returns 11
+     * </code>
+     * 
+     * @param string $key
+     * @return mixed
+     */
+    public function getKeyParam($key){
+        if(!empty($this->params) && in_array($key, $this->params)){
+            $valueIndex = array_search($key, $this->params) + 1;
+            if($valueIndex<sizeof($this->params))
+                return $this->params[$valueIndex];
+        }
+    }
+    
+    /**
+     * Controls the automated view rendering process.
+     */
+	public function viewRenderAutomation(){
 		if(is_string(Doo::conf()->AUTO_VIEW_RENDER_PATH)){
 			$path = Doo::conf()->AUTO_VIEW_RENDER_PATH;
 			$path = str_replace(':', '@', substr($path, 1));
-			//echo $path;
 			$this->{$this->renderMethod}($path, $this->vdata);
 		}else{
-			//echo '<br>'.strtolower(Doo::conf()->AUTO_VIEW_RENDER_PATH[0]) .'/'. strtolower(Doo::conf()->AUTO_VIEW_RENDER_PATH[1]);
-			$this->{$this->renderMethod}(strtolower(Doo::conf()->AUTO_VIEW_RENDER_PATH[0]) .'/'. strtolower(Doo::conf()->AUTO_VIEW_RENDER_PATH[1]), $this->vdata);
+            if(isset(Doo::conf()->AUTO_VIEW_RENDER_PATH))
+                $this->{$this->renderMethod}(strtolower(Doo::conf()->AUTO_VIEW_RENDER_PATH[0]) .'/'. strtolower(Doo::conf()->AUTO_VIEW_RENDER_PATH[1]), $this->vdata);
+            else
+                $this->{$this->renderMethod}('index', $this->vdata);                
 		}
 	}
 
@@ -522,13 +550,16 @@ class DooController {
                             return "{";
                         }
                         return $matches[0];');
-
+            
             $rs = preg_replace_callback(array('/\,\"([^\"]+)\"\:\".*\"/U', '/\,\"([^\"]+)\"\:\{.*\}/U', '/\,\"([^\"]+)\"\:\[.*\]/U', '/\,\"([^\"]+)\"\:([false|true|0-9|\.\-|null]+)/'), $funcb1, $rs);
 
             $rs = preg_replace_callback(array('/\{\"([^\"]+)\"\:\".*\"\,/U','/\{\"([^\"]+)\"\:\{.*\}\,/U'), $funcb2, $rs);
 
-            preg_match('/(.*)(\[\{.*)\"('. implode('|',$mustRemoveFieldList) .')\"\:\[(.*)/', $rs, $m);
+//            $rs = preg_replace('/(\[\{.*)\"('. implode('|',$mustRemoveFieldList) .')\"\:\[((?!Q).)*\]\}(\,)?/U', '$1}', $rs);
 
+            preg_match('/(.*)(\[\{.*)\"('. implode('|',$mustRemoveFieldList) .')\"\:\[(.*)/', $rs, $m);
+//           echo '<pre>';
+//            print_r($m);
             if($m){
                 if( $pos = strpos($m[4], '"}],"') ){
                     if($pos2 = strpos($m[4], '"}]},{')){
@@ -536,26 +567,35 @@ class DooController {
                         if(substr($m[2],-1)==','){
                             $m[2] = substr_replace($m[2], '},', -1);
                         }
+//                        echo $d."\n\n";                        
                     }
                     else if(strpos($m[4], ']},{')!==false){
                         $d = substr($m[4], strpos($m[4], ']},{')+3);  
                         if(substr($m[2],-1)==','){
                             $m[2] = substr_replace($m[2], '},', -1);
                         }
-                    }                    
+//                        echo "asdasd\n\n";
+//                        echo $d."\n\n";
+                    }
                     else{
                         $d = substr($m[4], $pos+4);
+//                        echo $d."\n\n";
                     }
+//                    exit;
                 }
                 else{
                     $rs = preg_replace('/(\[\{.*)\"('. implode('|',$mustRemoveFieldList) .')\"\:\[.*\]\}(\,)?/U', '$1}', $rs);
                     $rs = preg_replace('/(\".*\"\:\".*\")\,\}(\,)?/U', '$1}$2', $rs);
+//                    print_r($rs);
                 }
 
                 if(isset($d)){
                     $rs = $m[1].$m[2].$d;
                 }
             }
+//            exit;
+            
+            //"}]},{"
         }
 
         if($output===true){

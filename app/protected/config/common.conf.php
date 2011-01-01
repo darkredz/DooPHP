@@ -59,6 +59,14 @@ $config['ERROR_404_ROUTE'] = '/error';
  *                     );
  */
  
+/**
+ * Defines modules that are allowed to be accessed from an auto route URI.
+ * Example, we have a module in SITE_PATH/PROTECTED_FOLDER/module/example
+ * It can be accessed via http://localhost/example/controller/method/parameters
+ * 
+ * $config['MODULES'] = array('example');
+ * 
+ */
  
 /**
  * you can include self defined config, retrieved via Doo::conf()->variable

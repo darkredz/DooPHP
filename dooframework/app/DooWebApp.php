@@ -96,15 +96,25 @@ class DooWebApp{
                     return $rs;
                 }
             }
-
-            return $controller->$routeRs[1]();
+			
+			$routeRs = $controller->$routeRs[1]();
+			
+			if($routeRs===null || ($routeRs>=200 && $routeRs<300 && $routeRs!=204))		
+				$controller->afterRun();
+            return $routeRs;
         }
         //if auto route is on, then auto search Controller->method if route not defined by user
         else if(Doo::conf()->AUTOROUTE){
 
-            list($controller_name, $method_name, $params )= $router->auto_connect(Doo::conf()->SUBFOLDER);
+            list($controller_name, $method_name, $params, $moduleName )= $router->auto_connect(Doo::conf()->SUBFOLDER);
+            
+            if(isset($moduleName)){
+                Doo::conf()->PROTECTED_FOLDER_ORI = Doo::conf()->PROTECTED_FOLDER;
+                Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI . 'module/'.$moduleName.'/';                
+            }
+            
             $controller_file = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/{$controller_name}.php";
-
+            
             if(file_exists($controller_file)){
                 require_once(Doo::conf()->BASE_PATH ."controller/DooController.php");
                 require_once($controller_file);
@@ -130,7 +140,11 @@ class DooWebApp{
 				if($rs = $controller->beforeRun($controller_name, $method_name)){
 					return $rs;
 				}
-				return $controller->$method_name();
+				
+				$routeRs = $controller->$method_name();
+				if($routeRs===null || ($routeRs>=200 && $routeRs<300 && $routeRs!=204))		
+					$controller->afterRun();				
+				return $routeRs;
             }
             else{
                 $this->throwHeader(404);
@@ -224,8 +238,19 @@ class DooWebApp{
                 $this->throwHeader( $rs );
                 return;
             }
+            
             ob_start();
-            $this->throwHeader( $controller->{$action}() );
+			$rs = $controller->{$action}();
+			
+			if($rs===null || ($rs>=200 && $rs<300 && $rs!=204)){
+                if($controller->autorender){
+                    Doo::conf()->AUTO_VIEW_RENDER_PATH = array(strtolower(substr($controller_name, 0, -10)), strtolower(preg_replace('/(?<=\\w)(?=[A-Z])/','-$1', $action)));
+                }
+				$controller->afterRun();            
+            }
+            
+            $this->throwHeader( $rs );
+            
             $data = ob_get_contents();
             ob_end_clean();
             return $data;
@@ -240,8 +265,19 @@ class DooWebApp{
                 $this->throwHeader( $rs );
                 return;
             }
+            
             ob_start();
-            $this->throwHeader( $controller->{$action}() );
+			$rs = $controller->{$action}();
+			
+			if($rs===null || ($rs>=200 && $rs<300 && $rs!=204)){
+                if($controller->autorender){
+                    Doo::conf()->AUTO_VIEW_RENDER_PATH = array(strtolower(substr($controller_name, 0, -10)), strtolower(preg_replace('/(?<=\\w)(?=[A-Z])/','-$1', $action)));
+                }
+				$controller->afterRun();            
+            }
+            
+            $this->throwHeader( $rs );  
+            
             $data = ob_get_contents();
             ob_end_clean();
             return $data;
@@ -251,7 +287,7 @@ class DooWebApp{
     /**
      * Advanced version of DooWebApp::module().
      *
-     * Module rendered using this method is located in SITE_PATH/protected/module
+     * Module rendered using this method is located in SITE_PATH/PROTECTED_FOLDER/module
      *
      * @param string $moduleName Name of the module. Folder name.
      * @param string|array $moduleUri URI or Controller name of the module
