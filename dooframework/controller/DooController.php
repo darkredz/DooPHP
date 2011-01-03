@@ -357,10 +357,11 @@ class DooController {
 
     /**
      * This will be called if the action method returns null or success status(200 to 299 not including 204) after the actual action is executed
+     * @param mixed $routeResult The result returned by an action
      */    
-	public function afterRun() {
-		if($this->autorender===true){
-			$this->viewRenderAutomation();
+	public function afterRun($routeResult) {
+		if($this->autorender===true && ($routeResult===null || ($routeResult>=200 && $routeResult<300 && $routeResult!=204))){	
+            $this->viewRenderAutomation();
 		}
 	}
     

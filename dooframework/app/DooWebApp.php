@@ -97,10 +97,8 @@ class DooWebApp{
                 }
             }
 			
-			$routeRs = $controller->$routeRs[1]();
-			
-			if($routeRs===null || ($routeRs>=200 && $routeRs<300 && $routeRs!=204))		
-				$controller->afterRun();
+			$routeRs = $controller->$routeRs[1]();			
+            $controller->afterRun($routeRs);		
             return $routeRs;
         }
         //if auto route is on, then auto search Controller->method if route not defined by user
@@ -141,9 +139,8 @@ class DooWebApp{
 					return $rs;
 				}
 				
-				$routeRs = $controller->$method_name();
-				if($routeRs===null || ($routeRs>=200 && $routeRs<300 && $routeRs!=204))		
-					$controller->afterRun();				
+				$routeRs = $controller->$method_name();					
+                $controller->afterRun($routeRs);		
 				return $routeRs;
             }
             else{
