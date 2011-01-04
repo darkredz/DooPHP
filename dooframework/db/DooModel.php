@@ -451,10 +451,11 @@ class DooModel{
      * @return int total of records
      */
     public function count($options=null){
+		$options['select'] = isset($options['having']) ? $options['select'] . ', ' : '';
 		if (isset($options['distinct']) && $options['distinct'] == true) {
-			$options['select'] = 'COUNT(DISTINCT '. $this->_table . '.' . $this->_fields[0] .') as _doototal';
+			$options['select'] .= 'COUNT(DISTINCT '. $this->_table . '.' . $this->_fields[0] .') as _doototal';
 		} else {
-			$options['select'] = 'COUNT('. $this->_table . '.' . $this->_fields[0] .') as _doototal';
+			$options['select'] .= 'COUNT('. $this->_table . '.' . $this->_fields[0] .') as _doototal';
 		}
         $options['asArray'] = true;
         $options['limit'] = 1;
@@ -521,10 +522,11 @@ class DooModel{
         if($model===null)
             $model = new self::$className;
 
+		$options['select'] = isset($options['having']) ? $options['select'] . ', ' : '';
 		if (isset($options['distinct']) && $options['distinct'] == true) {
-			$options['select'] = 'COUNT(DISTINCT '. $model->_table . '.' . $model->_fields[0] .') as _doototal';
+			$options['select'] .= 'COUNT(DISTINCT '. $model->_table . '.' . $model->_fields[0] .') as _doototal';
 		} else {
-			$options['select'] = 'COUNT('. $model->_table . '.' . $model->_fields[0] .') as _doototal';
+			$options['select'] .= 'COUNT('. $model->_table . '.' . $model->_fields[0] .') as _doototal';
 		}
 
         $options['asArray'] = true;

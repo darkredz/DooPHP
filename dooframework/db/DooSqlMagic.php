@@ -394,7 +394,7 @@ class DooSqlMagic {
     /**
      * Find a record. (Prepares and execute the SELECT statements)
      * @param mixed $model The model class name or object to be select
-     * @param array $opt Associative array of options to generate the SELECT statement. Supported: <i>where, limit, select, groupby, param, asc, desc, custom, asArray, filters</i>
+     * @param array $opt Associative array of options to generate the SELECT statement. Supported: <i>where, limit, select, groupby, having, param, asc, desc, custom, asArray, filters</i>
      * @return mixed A model object or associateve array of the queried result
      */
     public function find($model, $opt=null){
@@ -561,6 +561,13 @@ class DooSqlMagic {
 			$sqladd['groupby'] = '';
 		}
 
+		//HAVINGs
+		if (isset($opt['having'])) {
+			$sqladd['having'] = 'HAVING ' . $opt['having'];
+		} else {
+			$sqladd['having'] = '';
+		}
+
         //if asc is defined first then ORDER BY xxx ASC, xxx DESC
         //else Order by xxx DESC, xxx ASC
         if(isset($opt['asc']) && isset($opt['desc']) && $opt['asc']!='' && $opt['desc']!=''){
@@ -592,7 +599,7 @@ class DooSqlMagic {
         }
 
 
-        $sql ="SELECT {$sqladd['select']} FROM {$model->_table} {$sqladd['filter']} {$sqladd['where']} {$sqladd['groupby']} {$sqladd['order']} {$sqladd['custom']} {$sqladd['limit']}";
+        $sql ="SELECT {$sqladd['select']} FROM {$model->_table} {$sqladd['filter']} {$sqladd['where']} {$sqladd['groupby']} {$sqladd['having']} {$sqladd['order']} {$sqladd['custom']} {$sqladd['limit']}";
 
         //conditions WHERE param
         if(isset($opt['param']) && isset($where_values))
@@ -627,7 +634,7 @@ class DooSqlMagic {
      * Find a record and its associated model. Relational search. (Prepares and execute the SELECT statements)
      * @param mixed $model The model class name or object to be select.
      * @param string $rmodel The related model class name.
-     * @param array $opt Associative array of options to generate the SELECT statement. Supported: <i>where, limit, select, param, groupby, joinType, match, asc, desc, custom, asArray, include, includeWhere, includeParam, filters</i>
+     * @param array $opt Associative array of options to generate the SELECT statement. Supported: <i>where, limit, select, param, groupby, having, joinType, match, asc, desc, custom, asArray, include, includeWhere, includeParam, filters</i>
      * @return mixed A list of model object(s) or associateve array of the queried result
      */
     public function relate($model, $rmodel, $opt=null){
@@ -735,6 +742,13 @@ class DooSqlMagic {
 			$sqladd['groupby'] = 'GROUP BY ' . $opt['groupby'];
 		} else {
 			$sqladd['groupby'] = '';
+		}
+
+		//HAVINGs
+		if (isset($opt['having'])) {
+			$sqladd['having'] = 'HAVING ' . $opt['having'];
+		} else {
+			$sqladd['having'] = '';
 		}
 
         //ASC ORDER
@@ -1056,6 +1070,7 @@ class DooSqlMagic {
                     ON {$model->_table}.{$mparams['foreign_key']} = {$relatedmodel->_table}.{$rparams['foreign_key']}
                     {$sqladd['where']}
 					{$sqladd['groupby']}
+					{$sqladd['having']}
                     {$sqladd['order']} {$sqladd['custom']} {$sqladd['limit']}";
                 break;
             case 'belongs_to':
@@ -1068,6 +1083,7 @@ class DooSqlMagic {
                     ON {$model->_table}.{$mparams['foreign_key']} = {$relatedmodel->_table}.{$rparams['foreign_key']}
                     {$sqladd['where']}
 					{$sqladd['groupby']}
+					{$sqladd['having']}
                     {$sqladd['order']} {$sqladd['custom']} {$sqladd['limit']}";
                 break;
             case 'has_many':
@@ -1249,6 +1265,7 @@ class DooSqlMagic {
                         ON {$relatedmodel->_table}.{$relatedmodel->_primarykey} = {$rparams['through']}.{$mparams['foreign_key']}
                         {$sqladd['where']}
 						{$sqladd['groupby']}
+						{$sqladd['having']}
                         ORDER BY {$addonOrder} {$rparams['through']}.{$mparams['foreign_key']},{$rparams['through']}.{$rparams['foreign_key']} ASC
                          {$sqladd['custom']}";
                 }
@@ -1263,6 +1280,7 @@ class DooSqlMagic {
                         ON {$model->_table}.{$mparams['foreign_key']} = {$relatedmodel->_table}.{$rparams['foreign_key']}
                         {$sqladd['where']}
 						{$sqladd['groupby']}
+						{$sqladd['having']}
                         {$sqladd['order']} {$sqladd['custom']} {$sqladd['limit']}";
                 }
                 break;
