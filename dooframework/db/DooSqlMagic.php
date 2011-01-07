@@ -2165,17 +2165,17 @@ class DooSqlMagic {
 
     protected static function add_where_not_null(&$where, $relatedKey, $modelKey){
         if(empty($where)){
-            $where = "WHERE $relatedKey IS NOT NULL AND $modelKey IS NOT NULL";
+            $where = "WHERE ($relatedKey IS NOT NULL AND $modelKey IS NOT NULL)";
         }else{
-            $where .= " AND $relatedKey IS NOT NULL AND $modelKey IS NOT NULL";
+            $where .= " AND ($relatedKey IS NOT NULL AND $modelKey IS NOT NULL)";
         }
     }
 
     protected static function add_where_is_null(&$where, $relatedKey, $modelKey){
         if(empty($where)){
-            $where = "WHERE $relatedKey IS NULL OR $modelKey IS NULL";
+            $where = "WHERE ($relatedKey IS NULL OR $modelKey IS NULL)";
         }else{
-            $where .= " AND $relatedKey IS NULL OR $modelKey IS NULL";
+            $where .= " AND ($relatedKey IS NULL OR $modelKey IS NULL)";
         }
     }
 
