@@ -567,7 +567,7 @@ class DooSqlMagic {
 		} else {
 			$sqladd['having'] = '';
 		}
-
+        
         //if asc is defined first then ORDER BY xxx ASC, xxx DESC
         //else Order by xxx DESC, xxx ASC
         if(isset($opt['asc']) && isset($opt['desc']) && $opt['asc']!='' && $opt['desc']!=''){
@@ -898,25 +898,92 @@ class DooSqlMagic {
         #$alias_vars = array();
         #$ralias_vars = array();
         $defined_class_vars = array_merge($model->_fields, $relatedmodel->_fields);
+        if(isset($opt['select']))
+            $oriSel = $opt['select'];
+        else
+            $oriSel = '*';
+
         foreach($repeated_vars as $r){
             //dun add user defined class properties that are not used in database
             if(!in_array($r, $defined_class_vars))continue;
+			if($r==$relatedmodel->_primarykey){
+				$alias = "_{$model->_table}__$r";
+				$ralias = "_{$relatedmodel->_table}__$r";
+				$sqladd['select'] .= ", {$model->_table}.$r AS $alias, {$relatedmodel->_table}.$r AS $ralias";
+				$alias_vars[$alias] = $r;
+				$ralias_vars[$ralias] = $r;
+				$model_vars[] = $alias;
+				$rmodel_vars[] = $ralias;
 
-            $alias = "_{$model->_table}__$r";
-            $ralias = "_{$relatedmodel->_table}__$r";
-            $sqladd['select'] .= ", {$model->_table}.$r AS $alias, {$relatedmodel->_table}.$r AS $ralias";
-            $alias_vars[$alias] = $r;
-            $ralias_vars[$ralias] = $r;
-            $model_vars[] = $alias;
-            $rmodel_vars[] = $ralias;
+				if(isset($opt['select'])){
+					if($opt['select'][0]==='*'){
+						$sqladd['select'] .= ", {$relatedmodel->_table}.$r";
+						$opt['select'] .= ", {$relatedmodel->_table}.$r";
+					}
+					else if(preg_match('/,(\s+)?'.$relatedmodel->_table .'\.\*/', ','.$opt['select'])){
+						$sqladd['select'] .= ", {$relatedmodel->_table}.$r";
+						$opt['select'] .= ", {$relatedmodel->_table}.$r";
+					}
+				}else{
+					$sqladd['select'] .= ", {$relatedmodel->_table}.$r";
+					$opt['select'] = "{$relatedmodel->_table}.$r";
+				}
+			}
+			else {
+				if(isset($opt['select']) && strpos($opt['select'], ',')!==false){
+					$modelHasSelectField = strpos($opt['select'], "{$model->_table}.$r")!==false;
+					$rmodelHasSelectField = strpos($opt['select'], "{$relatedmodel->_table}.$r")!==false;
+
+					if($opt['select'][0]==='*'){
+						$modelHasSelectField = $rmodelHasSelectField = true;
+					}else{
+						if($modelHasSelectField===false && preg_match('/,(\s+)?'.$model->_table .'\.\*/', ',' . $opt['select'])){
+							$modelHasSelectField = true;
+						}
+						if($rmodelHasSelectField===false && preg_match('/,(\s+)?'.$relatedmodel->_table .'\.\*/', ',' . $opt['select'])){
+							$rmodelHasSelectField = true;
+						}
+					}
+				}
+				else{
+					//select *
+					$modelHasSelectField = $rmodelHasSelectField = true;
+				}
+
+				if($modelHasSelectField===true && $rmodelHasSelectField===true){
+//					echo "\n+{$model->_table}.$r\n";
+//					echo "+{$relatedmodel->_table}.$r\n\n";
+					$alias = "_{$model->_table}__$r";
+					$ralias = "_{$relatedmodel->_table}__$r";
+					$sqladd['select'] .= ", {$model->_table}.$r AS $alias, {$relatedmodel->_table}.$r AS $ralias";
+					$alias_vars[$alias] = $r;
+					$ralias_vars[$ralias] = $r;
+					$model_vars[] = $alias;
+					$rmodel_vars[] = $ralias;
+				}
+				else if($modelHasSelectField===true){
+//					echo "+{$model->_table}.$r\n\n";
+					$alias = "_{$model->_table}__$r";
+					$sqladd['select'] .= ", {$model->_table}.$r AS $alias";
+					$alias_vars[$alias] = $r;
+					$model_vars[] = $alias;
+					$ralias_vars[$r] = false;
+				}
+				else if($rmodelHasSelectField===true){
+//					echo "+{$relatedmodel->_table}.$r\n\n";
+					$ralias = "_{$relatedmodel->_table}__$r";
+					$sqladd['select'] .= ", {$relatedmodel->_table}.$r AS $ralias";
+					$ralias_vars[$ralias] = $r;
+					$rmodel_vars[] = $ralias;
+					$alias_vars[$r] = false;
+				}
+			}
         }
 
         #print_r($model_vars);
         #print_r($rmodel_vars);
         #print_r($repeated_vars);
-        #print_r($alias_vars);
-        #print_r($ralias_vars);
-
+        
         //include model, reduce a lot of queries, merge 3 related models together, eg. Post, PostCategory, PostComment
         if(isset($opt['include'])){
             $tmodel = null;
@@ -1265,7 +1332,7 @@ class DooSqlMagic {
                         ON {$relatedmodel->_table}.{$relatedmodel->_primarykey} = {$rparams['through']}.{$mparams['foreign_key']}
                         {$sqladd['where']}
 						{$sqladd['groupby']}
-						{$sqladd['having']}
+                        {$sqladd['having']}
                         ORDER BY {$addonOrder} {$rparams['through']}.{$mparams['foreign_key']},{$rparams['through']}.{$rparams['foreign_key']} ASC
                          {$sqladd['custom']}";
                 }
@@ -1280,7 +1347,7 @@ class DooSqlMagic {
                         ON {$model->_table}.{$mparams['foreign_key']} = {$relatedmodel->_table}.{$rparams['foreign_key']}
                         {$sqladd['where']}
 						{$sqladd['groupby']}
-						{$sqladd['having']}
+                        {$sqladd['having']}
                         {$sqladd['order']} {$sqladd['custom']} {$sqladd['limit']}";
                 }
                 break;
@@ -1354,18 +1421,52 @@ class DooSqlMagic {
                                     }
                                 }
 
-                                 if(in_array($k2, $model_vars)){
-                                    if($k2===$retrieved_pk_key)
-                                        $record->{$mparams['foreign_key']} = $v2;
-                                    else{
-                                        //if it's a repeated var which is rename earlier(alias _table__fieldname), replace the original var with its value
-                                        if(isset($alias_vars[$k2])){
-                                            $record->{$alias_vars[$k2]} = $v2;
-                                        }else{
-                                            $record->{$k2} = $v2;
+								$gotoRelateSect = true;
+                                $inAsSelect = preg_match('/[\s]+(as|AS|aS|As)[\s]+'. $k2 .',/', $oriSel.',');
+
+								if($inAsSelect || in_array($k2, $model_vars)){
+										if( !$inAsSelect && $oriSel[0]!=='*' && 
+                                            !preg_match("/,(\s+)?({$model->_table}\.)?$k2(\s+)?,/", ','.$oriSel.',') &&
+											!preg_match('/,(\s+)?'.$model->_table .'\.\*/', ','. str_replace($model->_table .'.'. str_replace('_'.$model->_table.'__', '', $k2), $model->_table.'.*', $oriSel)) ){
+
+											$gotoRelateSect = true;
+										}else{
+											$gotoRelateSect = false;
+										}
+
+									if($gotoRelateSect===false){
+										if($k2===$retrieved_pk_key){
+											$record->{$mparams['foreign_key']} = $v2;
+										}else{
+											//if it's a repeated var which is rename earlier(alias _table__fieldname), replace the original var with its value
+											if(isset($alias_vars[$k2])){
+												$record->{$alias_vars[$k2]} = $v2;
+											}else{
+												$record->{$k2} = $v2;
+											}
+										}
+									}
+                                }
+
+								if($gotoRelateSect===true){
+
+                                    if( isset($ralias_vars[$k2]) ){
+                                        $k2 = $ralias_vars[$k2];
+                                    }	
+	
+                                    if($oriSel[0]!=='*'){
+                                        if(	in_array($k2, $rmodel_vars)===false &&
+                                            !preg_match('/,(\s+)?'.$relatedmodel->_table .'\.\*/', ','. str_replace($relatedmodel->_table .'.'. $k2, $relatedmodel->_table .'.*', $oriSel)) ){
+                                            continue;
+                                        } else if( !preg_match("/,(\s+)?({$relatedmodel->_table}\.)?($k2|\*)(\s+)?,/", ','.$oriSel.',') ){
+                                            continue;
+                                        }
+                                        else if( isset($alias_vars[$k2]) ){
+                                            continue;
                                         }
                                     }
-                                }else{
+	
+
                                     if($rfk!=NULL){
                                         if($k2===$rretrieved_pk_key){
                                              $record->{$rmodel}->{$rparams['foreign_key']} = $v2;
@@ -1376,6 +1477,7 @@ class DooSqlMagic {
                                                  #echo "<h1>{$ralias_vars[$k2]}</h1>";
                                                  $record->{$rmodel}->{$ralias_vars[$k2]} = $v2;
                                             }else{
+												 #echo "<h2>$rmodel $k2</h2>";
                                                  $record->{$rmodel}->{$k2} = $v2;
                                             }
                                         }
@@ -1448,18 +1550,52 @@ class DooSqlMagic {
 											}
 										}
 
-                                        if(in_array($k2, $model_vars)){
-                                            if($k2===$retrieved_pk_key)
-                                                $record->{$mparams['foreign_key']} = $v2;
-                                            else{
-                                                //if it's a repeated var which is rename earlier(alias _table__fieldname), replace the original var with its value
-                                                if(isset($alias_vars[$k2])){
-                                                    $record->{$alias_vars[$k2]} = $v2;
-                                                }else{
-                                                    $record->{$k2} = $v2;
+										$gotoRelateSect = true;
+                                        
+                                        $inAsSelect = preg_match('/[\s]+(as|AS|aS|As)[\s]+'. $k2 .',/', $oriSel.',');
+                                        
+                                        if($inAsSelect || in_array($k2, $model_vars)){  
+                                            
+											if( !$inAsSelect && $oriSel[0]!=='*' && 
+                                                !preg_match("/,(\s+)?({$model->_table}\.)?$k2(\s+)?,/", ','.$oriSel.',') &&
+                                                !preg_match('/,(\s+)?'.$model->_table .'\.\*/', ','. str_replace($model->_table .'.'. str_replace('_'.$model->_table.'__', '', $k2), $model->_table .'.*', $oriSel)) ){
+
+                                                $gotoRelateSect = true;
+											}else{
+												$gotoRelateSect = false;
+											}
+
+
+											if($gotoRelateSect===false){
+												if($k2===$retrieved_pk_key)
+													$record->{$mparams['foreign_key']} = $v2;
+												else{
+													//if it's a repeated var which is rename earlier(alias _table__fieldname), replace the original var with its value
+													if(isset($alias_vars[$k2])){
+														$record->{$alias_vars[$k2]} = $v2;
+													}else{
+														$record->{$k2} = $v2;
+													}
+												}
+											}
+                                        }
+
+                                        if($gotoRelateSect===true){
+
+                                            if( isset($ralias_vars[$k2]) ){
+                                                $k2 = $ralias_vars[$k2];
+                                            }
+
+                                            if($oriSel[0]!=='*'){
+                                                if(	in_array($k2, $rmodel_vars)===false &&
+                                                    !preg_match('/,(\s+)?'.$relatedmodel->_table .'\.\*/', ','. str_replace($relatedmodel->_table .'.'. $k2, $relatedmodel->_table .'.*', $oriSel)) ){
+                                                        continue;
+                                                }
+                                                else if(!preg_match("/,(\s+)?({$relatedmodel->_table}\.)?($k2|\*)(\s+)?,/", ','.$oriSel.',') ){
+                                                    continue;
                                                 }
                                             }
-                                        }else{
+
                                             if($rfk!=NULL){
                                                 if($k2===$rretrieved_pk_key){
                                                     if(in_array($rparams['foreign_key'], $assoc_model->_fields)){
@@ -1505,14 +1641,31 @@ class DooSqlMagic {
                                     foreach($v as $k2=>$v2){
                                         //add only vars of the second(related) model
                                         if(in_array($k2, $rmodel_vars)){
+
+                                            if( isset($ralias_vars[$k2]) ){
+                                                $k2 = $ralias_vars[$k2];
+                                            }
+
+                                            if($oriSel[0]!=='*'){
+                                                if(	in_array($k2, $rmodel_vars)===false &&
+                                                    !preg_match('/,(\s+)?'.$relatedmodel->_table .'\.\*/', ','. str_replace($relatedmodel->_table .'.'. $k2, $relatedmodel->_table .'.*', $oriSel)) ){
+                                                    continue;
+                                                }
+                                                else if( !preg_match("/,(\s+)?({$relatedmodel->_table}\.)?($k2|\*)(\s+)?,/", ','.$oriSel.',') ){
+                                                    continue;
+                                                }
+                                            }
+
                                             if($rfk!=NULL){
                                                 if($k2===$rretrieved_pk_key)
                                                     $assoc_model->{$rparams['foreign_key']} = $v2;
                                                 else{
                                                     //if it's a repeated var which is rename earlier, replace it to its original var by spilting it _table__field '__'
                                                     if(isset($ralias_vars[$k2])){
+//														echo "<h3>$k2 = $v2</h3>";
                                                         $assoc_model->{$ralias_vars[$k2]} = $v2;
                                                     }else{
+//														echo "<h3>$k2 = $v2</h3>";
                                                         $assoc_model->{$k2} = $v2;
                                                     }
                                                 }
@@ -1618,7 +1771,7 @@ class DooSqlMagic {
 					}
 
 					$relationType = $relationType[0];
-					
+
 					if( $relationType == 'has_one' || $relationType == 'belongs_to' ) {
 						$mainR[$k1]->{$cls} = null;
 					} else {
@@ -1627,8 +1780,8 @@ class DooSqlMagic {
 				}
             }
         }
-		
-        return $mainR;		
+
+        return $mainR;
 	}
 
 
