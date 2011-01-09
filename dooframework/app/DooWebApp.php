@@ -243,7 +243,7 @@ class DooWebApp{
                 if($controller->autorender){
                     Doo::conf()->AUTO_VIEW_RENDER_PATH = array(strtolower(substr($controller_name, 0, -10)), strtolower(preg_replace('/(?<=\\w)(?=[A-Z])/','-$1', $action)));
                 }
-				$controller->afterRun();            
+				$controller->afterRun($rs);
             }
             
             $this->throwHeader( $rs );
