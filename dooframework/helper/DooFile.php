@@ -269,7 +269,7 @@ class DooFile {
      * @param int $precision Number of decimal digits to round the file size to
      * @return array Returns an assoc array with keys: name(file name), path(full path to file/folder), folder(boolean), extension, type, size(KB)
      */
-	public function getList($path, $listOnly=null, $unit='KB', $precision=2){
+	public function getList($path, $listOnly=null, $unit='B', $precision=2){
         $path = str_replace('\\', '/', $path);
         if($path[strlen($path)-1] != '/'){
             $path .= '/';
@@ -384,7 +384,7 @@ class DooFile {
                                     'folder' => is_dir($val),
                                     'extension' => $ext,
                                     'type' => mime_content_type($val),
-                                    'size' => filesize($val)
+                                    'size' => $this->formatBytes(filesize($val), $unit, $precision)
                                 );
             }else{
                 $fileInfo[] = array('name' => $filename,
