@@ -239,12 +239,10 @@ class DooWebApp{
             ob_start();
 			$rs = $controller->{$action}();
 			
-			if($rs===null || ($rs>=200 && $rs<300 && $rs!=204)){
-                if($controller->autorender){
-                    Doo::conf()->AUTO_VIEW_RENDER_PATH = array(strtolower(substr($controller_name, 0, -10)), strtolower(preg_replace('/(?<=\\w)(?=[A-Z])/','-$1', $action)));
-                }
-				$controller->afterRun($rs);
+            if($controller->autorender===true){
+                Doo::conf()->AUTO_VIEW_RENDER_PATH = array(strtolower(substr($controller_name, 0, -10)), strtolower(preg_replace('/(?<=\\w)(?=[A-Z])/','-$1', $action)));
             }
+            $controller->afterRun($rs);
             
             $this->throwHeader( $rs );
             
@@ -266,12 +264,10 @@ class DooWebApp{
             ob_start();
 			$rs = $controller->{$action}();
 			
-			if($rs===null || ($rs>=200 && $rs<300 && $rs!=204)){
-                if($controller->autorender){
-                    Doo::conf()->AUTO_VIEW_RENDER_PATH = array(strtolower(substr($controller_name, 0, -10)), strtolower(preg_replace('/(?<=\\w)(?=[A-Z])/','-$1', $action)));
-                }
-				$controller->afterRun();            
+			if($controller->autorender===true){
+                Doo::conf()->AUTO_VIEW_RENDER_PATH = array(strtolower(substr($controller_name, 0, -10)), strtolower(preg_replace('/(?<=\\w)(?=[A-Z])/','-$1', $action)));
             }
+            $controller->afterRun($rs);            
             
             $this->throwHeader( $rs );  
             
