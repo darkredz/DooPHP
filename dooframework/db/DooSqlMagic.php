@@ -2015,8 +2015,9 @@ class DooSqlMagic {
 
     /**
      * Update an existing record. (Prepares and execute the UPDATE statements)
+	 * If you want to set null values during the update use the setnulls option
      * @param mixed $model The model object to be updated.
-     * @param array $opt Associative array of options to generate the UPDATE statement. Supported: <i>where, limit, field, param</i
+     * @param array $opt Associative array of options to generate the UPDATE statement. Supported: <i>where, limit, field, param, setnulls</i
      * @return int Number of rows affected
      */
     public function update($model, $opt=NULL){
@@ -2026,14 +2027,18 @@ class DooSqlMagic {
         $values = array();
         $field_and_value = '';
 
+		$opt['setnulls'] = isset($opt['setnulls']) ? $opt['setnulls'] : false;
+
         if(isset($opt['field'])){
             $opt['field'] = explode(',', str_replace(' ', '', $opt['field']));
-            foreach($obj as $o=>$v){
-                if(in_array($o, $opt['field'])){
-                    if(isset($v) && in_array($o, $model->_fields)){
-                        if(is_object($v)){
+            foreach($obj as $o=>$v) {
+                if(in_array($o, $opt['field'])) {
+                    if (($opt['setnulls'] === true || isset($v)) && in_array($o, $model->_fields)) {
+                        if (is_object($v)){
                             $field_and_value .= "$o=$v,";
-                        }else{
+                        } elseif ($v === null) {
+							$field_and_value .= "$o=null,";
+						} else {
                             $values[] = $v;
                             $field_and_value .= $o .'=?,';
                         }
@@ -2042,10 +2047,12 @@ class DooSqlMagic {
             }
         }else{
             foreach($obj as $o=>$v){
-                if(isset($v) && in_array($o, $model->_fields)){
-                    if(is_object($v)){
+                if(($opt['setnulls'] === true || isset($v)) && in_array($o, $model->_fields)){
+                    if (is_object($v)) {
                         $field_and_value .= "$o=$v,";
-                    }else{
+					} elseif ($v === null) {
+						$field_and_value .= "$o=null,";
+                    } else {
                         $values[] = $v;
                         $field_and_value .= $o .'=?,';
                     }
