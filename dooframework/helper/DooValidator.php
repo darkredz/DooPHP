@@ -662,28 +662,38 @@ class DooValidator {
      * @param string $msg Custom error message
      * @return string
      */
-    public function testDate($value, $format='yyyy/mm/dd', $msg=null){
+    public function testDate($value, $format='yyyy/mm/dd', $msg=null, $forceYearLength=false){
         //Date yyyy-mm-dd, yyyy/mm/dd, yyyy.mm.dd
         //1900-01-01 through 2099-12-31
+
+		$yearFormat = "(19|20)?[0-9]{2}";
+		if ($forceYearLength == true) {
+			if (strpos($format, 'yyyy') !== false) {
+				$yearFormat = "(19|20)[0-9]{2}";
+			} else {
+				$yearFormat = "[0-9]{2}";
+			}
+		}
+
         switch($format){
             case 'dd/mm/yy':
-                $format = '/^\b(0?[1-9]|[12][0-9]|3[01])[- \/.](0?[1-9]|1[012])[- \/.](19|20)?[0-9]{2}\b$/';
+                $format = "/^\b(0?[1-9]|[12][0-9]|3[01])[- \/.](0?[1-9]|1[012])[- \/.]{$yearFormat}\b$/";
                 break;
             case 'mm/dd/yy':
-                $format = '/^\b(0?[1-9]|1[012])[- \/.](0?[1-9]|[12][0-9]|3[01])[- \/.](19|20)?[0-9]{2}\b$/';
+                $format = "/^\b(0?[1-9]|1[012])[- \/.](0?[1-9]|[12][0-9]|3[01])[- \/.]{$yearFormat}\b$/";
                 break;
             case 'mm/dd/yyyy':
-                $format = '/^(0[1-9]|1[012])[- \/.](0[1-9]|[12][0-9]|3[01])[- \/.](19|20)[0-9]{2}$/';
+                $format = "/^(0[1-9]|1[012])[- \/.](0[1-9]|[12][0-9]|3[01])[- \/.]{$yearFormat}$/";
                 break;
             case 'dd/mm/yyyy':
-                $format = '/^(0[1-9]|[12][0-9]|3[01])[- \/.](0[1-9]|1[012])[- \/.](19|20)[0-9]{2}$/';
+                $format = "/^(0[1-9]|[12][0-9]|3[01])[- \/.](0[1-9]|1[012])[- \/.]{$yearFormat}$/";
                 break;
             case 'yy/mm/dd':
-                $format = '/^\b(19|20)?[0-9]{2}[- \/.](0?[1-9]|1[012])[- \/.](0?[1-9]|[12][0-9]|3[01])\b$/';
+                $format = "/^\b{$yearFormat}[- \/.](0?[1-9]|1[012])[- \/.](0?[1-9]|[12][0-9]|3[01])\b$/";
                 break;
             case 'yyyy/mm/dd':
             default:
-                $format = '/^\b(19|20)?[0-9]{2}[- \/.](0?[1-9]|1[012])[- \/.](0?[1-9]|[12][0-9]|3[01])\b$/';
+                $format = "/^\b{$yearFormat}[- \/.](0?[1-9]|1[012])[- \/.](0?[1-9]|[12][0-9]|3[01])\b$/";
         }
 
         if (!preg_match($format, $value)) {
