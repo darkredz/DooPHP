@@ -430,6 +430,9 @@ abstract class DooManageDb {
 
         // use isset() to allow for '0' and '' values.
         if (isset($default)) {
+			if (is_bool($default)) {
+				$default = $default === false ? 0 : 1;
+			}
             $columnDefinition .= ' DEFAULT ' . $this->quote($default);
         }
 
