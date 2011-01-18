@@ -45,7 +45,7 @@ class DooWebApp{
         $router = new DooUriRouter;
         $routeRs = $router->execute($this->route,Doo::conf()->SUBFOLDER);
 
-        if($routeRs[0]!=NULL && $routeRs[1]!=NULL){
+        if($routeRs[0]!=null && $routeRs[1]!=null){
             //dispatch, call Controller class
             require_once(Doo::conf()->BASE_PATH ."controller/DooController.php");
             if($routeRs[0][0]!='[')
@@ -61,7 +61,7 @@ class DooWebApp{
                 Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI . 'module/'.$moduleName.'/';
             }
 
-            if(strpos($routeRs[0], '/')!==FALSE){
+            if(strpos($routeRs[0], '/')!==false){
                 $clsname = explode('/', $routeRs[0]);
                 $routeRs[0] = $clsname[ sizeof($clsname)-1 ];
             }
@@ -96,31 +96,37 @@ class DooWebApp{
                     return $rs;
                 }
             }
-			
-			$routeRs = $controller->$routeRs[1]();			
-            $controller->afterRun($routeRs);		
+
+			$routeRs = $controller->$routeRs[1]();
+            $controller->afterRun($routeRs);
             return $routeRs;
         }
         //if auto route is on, then auto search Controller->method if route not defined by user
         else if(Doo::conf()->AUTOROUTE){
 
             list($controller_name, $method_name, $params, $moduleName )= $router->auto_connect(Doo::conf()->SUBFOLDER);
-            
+
             if(isset($moduleName)){
                 Doo::conf()->PROTECTED_FOLDER_ORI = Doo::conf()->PROTECTED_FOLDER;
-                Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI . 'module/'.$moduleName.'/';                
+                Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI . 'module/'.$moduleName.'/';
             }
-            
+
             $controller_file = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/{$controller_name}.php";
-            
+
             if(file_exists($controller_file)){
                 require_once(Doo::conf()->BASE_PATH ."controller/DooController.php");
                 require_once($controller_file);
 
 				//check if method name exists in controller
-				if( in_array($method_name, get_class_methods($controller_name))===FALSE ){
+				$methodsArray = get_class_methods($controller_name);
+
+				if( in_array($method_name, $methodsArray)===false && in_array($method_name .'_'. strtolower($_SERVER['REQUEST_METHOD']), $methodsArray)===false ){
 					$this->throwHeader(404);
 					return;
+				}
+
+				if( in_array($method_name .'_'. strtolower($_SERVER['REQUEST_METHOD']), $methodsArray)!==false ){
+					$method_name .=  '_'. strtolower($_SERVER['REQUEST_METHOD']);
 				}
 
                 $controller = new $controller_name;
@@ -128,7 +134,7 @@ class DooWebApp{
                 if(!$controller->autoroute)
                     $this->throwHeader(404);
 
-                if($params!=NULL)
+                if($params!=null)
                     $controller->params = $params;
 
                 if($_SERVER['REQUEST_METHOD']==='PUT')
@@ -138,9 +144,9 @@ class DooWebApp{
 				if($rs = $controller->beforeRun($controller_name, $method_name)){
 					return $rs;
 				}
-				
-				$routeRs = $controller->$method_name();					
-                $controller->afterRun($routeRs);		
+
+				$routeRs = $controller->$method_name();
+                $controller->afterRun($routeRs);
 				return $routeRs;
             }
             else{
@@ -157,13 +163,13 @@ class DooWebApp{
      * @param string $routeuri route uri to redirect to
      * @param bool $is404 send a 404 status in header
      */
-    public function reroute($routeuri, $is404=FALSE){
+    public function reroute($routeuri, $is404=false){
         if(Doo::conf()->SUBFOLDER!='/')
             $_SERVER['REQUEST_URI'] = substr(Doo::conf()->SUBFOLDER, 0, strlen(Doo::conf()->SUBFOLDER)-1) . $routeuri;
         else
             $_SERVER['REQUEST_URI'] = $routeuri;
 
-        if($is404===TRUE)
+        if($is404===true)
             header('HTTP/1.1 404 Not Found');
         $this->route_to();
     }
@@ -235,17 +241,17 @@ class DooWebApp{
                 $this->throwHeader( $rs );
                 return;
             }
-            
+
             ob_start();
 			$rs = $controller->{$action}();
-			
+
             if($controller->autorender===true){
                 Doo::conf()->AUTO_VIEW_RENDER_PATH = array(strtolower(substr($controller_name, 0, -10)), strtolower(preg_replace('/(?<=\\w)(?=[A-Z])/','-$1', $action)));
             }
             $controller->afterRun($rs);
-            
+
             $this->throwHeader( $rs );
-            
+
             $data = ob_get_contents();
             ob_end_clean();
             return $data;
@@ -260,17 +266,17 @@ class DooWebApp{
                 $this->throwHeader( $rs );
                 return;
             }
-            
+
             ob_start();
 			$rs = $controller->{$action}();
-			
+
 			if($controller->autorender===true){
                 Doo::conf()->AUTO_VIEW_RENDER_PATH = array(strtolower(substr($controller_name, 0, -10)), strtolower(preg_replace('/(?<=\\w)(?=[A-Z])/','-$1', $action)));
             }
-            $controller->afterRun($rs);            
-            
-            $this->throwHeader( $rs );  
-            
+            $controller->afterRun($rs);
+
+            $this->throwHeader( $rs );
+
             $data = ob_get_contents();
             ob_end_clean();
             return $data;
@@ -293,7 +299,7 @@ class DooWebApp{
         Doo::conf()->PROTECTED_FOLDER = $tmp . 'module/'.$moduleName.'/';
         $result = $this->module($moduleUri, $action, $params);
         Doo::conf()->PROTECTED_FOLDER = $tmp;
-        Doo::conf()->PROTECTED_FOLDER_ORI = NULL;
+        Doo::conf()->PROTECTED_FOLDER_ORI = null;
         return $result;
     }
 
@@ -317,7 +323,7 @@ class DooWebApp{
         if(headers_sent()){
             return;
         }
-        if($code!=NULL){
+        if($code!=null){
             if(is_int($code)){
                 if($code===404){
                     //Controller return 404, send 404 header, include file if ERROR_404_DOCUMENT is set by user
@@ -333,7 +339,7 @@ class DooWebApp{
                 }
                 //if not 404, just send the header code
                 else{
-                    DooUriRouter::redirect(NULL,true, $code);
+                    DooUriRouter::redirect(null,true, $code);
                 }
             }
             elseif(is_string($code)){
