@@ -119,14 +119,16 @@ class DooWebApp{
 
 				//check if method name exists in controller
 				$methodsArray = get_class_methods($controller_name);
+				$restMethod = $method_name .'_'. strtolower($_SERVER['REQUEST_METHOD']);
+				$inRestMethod = in_array($restMethod, $methodsArray);
 
-				if( in_array($method_name, $methodsArray)===false && in_array($method_name .'_'. strtolower($_SERVER['REQUEST_METHOD']), $methodsArray)===false ){
+				if( in_array($method_name, $methodsArray)===false && $inRestMethod===false ){
 					$this->throwHeader(404);
 					return;
 				}
 
-				if( in_array($method_name .'_'. strtolower($_SERVER['REQUEST_METHOD']), $methodsArray)!==false ){
-					$method_name .=  '_'. strtolower($_SERVER['REQUEST_METHOD']);
+				if( $inRestMethod===true ){
+					$method_name = $restMethod;
 				}
 
                 $controller = new $controller_name;
