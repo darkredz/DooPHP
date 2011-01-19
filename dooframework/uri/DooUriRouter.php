@@ -1,3 +1,4 @@
+
 <?php
 /**
  * DooUriRouter class file.
@@ -105,25 +106,25 @@ class DooUriRouter{
     public function execute($routeArr,$subfolder='/'){
         list($route, $params) = $this->connect($routeArr,$subfolder);
 
-        if($route[0]=='redirect'){
+        if($route[0]==='redirect'){
             if(sizeof($route)===2)
                 self::redirect($route[1]);
             else
                 self::redirect($route[1],true,$route[2]);
         }
 
-        if(isset($route['auth'])){
-            $route['authFailURL'] = (!isset($route['authFailURL']))?NULL:$route['authFailURL'];
-            $route['authFail'] = (!isset($route['authFail']))?NULL:$route['authFail'];
+        if(isset($route['auth'])===true){
+            $route['authFailURL'] = (!isset($route['authFailURL']))?null:$route['authFailURL'];
+            $route['authFail'] = (!isset($route['authFail']))?null:$route['authFail'];
             Doo::loadCore('auth/DooDigestAuth');
             DooDigestAuth::http_auth($route['authName'],$route['auth'], $route['authFail'], $route['authFailURL']);
         }
 
-		if (isset($route['params'])) {
-			$params = array_merge((array)$params, $route['params']);
+		if (isset($route['params'])===true) {
+			$params = array_merge($params, $route['params']);
 		}
 
-        if(isset($route['className']))
+        if(isset($route['className'])===true)
 			return array($route[0],$route[1],$params,$route['className']);
 
         //return Controller class, method, parameters of the route
@@ -140,16 +141,16 @@ class DooUriRouter{
      * @param array $headerAfter Headers to be sent after header("Location: some_url_address");
      */
     public static function redirect($location, $exit=true, $code=302, $headerBefore=NULL, $headerAfter=NULL){
-        if($headerBefore!=NULL){
-            for($i=0;$i<sizeof($headerBefore);$i++){
-                header($headerBefore[$i]);
-            }
+        if($headerBefore!==null){
+			foreach($headerBefore as $h){
+                header($h);
+			}
         }
         header("Location: $location", true, $code);
-        if($headerAfter!=NULL){
-            for($i=0;$i<sizeof($headerAfter);$i++){
-                header($headerAfter[$i]);
-            }
+        if($headerAfter!==null){
+			foreach($headerAfter as $h){
+                header($h);
+			}
         }
         if($exit)
             exit;
@@ -206,40 +207,46 @@ class DooUriRouter{
 		if (0 === strpos($requestedUri, '/index.php')) {
 			$requestedUri = substr($requestedUri, 10);
 			//$this->log('Trimmed off the /index.php from Request Uri to give: ' . $requestedUri);
-			if ($requestedUri == '') {
+			if ($requestedUri === '') {
 				$requestedUri = '/';
 			}
 		}
 
 		// Remove any trailing slashes from Uri except the first / of a uri (Root)
-		$this->strip_slashes($requestedUri);
+		//Strip out the additional slashes found at the end. If first character is / then leaves it alone
+		$end = strlen($requestedUri) - 1;
+		while( $end > 0 && $requestedUri[$end] === '/' ){
+			$end--;
+		}
+		$requestedUri = substr($requestedUri, 0, $end+1);
+
 		//$this->log('Trimmed off trailing slashes from Request Uri: ' . $requestedUri);
 
-		
+
 		// Got a root url (ie. Homepage)
-		if ($requestedUri == '/') {
+		if ($requestedUri === '/') {
 			//$this->log('Got a root URL');
-			if(isset($routes[$type]['/']))
+			if(isset($routes[$type]['/'])===true)
 				return array($routes[$type]['/'], null);
-			elseif(isset($routes['*']['/']))
+			elseif(isset($routes['*']['/'])===true)
 				return array($routes['*']['/'], null);
-			elseif(isset($routes['*']['catchall']))
+			elseif(isset($routes['*']['catchall'])===true)
 				$skipNormalRoutes = true;
 			else
 				return;
 		}
 
-		if (!$skipNormalRoutes) {
+		if ($skipNormalRoutes===false) {
 			// Not got root url so we need to get possible routes
 			// First look for routes for specific route type and then try for * routes
 			// We will merge the 2 together to prevent duplicate checking
-			if(isset($routes[$type]))
+			if(isset($routes[$type])===true)
 				$possibleRoutes = $routes[$type];
 			else
 				$possibleRoutes = null;
 
-			if(isset($routes['*'])){
-				if($possibleRoutes != null)
+			if(isset($routes['*'])===true){
+				if($possibleRoutes !== null)
 					$possibleRoutes = array_merge($routes['*'], $possibleRoutes);
 				else
 					$possibleRoutes = $routes['*'];
@@ -248,7 +255,7 @@ class DooUriRouter{
 			//$this->log('Possible Routes: ', $possibleRoutes);
 
 			// We if we simply have the full route (ie. No params needed)
-			if (isset($possibleRoutes[$requestedUri])) {
+			if (isset($possibleRoutes[$requestedUri])===true) {
 				// Ensure the url does not contain : in it
 				if (false === strpos($requestedUri, ':')) {
 					//$this->log('Got Perfect Match');
@@ -268,7 +275,7 @@ class DooUriRouter{
 		 * but with each expecting different parameter formats for example
 		 * /news/:title     - to show a news by passing the title which will maybe call the controller action News->show_by_title
 		 * /news/:id     - to show a news by passing the ID which will maybe call the controller action News->show_by_id
-		 * 
+		 *
 		 * Note that Identical Routes MUST have different REQUIREMENT (match) for the param,
 		 * if not the first which is defined will matched, therefore preventing any others being matched
 		 */
@@ -283,8 +290,8 @@ class DooUriRouter{
 			//$this->log('URI Extension is: ' . $uriExtension);
 		}
 
-		if (!$skipNormalRoutes) {
-			foreach($possibleRoutes as $routeKey=>&$routeData) {
+		if ($skipNormalRoutes===false) {
+			foreach($possibleRoutes as $routeKey=>$routeData) {
 				//$this->log('Trying routeKey: ' . $routeKey);
 				$uriParts = $uriPartsOrig;
 				$routeParts = explode('/', $routeKey);
@@ -303,21 +310,21 @@ class DooUriRouter{
 				}
 
 				// If the route allows extensions check that the extension provided is a correct match
-				if (isset($routeData['extension'])) {
+				if (isset($routeData['extension'])===true) {
 					if ($uriExtension === false) {
 						continue;		// We need an extension for this to match so can't be a match
 					} else {
 						$routeExtension = $routeData['extension'];
-						if (is_string($routeExtension) && ($uriExtension !== $routeExtension)) {
+						if (is_string($routeExtension)===true && $uriExtension!==$routeExtension ) {
 							continue;	// Extensions do not match so can't be a match
-						} elseif (is_array($routeExtension) && !in_array($uriExtension, $routeExtension)) {
+						} elseif (is_array($routeExtension)===true && in_array($uriExtension, $routeExtension)===false) {
 							continue;	// Extension not in allowed extensions so can't be a match
 						}
 					}
 				}
 
 				// Now check the other statics parts of the url (we deal with parameters later
-				foreach ($routeParts as $i=>&$routePart) {
+				foreach ($routeParts as $i=>$routePart) {
 					if ($i < 2)
 						continue;
 
@@ -329,16 +336,16 @@ class DooUriRouter{
 				}
 
 				//$this->log('Got a route match. RouteKey: ' . $routeKey);
-				if (isset($routeData['extension']) && $uriExtension !== false) {
+				if (isset($routeData['extension'])===true && $uriExtension !== false) {
 					$uriParts[$uriPartsSize - 1] = $uriLastPartNoExtension;
 				}
 
 				$params = $this->parse_params($uriParts, $routeParts);
 				//$this->log('Got Parameter Values:', $params);
 
-				if (isset($routeData['match'])) {
+				if (isset($routeData['match'])===true) {
 					//$this->log('Checking Parameter Matches');
-					foreach($routeData['match'] as $paramName=>&$pattern) {
+					foreach($routeData['match'] as $paramName=>$pattern) {
 						if (preg_match($pattern, $params[$paramName]) == 0) {
 							continue 2;
 						}
@@ -353,13 +360,14 @@ class DooUriRouter{
 				return array($routeData, $params);
 			}
 
-			if (isset($routes['*']['root'])) {
+			if (isset($routes['*']['root'])===true) {
 
 				// Note: Root Routes should always start with a parameter ie. ['*']['root']['/:param']
 				// Therefore we wont look at running some checks used by non root routes
 				//$this->log('No Route Yet Found. Trying Root routes');
+				$rootRoute = $routes['*']['root'];
 
-				foreach($routes['*']['root'] as $routeKey=>&$routeData) {
+				foreach($rootRoute as $routeKey=>$routeData) {
 					$uriParts = $uriPartsOrig;
 					$routeParts = explode('/', $routeKey);
 
@@ -369,21 +377,21 @@ class DooUriRouter{
 					}
 
 					// If the route allows extensions check that the extension provided is a correct match
-					if (isset($routeData['extension'])) {
+					if (isset($routeData['extension'])===true) {
 						if ($uriExtension === false) {
 							continue;		// We need an extension for this to match so can't be a match
 						} else {
 							$routeExtension = $routeData['extension'];
-							if (is_string($routeExtension) && ($uriExtension !== $routeExtension)) {
+							if (is_string($routeExtension)===true && $uriExtension !== $routeExtension) {
 								continue;	// Extensions do not match so can't be a match
-							} elseif (is_array($routeExtension) && !in_array($uriExtension, $routeExtension)) {
+							} elseif (is_array($routeExtension)===true && in_array($uriExtension, $routeExtension)===false) {
 								continue;	// Extension not in allowed extensions so can't be a match
 							}
 						}
 					}
 
 					// Now check the other statics parts of the url (we deal with parameters later
-					foreach ($routeParts as $i=>&$routePart) {
+					foreach ($routeParts as $i=>$routePart) {
 						if ($i == 0)
 							continue;	// The first item is empty
 
@@ -395,16 +403,16 @@ class DooUriRouter{
 					}
 
 					//$this->log('Got a route match. RouteKey: ' . $routeKey);
-					if (isset($routeData['extension']) && $uriExtension !== false) {
+					if (isset($routeData['extension'])===true && $uriExtension !== false) {
 						$uriParts[$uriPartsSize - 1] = $uriLastPartNoExtension;
 					}
 
 					$params = $this->parse_params($uriParts, $routeParts);
 					//$this->log('Got Parameter Values:', $params);
 
-					if (isset($routeData['match'])) {
+					if (isset($routeData['match'])===true) {
 						//$this->log('Checking Parameter Matches');
-						foreach($routeData['match'] as $paramName=>&$pattern) {
+						foreach($routeData['match'] as $paramName=>$pattern) {
 							if (preg_match($pattern, $params[$paramName]) == 0) {
 								continue 2;
 							}
@@ -422,21 +430,20 @@ class DooUriRouter{
 		}
 
 
-		if(isset($routes['*']['catchall'])) {
-
+		if(isset($routes['*']['catchall'])===true) {
 			//$this->log('No Route Yet Found. Trying Catch All Routes');
-
-			foreach($routes['*']['catchall'] as $routeKey=>&$routeData) {
+			$routeCatch = $routes['*']['catchall'];
+			foreach($routes['*']['catchall'] as $routeKey=>$routeData) {
 
 				// If the route allows extensions check that the extension provided is a correct match
-				if (isset($routeData['extension'])) {
+				if (isset($routeData['extension'])===true) {
 					if ($uriExtension === false) {
 						continue;		// We need an extension for this to match so can't be a match
 					} else {
 						$routeExtension = $routeData['extension'];
-						if (is_string($routeExtension) && ($uriExtension !== $routeExtension)) {
+						if (is_string($routeExtension)===true && $uriExtension !== $routeExtension) {
 							continue;	// Extensions do not match so can't be a match
-						} elseif (is_array($routeExtension) && !in_array($uriExtension, $routeExtension)) {
+						} elseif (is_array($routeExtension)===true && in_array($uriExtension, $routeExtension)===false) {
 							continue;	// Extension not in allowed extensions so can't be a match
 						}
 					}
@@ -449,11 +456,11 @@ class DooUriRouter{
 					$routeParts = explode('/', $routeKey);
 
 					// Now check the other statics parts of the url (we deal with parameters later
-					foreach ($routeParts as $i=>&$routePart) {
+					foreach ($routeParts as $i=>$routePart) {
 						if ($i == 0)
 							continue;	// The first item is empty
 
-						if (isset($routePart[0]) && $routePart[0] === ':')
+						if (isset($routePart[0])===true && $routePart[0] === ':')
 							continue;	// This routePart is a parameter in the Uri
 
 						if ($routePart !== $uriParts[$i]) {
@@ -462,14 +469,14 @@ class DooUriRouter{
 					}
 				}
 
-				if (isset($routeData['extension']) && $uriExtension !== false) {
+				if (isset($routeData['extension'])===true && $uriExtension !== false) {
 					$uriParts[$uriPartsSize - 1] = $uriLastPartNoExtension;
 				}
 
 				$params = $this->parse_params_catch($uriParts, $routeParts);
 
-				if (isset($routeData['match'])) {
-					foreach($routeData['match'] as $paramName=>&$pattern) {
+				if (isset($routeData['match'])===true) {
+					foreach($routeData['match'] as $paramName=>$pattern) {
 						if (preg_match($pattern, $params[$paramName]) == 0) {
 							continue 2;
 						}
@@ -489,17 +496,6 @@ class DooUriRouter{
 		//$this->log('Failed to find a matching route');
 	}
 
-	private function log($msg, $var=null) {
-		if (true) {
-			echo "{$msg}<br />\n";
-			if ($var !== null)
-				echo "<pre>" . print_r($var,true) . "</pre>";
-		}
-	}
-
-
-    
-   
 
     /**
      * Handles auto routing.
@@ -537,53 +533,58 @@ class DooUriRouter{
             $uri = $tmp[0];
         }
 
-        if($uri!='/')
-            $this->strip_slashes($uri);
+        if($uri!=='/'){
+			$end = strlen($uri) - 1;
+			while( $end > 0 && $uri[$end] === '/' ){
+				$end--;
+			}
+			$uri = substr($uri, 0, $end+1);
+		}
 
         //remove the / in the first char in REQUEST URI
-        if($uri[0]=='/')
+        if($uri[0]==='/')
             $uri = substr($uri, 1);
 
         //spilt out GET variable first
         $uri = explode('/',$uri);
-        
+
         $module = null;
-        if(isset(Doo::conf()->MODULES) && in_array($uri[0], Doo::conf()->MODULES)){
+        if(isset(Doo::conf()->MODULES)===true && in_array($uri[0], Doo::conf()->MODULES)===true){
             $module = $uri[0];
             array_shift($uri);
         }
-        
+
         $controller_name = $uri[0];
 		Doo::conf()->AUTO_VIEW_RENDER_PATH = array($controller_name);
 
         //controller name can't start with a -, and it can't have more than 1 -
-        if( strpos($controller_name, '-')===0 || strpos($controller_name, '--')!==FALSE ){
+        if( strpos($controller_name, '-')===0 || strpos($controller_name, '--')!==false ){
             return;
         }
 
         //if - detected, make controller name camelcase
-        if(strpos($controller_name, '-')!==FALSE){
+        if(strpos($controller_name, '-')!==false){
             $controller_name = str_replace(' ', '', ucwords( str_replace('-', ' ', $controller_name) ) ) ;
         }
         $controller_name = ucfirst($controller_name);
         $controller_name .= 'Controller' ;
-        
+
         //if method is in uri, replace - to camelCase. else method is empty, make it access index
-        if(isset($uri[1]) && $uri[1]!=NULL && $uri[1]!=''){
+        if(empty($uri[1])===false){
             $method_name = $uri[1];
 
             //controller name can't start with a -, and it can't have more than 1 -
-            if( strpos($method_name, '-')===0 || strpos($method_name, '--')!==FALSE ){
+            if( strpos($method_name, '-')===0 || strpos($method_name, '--')!==false ){
                 return;
             }
-            
+
             //if - detected, make method name camelcase
-			if( strpos($method_name, '-') !== FALSE ){
+			if( strpos($method_name, '-') !== false ){
                 //$method_name = lcfirst( str_replace(' ', '', ucwords( str_replace('-', ' ', $method_name) ) ) );
                 $method_name =  str_replace(' ', '', ucwords( str_replace('-', ' ', $method_name) ) ) ;
                 $method_name{0} = strtolower($method_name{0});
 			}
-            
+
 			Doo::conf()->AUTO_VIEW_RENDER_PATH[] = $uri[1];
 		}else{
             $method_name = 'index';
@@ -591,11 +592,11 @@ class DooUriRouter{
 		}
 
         //the first 2 would be Controller and Method, the others will be params if available, access through Array arr[0], arr[1], arr[3]
-        $params = NULL;
+        $params = null;
         if(sizeof($uri)>2){
             $params=array_slice($uri, 2);
-        }        
-        
+        }
+
         return array($controller_name, $method_name, $params, $module);
     }
 
@@ -630,7 +631,8 @@ class DooUriRouter{
      */
     protected function parse_params_catch($req_route, $defined_route){
         $params = array();
-        for($i=0;$i<sizeof($req_route);$i++){
+		$size = sizeof($req_route);
+        for($i=0;$i<$size;$i++){
             if(isset($defined_route[$i])){
                 $param_key = $defined_route[$i];
                 if ($param_key == '') {
@@ -644,16 +646,6 @@ class DooUriRouter{
             }
         }
         return $params;
-    }
-
-    /**
-     * Strip out the additional slashes found at the end. If first character is / then leaves it alone
-     *
-     * @param string $str Requested URI
-     */
-    protected function strip_slashes(&$str){
-		for ($end = strlen($str) - 1; $end > 0 && $str[$end] === '/'; $end--) {}
-		$str = substr($str, 0, $end+1);
     }
 
 }

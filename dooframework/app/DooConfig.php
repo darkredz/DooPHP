@@ -180,19 +180,19 @@ class DooConfig{
             $this->{$k} = $v;
         }
         
-        if($this->SUBFOLDER==NULL)
+        if($this->SUBFOLDER===null)
            $this->SUBFOLDER='/';
 
-        if($this->AUTOROUTE==NULL)
-           $this->AUTOROUTE=FALSE;
+        if($this->AUTOROUTE===null)
+           $this->AUTOROUTE=false;
 
-        if($this->DEBUG_ENABLED==NULL)
-           $this->DEBUG_ENABLED=FALSE;
+        if($this->DEBUG_ENABLED===null)
+           $this->DEBUG_ENABLED=false;
 
-		if ($this->TEMPLATE_ENGINE==NULL)
+		if ($this->TEMPLATE_ENGINE===null)
 			$this->TEMPLATE_ENGINE='DooView';
 
-		if ($this->MODEL_PATH==NULL)
+		if ($this->MODEL_PATH===null)
 			$this->MODEL_PATH=$this->SITE_PATH . $this->PROTECTED_FOLDER . 'model/';
 
     }

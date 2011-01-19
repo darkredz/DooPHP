@@ -45,15 +45,15 @@ class DooWebApp{
         $router = new DooUriRouter;
         $routeRs = $router->execute($this->route,Doo::conf()->SUBFOLDER);
 
-        if($routeRs[0]!=null && $routeRs[1]!=null){
+        if($routeRs[0]!==null && $routeRs[1]!==null){
             //dispatch, call Controller class
-            require_once(Doo::conf()->BASE_PATH ."controller/DooController.php");
-            if($routeRs[0][0]!='[')
-                require_once(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/{$routeRs[0]}.php");
+            require_once Doo::conf()->BASE_PATH ."controller/DooController.php";
+            if($routeRs[0][0]!=='[')
+                require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/{$routeRs[0]}.php";
             else{
                 $moduleParts = explode(']', $routeRs[0]);
                 $moduleName = substr($moduleParts[0],1);
-                require_once(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'module/'. $moduleName .'/controller/'.$moduleParts[1].'.php');
+                require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'module/'. $moduleName .'/controller/'.$moduleParts[1].'.php';
 
                 //set class name
                 $routeRs[0] = $moduleParts[1];
@@ -72,13 +72,14 @@ class DooWebApp{
                 $controller = new $routeRs[3];
             else
                 $controller = new $routeRs[0];
+
             $controller->params = $routeRs[2];
 
-            if(isset($controller->params['__extension'])){
+            if(isset($controller->params['__extension'])===true){
                 $controller->extension = $controller->params['__extension'];
                 unset($controller->params['__extension']);
             }
-			if(isset($controller->params['__routematch'])){
+			if(isset($controller->params['__routematch'])===true){
                 $controller->routematch = $controller->params['__routematch'];
                 unset($controller->params['__routematch']);
             }
@@ -114,8 +115,8 @@ class DooWebApp{
             $controller_file = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/{$controller_name}.php";
 
             if(file_exists($controller_file)){
-                require_once(Doo::conf()->BASE_PATH ."controller/DooController.php");
-                require_once($controller_file);
+                require_once Doo::conf()->BASE_PATH ."controller/DooController.php";
+                require_once $controller_file;
 
 				//check if method name exists in controller
 				$methodsArray = get_class_methods($controller_name);
@@ -380,4 +381,3 @@ class DooWebApp{
     }
 
 }
-
