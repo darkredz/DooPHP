@@ -105,7 +105,7 @@ class DooWebApp{
         //if auto route is on, then auto search Controller->method if route not defined by user
         else if(Doo::conf()->AUTOROUTE){
 
-            list($controller_name, $method_name, $params, $moduleName )= $router->auto_connect(Doo::conf()->SUBFOLDER);
+            list($controller_name, $method_name, $params, $moduleName )= $router->auto_connect(Doo::conf()->SUBFOLDER, (isset($this->route['autoroute_alias'])===true)?$this->route['autoroute_alias']:null );
 
             if(isset($moduleName)){
                 Doo::conf()->PROTECTED_FOLDER_ORI = Doo::conf()->PROTECTED_FOLDER;

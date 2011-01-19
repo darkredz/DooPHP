@@ -513,7 +513,7 @@ class DooUriRouter{
      * @param string $subfolder Relative path of the sub directory where the app is located. eg. http://localhost/doophp, the value should be '/doophp/'
      * @return array returns an array consist of the Controller class, action method and parameters of the route
      */
-    public function auto_connect($subfolder='/'){
+    public function auto_connect($subfolder='/', $autoroute_alias=null){
         $uri = $_SERVER['REQUEST_URI'];
 
         //remove Subfolder from the URI if exist
@@ -595,6 +595,48 @@ class DooUriRouter{
         if(sizeof($uri)>2){
             $params=array_slice($uri, 2);
         }
+
+        //match alias for autoroutes
+        if($autoroute_alias!==null){
+            $alias = urldecode($uri[0]);
+            
+            if(isset($autoroute_alias[$alias])===true){
+                $controller_name = $autoroute_alias[$alias];
+            }
+            else{                
+                $uridecode = urldecode(implode('/', $uri));
+
+                $aliaskey = array_keys($autoroute_alias);
+                
+                //escape string and convert to regex pattern to match with URI, (alias1|alias 2|alias3\/alias3_2)
+                $aliaskey = str_replace("\t", '|', preg_quote( implode("\t", $aliaskey), '/') );
+
+                //use regex to eliminate looping through the list of alias keys
+                #echo "<h3>$uridecode/</h3>";
+                #echo '/^('. $aliaskey .')\//';
+                #echo "<h3>$aliaskey</h3>";
+                
+                if( preg_match('/^('. $aliaskey .')\//', $uridecode.'/', $matchedKey) > 0){                    
+                    //key of the matched autoroute alias
+                    $r = $matchedKey[1];
+                    $controller_name = $autoroute_alias[$r];
+                    
+                    //explode and parse the method name + parameters
+                    $uridecode = explode('/', substr($uridecode, strlen($r)+1));
+                    $method_name = $uridecode[0];
+                    
+                    if(empty($method_name)===true){
+                        $method_name = 'index';
+                    }else{
+                        if(sizeof($uridecode)>1){
+                            $params=array_slice($uridecode, 1);
+                        }else{
+                            $params=null;
+                        }
+                    }
+                }
+            }
+        }        
 
         return array($controller_name, $method_name, $params, $module);
     }
