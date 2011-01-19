@@ -206,7 +206,7 @@ class DooUriRouter{
 		if (0 === strpos($requestedUri, '/index.php')) {
 			$requestedUri = substr($requestedUri, 10);
 			//$this->log('Trimmed off the /index.php from Request Uri to give: ' . $requestedUri);
-			if ($requestedUri === '') {
+			if ($requestedUri == '') {
 				$requestedUri = '/';
 			}
 		}
