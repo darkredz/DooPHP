@@ -33,13 +33,23 @@
   * If you create subfolders in a module,  eg. /protected/module/forum/post/ListController.php, the module here is forum, subfolder is post
  * $route['*']['/'] = array('[forum]post/PostController', 'action');
  *
+ * Aliasing give you an option to access the action method/controller through a different URL. This is useful when you need a different url than the controller class name.
+ * For instance, you have a ClientController::new() . By default, you can access via http://localhost/client/new
+ * 
+ * $route['autoroute_alias']['customer'] = 'ClientController';
+ * $route['autoroute_alias']['company/client'] = 'ClientController';
+ * 
+ * With the definition above, it allows user to access the same controller::method with the following URLs:
+ * http://localhost/customer/new
+ * http://localhost/company/client/new
  */
-$admin = array('admin'=>'1234');
  
 $route['*']['/'] = array('MainController', 'index');
 $route['*']['/error'] = array('ErrorController', 'index');
 
+
 //---------- Delete if not needed ------------
+$admin = array('admin'=>'1234');
 
 //view the logs and profiles XML, filename = db.profile, log, trace.log, profile
 $route['*']['/debug/:filename'] = array('MainController', 'debug', 'authName'=>'DooPHP Admin', 'auth'=>$admin, 'authFail'=>'Unauthorized!');
