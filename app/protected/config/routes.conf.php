@@ -36,8 +36,8 @@
  * Aliasing give you an option to access the action method/controller through a different URL. This is useful when you need a different url than the controller class name.
  * For instance, you have a ClientController::new() . By default, you can access via http://localhost/client/new
  * 
- * $route['autoroute_alias']['customer'] = 'ClientController';
- * $route['autoroute_alias']['company/client'] = 'ClientController';
+ * $route['autoroute_alias']['/customer'] = 'ClientController';
+ * $route['autoroute_alias']['/company/client'] = 'ClientController';
  * 
  * With the definition above, it allows user to access the same controller::method with the following URLs:
  * http://localhost/customer/new
