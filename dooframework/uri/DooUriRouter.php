@@ -552,7 +552,12 @@ class DooUriRouter{
             $module = $uri[0];
             array_shift($uri);
         }
-
+        
+        //if controller and method not found.
+        if(isset($uri[0])===false){
+            return;
+        }
+        
         $controller_name = $uri[0];
 		Doo::conf()->AUTO_VIEW_RENDER_PATH = array($controller_name);
 
