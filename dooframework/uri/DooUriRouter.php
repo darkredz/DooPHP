@@ -598,10 +598,14 @@ class DooUriRouter{
 
         //match alias for autoroutes
         if($autoroute_alias!==null){
-            $alias = urldecode($uri[0]);
+            $alias = '/'.urldecode($uri[0]);
             
             if(isset($autoroute_alias[$alias])===true){
-                $controller_name = $autoroute_alias[$alias];
+                $convertname = $controller_name = $autoroute_alias[$alias];
+                
+                //camel case to dash for controller
+                $convertname{0} = strtolower($convertname[0]);
+                Doo::conf()->AUTO_VIEW_RENDER_PATH[0] = strtolower(preg_replace('/([A-Z])/', '-$1', substr($convertname, 0, -10)));
             }
             else{                
                 $uridecode = urldecode(implode('/', $uri));
@@ -611,18 +615,18 @@ class DooUriRouter{
                 //escape string and convert to regex pattern to match with URI, (alias1|alias 2|alias3\/alias3_2)
                 $aliaskey = str_replace("\t", '|', preg_quote( implode("\t", $aliaskey), '/') );
 
-                //use regex to eliminate looping through the list of alias keys
-                #echo "<h3>$uridecode/</h3>";
-                #echo '/^('. $aliaskey .')\//';
-                #echo "<h3>$aliaskey</h3>";
-                
-                if( preg_match('/^('. $aliaskey .')\//', $uridecode.'/', $matchedKey) > 0){                    
+                //use regex to eliminate looping through the list of alias keys                
+                if( preg_match('/^('. $aliaskey .')\//', '/'.$uridecode.'/', $matchedKey) > 0){                    
                     //key of the matched autoroute alias
                     $r = $matchedKey[1];
-                    $controller_name = $autoroute_alias[$r];
+                    $convertname = $controller_name = $autoroute_alias[$r];
+
+                    //camel case to dash for controller
+                    $convertname{0} = strtolower($convertname[0]);
+                    Doo::conf()->AUTO_VIEW_RENDER_PATH[0] = strtolower(preg_replace('/([A-Z])/', '-$1', substr($convertname, 0, -10)));
                     
                     //explode and parse the method name + parameters
-                    $uridecode = explode('/', substr($uridecode, strlen($r)+1));
+                    $uridecode = explode('/', substr($uridecode, strlen($r)));
                     $method_name = $uridecode[0];
                     
                     if(empty($method_name)===true){
@@ -634,6 +638,7 @@ class DooUriRouter{
                             $params=null;
                         }
                     }
+                    Doo::conf()->AUTO_VIEW_RENDER_PATH[1] = $method_name;
                 }
             }
         }        
