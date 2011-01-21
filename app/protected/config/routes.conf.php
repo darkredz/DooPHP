@@ -24,13 +24,13 @@
  * If you need to catch unlimited parameters at the end of the url, eg. http://localhost/paramA/paramB/param1/param2/param.../.../..
  * Use the key 'catchall': $route['*']['catchall']['/:first'] = array('TestController', 'showAllParams');
  * 
-  * If you have placed your controllers in a sub folder, eg. /protected/admin/EditStuffController.php
+ * If you have placed your controllers in a sub folder, eg. /protected/admin/EditStuffController.php
  * $route['*']['/'] = array('admin/EditStuffController', 'action');
  * 
-  * If you want a module to be publicly accessed (without using Doo::app()->getModule() ) , use [module name] ,   eg. /protected/module/forum/PostController.php
+ * If you want a module to be publicly accessed (without using Doo::app()->getModule() ) , use [module name] ,   eg. /protected/module/forum/PostController.php
  * $route['*']['/'] = array('[forum]PostController', 'action');
  * 
-  * If you create subfolders in a module,  eg. /protected/module/forum/post/ListController.php, the module here is forum, subfolder is post
+ * If you create subfolders in a module,  eg. /protected/module/forum/post/ListController.php, the module here is forum, subfolder is post
  * $route['*']['/'] = array('[forum]post/PostController', 'action');
  *
  * Aliasing give you an option to access the action method/controller through a different URL. This is useful when you need a different url than the controller class name.
@@ -40,8 +40,11 @@
  * $route['autoroute_alias']['/company/client'] = 'ClientController';
  * 
  * With the definition above, it allows user to access the same controller::method with the following URLs:
- * http://localhost/customer/new
  * http://localhost/company/client/new
+ *
+ * To define alias for a Controller inside a module, you may use an array:
+ * $route['autoroute_alias']['/customer'] = array('controller'=>'ClientController', 'module'=>'example');
+ * $route['autoroute_alias']['/company/client'] = array('controller'=>'ClientController', 'module'=>'example');
  */
  
 $route['*']['/'] = array('MainController', 'index');
