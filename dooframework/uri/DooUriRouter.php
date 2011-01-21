@@ -552,12 +552,12 @@ class DooUriRouter{
             $module = $uri[0];
             array_shift($uri);
         }
-        
+
         //if controller and method not found.
         if(isset($uri[0])===false){
             return;
         }
-        
+
         $controller_name = $uri[0];
 		Doo::conf()->AUTO_VIEW_RENDER_PATH = array($controller_name);
 
@@ -604,36 +604,54 @@ class DooUriRouter{
         //match alias for autoroutes
         if($autoroute_alias!==null){
             $alias = '/'.urldecode($uri[0]);
-            
+
             if(isset($autoroute_alias[$alias])===true){
                 $convertname = $controller_name = $autoroute_alias[$alias];
-                
+
+				//if alias defined as array('controller'=>'TestController', 'module'=>'example')
+				if(is_array($convertname)===true){
+					$controller_name = $controller_name['controller'];
+					if(isset($convertname['module'])===true){
+						$module = $convertname['module'];
+					}
+					$convertname = $controller_name;
+				}
+
                 //camel case to dash for controller
                 $convertname{0} = strtolower($convertname[0]);
                 Doo::conf()->AUTO_VIEW_RENDER_PATH[0] = strtolower(preg_replace('/([A-Z])/', '-$1', substr($convertname, 0, -10)));
             }
-            else{                
+            else{
                 $uridecode = urldecode(implode('/', $uri));
 
                 $aliaskey = array_keys($autoroute_alias);
-                
+
                 //escape string and convert to regex pattern to match with URI, (alias1|alias 2|alias3\/alias3_2)
                 $aliaskey = str_replace("\t", '|', preg_quote( implode("\t", $aliaskey), '/') );
 
-                //use regex to eliminate looping through the list of alias keys                
-                if( preg_match('/^('. $aliaskey .')\//', '/'.$uridecode.'/', $matchedKey) > 0){                    
+                //use regex to eliminate looping through the list of alias keys
+                if( preg_match('/^('. $aliaskey .')\//', '/'.$uridecode.'/', $matchedKey) > 0){
                     //key of the matched autoroute alias
                     $r = $matchedKey[1];
                     $convertname = $controller_name = $autoroute_alias[$r];
 
+					//if alias defined as array('controller'=>'TestController', 'module'=>'example')
+					if(is_array($convertname)===true){
+						$controller_name = $controller_name['controller'];
+						if(isset($convertname['module'])===true){
+							$module = $convertname['module'];
+						}
+						$convertname = $controller_name;
+					}
+
                     //camel case to dash for controller
                     $convertname{0} = strtolower($convertname[0]);
                     Doo::conf()->AUTO_VIEW_RENDER_PATH[0] = strtolower(preg_replace('/([A-Z])/', '-$1', substr($convertname, 0, -10)));
-                    
+
                     //explode and parse the method name + parameters
                     $uridecode = explode('/', substr($uridecode, strlen($r)));
                     $method_name = $uridecode[0];
-                    
+
                     if(empty($method_name)===true){
                         $method_name = 'index';
                     }else{
@@ -642,11 +660,22 @@ class DooUriRouter{
                         }else{
                             $params=null;
                         }
+						//controller name can't start with a -, and it can't have more than 1 -
+						if( strpos($method_name, '-')===0 || strpos($method_name, '--')!==false ){
+							return;
+						}
+
+						//if - detected, make method name camelcase
+						if( strpos($method_name, '-') !== false ){
+							//$method_name = lcfirst( str_replace(' ', '', ucwords( str_replace('-', ' ', $method_name) ) ) );
+							$method_name =  str_replace(' ', '', ucwords( str_replace('-', ' ', $method_name) ) ) ;
+							$method_name{0} = strtolower($method_name{0});
+						}
                     }
                     Doo::conf()->AUTO_VIEW_RENDER_PATH[1] = $method_name;
                 }
             }
-        }        
+        }
 
         return array($controller_name, $method_name, $params, $module);
     }
