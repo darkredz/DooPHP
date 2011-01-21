@@ -71,14 +71,66 @@
  * </code>
  * </p>
  *
- * <p>If you do not want case sensetive routing you can force all routes to lowercase. Note this will also result in
+ * <p>If you do not want case sensitive routing you can force all routes to lowercase. Note this will also result in
  * All parmeters being converted to lowercase as well.
  * <code>
  * $route['force_lowercase'] = true;	// Setting this to false or not defining it will keep routes case sensetive.
  * </code>
  * </p>
  *
+ * <p>If you have your controller file name different from its class name, eg. home.php HomeController
+ * <code>
+ * $route['*']['/'] = array('home', 'index', 'className'=>'HomeController');
+ * </code></p>
  *
+ * <p>If you need to reverse generate URL based on route ID with DooUrlBuilder in template view, please defined the id along with the routes
+ * <code>
+ * $route['*']['/'] = array('HomeController', 'index', 'id'=>'home');
+ * </code></p>
+ *
+ * <p>If you need dynamic routes on root domain, such as http://facebook.com/username
+ * Use the key 'root':
+ * <code>
+ * $route['*']['root']['/:username'] = array('UserController', 'showProfile');
+ * </code></p>
+ *
+ * <p>If you need to catch unlimited parameters at the end of the url, eg. http://localhost/paramA/paramB/param1/param2/param.../.../..
+ * Use the key 'catchall':
+ * <code>
+ * $route['*']['catchall']['/:first'] = array('TestController', 'showAllParams');
+ * </code></p>
+ *
+ * <p>If you have placed your controllers in a sub folder, eg. /protected/admin/EditStuffController.php
+ * <code>
+ * $route['*']['/'] = array('admin/EditStuffController', 'action');
+ * </code></p>
+ *
+ * <p>If you want a module to be publicly accessed (without using Doo::app()->getModule() ) , use [module name] ,   eg. /protected/module/forum/PostController.php
+ * <code>
+ * $route['*']['/'] = array('[forum]PostController', 'action');
+ * </code></p>
+ *
+ * <p>If you create subfolders in a module,  eg. /protected/module/forum/post/ListController.php, the module here is forum, subfolder is post
+ * <code>
+ * $route['*']['/'] = array('[forum]post/PostController', 'action');
+ * </code></p>
+ *
+ * <p>Aliasing give you an option to access the action method/controller through a different URL. This is useful when you need a different url than the controller class name.
+ * For instance, you have a ClientController::new() . By default, you can access via http://localhost/client/new
+ * <code>
+ * $route['autoroute_alias']['/customer'] = 'ClientController';
+ * $route['autoroute_alias']['/company/client'] = 'ClientController';
+ * </code>
+ *
+ * With the definition above, it allows user to access the same controller::method with the following URLs:
+ * http://localhost/company/client/new
+ *
+ * To define alias for a Controller inside a module, you may use an array:
+ * <code>
+ * $route['autoroute_alias']['/customer'] = array('controller'=>'ClientController', 'module'=>'example');
+ * $route['autoroute_alias']['/company/client'] = array('controller'=>'ClientController', 'module'=>'example');
+ * </code>
+ * </p>
  * <p>See http://doophp.com/doc/guide/uri-routing for information in configuring Routes</p>
  *
  * @author Leng Sheng Hong <darkredz@gmail.com>
