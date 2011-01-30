@@ -39,6 +39,14 @@ class DooModelGen{
     }
     
     /**
+     * Use DooModelGen::genMySQL() instead
+     * @deprecated deprecated since version 1.3
+     */
+	public static function gen_mysql($comments=true, $vrules=true, $extends='DooModel', $createBase=true, $baseSuffix='Base', $chmod=null) {
+        self::genMySQL($comments, $vrules, $extends, $createBase, $baseSuffix, $chmod);
+    }
+    
+    /**
      * Generates Model class files from a MySQL database
      * @param bool $comments Generate comments along with the Model class
      * @param bool $vrules Generate validation rules along with the Model class
@@ -47,7 +55,7 @@ class DooModelGen{
      * @param string $baseSuffix Suffix string for the base model.
      * @param int $chmod Chmod for file manager
      */
-	public static function gen_mysql($comments=true, $vrules=true, $extends='', $createBase=false, $baseSuffix='Base', $chmod=null) {
+	public static function genMySQL($comments=true, $vrules=true, $extends='DooModel', $createBase=true, $baseSuffix='Base', $chmod=null) {
 		Doo::loadHelper('DooFile');
                 if($chmod===null){
                     $fileManager = new DooFile();
@@ -221,6 +229,16 @@ class DooModelGen{
 		echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;color:#fff;\">Total $total file(s) generated.</span></body></html>";
 	}
 	
+    
+    
+    /**
+     * Use DooModelGen::genSqlite() instead
+     * @deprecated deprecated since version 1.3
+     */
+    public static function gen_sqlite($extends='', $createBase=false, $addmaps=false, $filenameModelPrefix = ''){
+        self::genSqlite($extends, $createBase, $addmaps, $filenameModelPrefix);
+    }
+    
     /**
      * Generates Model class files from a SQLite database
      * @param string $extends make Model class to extend DooModel or DooSmartModel
@@ -228,7 +246,7 @@ class DooModelGen{
      * @param bool $addmaps Writes table relation map in Model class analyze with foreign keys available (You do not need to define in the maps in db.conf.php) 
      * @param string $filenameModelPrefix Add a prefix for the model class name
      */
-    public static function gen_sqlite($extends='', $createBase=false, $addmaps=false, $filenameModelPrefix = ''){
+    public static function genSqlite($extends='', $createBase=false, $addmaps=false, $filenameModelPrefix = ''){
         
 		Doo::loadHelper('DooFile');
 		$fileManager = new DooFile(0777);
@@ -363,7 +381,15 @@ class DooModelGen{
         echo "<span style=\"font-size:100%;font-family: 'Courier New', Courier, monospace;color:#fff;\">Total " . $total . " file(s) generated.</span></body></html>";
     }    
     
+    /**
+     * Use DooModelGen::genPgSQL() instead
+     * @deprecated deprecated since version 1.3
+     */
     public static function gen_pgsql(){
+        self::genPgSQL(); 
+    }
+    
+    public static function genPgSQL(){
         
 		Doo::loadHelper('DooFile');
 		$fileManager = new DooFile(0777);

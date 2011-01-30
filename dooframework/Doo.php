@@ -46,28 +46,22 @@ class Doo{
     /**
      * @return DooWebApp the application singleton, auto create if the singleton has not been created yet.
      */
-    public static function app($class = 'DooWebApp'){
+    public static function app(){
         if(self::$_app===NULL){
-			if (is_object($class)) {	// Likely to drop this after some further development! (RichardM)
-				self::$_app = $class;
-			} else {
-				self::loadCore('app/' . $class);
-				self::$_app = new $class;
-			}
+            self::loadCore('app/DooWebApp');
+            self::$_app = new DooWebApp;
         }
         return self::$_app;
     }
 
     /**
-	 * @param $class the class to use for ACL. Can be DooAcl or DooRbAcl
+	 * @param string $class the class to use for ACL. Can be DooAcl or DooRbAcl
      * @return DooAcl|DooRbAcl the application ACL singleton, auto create if the singleton has not been created yet.
      */
     public static function acl($class = 'DooAcl'){
         if(self::$_acl===NULL){
-			if (is_string($class)) {
-				self::loadCore('auth/' . $class);
-				self::$_acl = new $class;
-			}
+            self::loadCore('auth/' . $class);
+            self::$_acl = new $class;
         }
         return self::$_acl;
     }

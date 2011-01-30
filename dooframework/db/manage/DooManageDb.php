@@ -118,7 +118,7 @@ abstract class DooManageDb {
 	protected $pdo = null;
 
 	/**
-     * Enable/disable SQL tracking, to view SQL which has been queried, use show_sql()
+     * Enable/disable SQL tracking, to view SQL which has been queried, use showSQL()
      * @var bool
      */
 	private $sqlTracking=false;

@@ -222,7 +222,7 @@ class DooLog{
 		$log = array("Begin SQL Profiling $token", 8, $category, microtime(true));
 		$this->_logs[] = $log;
 		$this->_profiles[$token] = $log;
-        $query_index = Doo::db()->get_query_count();
+        $query_index = Doo::db()->getQueryCount();
         $this->_profiles[$token]['sqlstart'] = ($query_index<0)?0:$query_index;
 		$this->_profiles[$token]['startmem'] = $this->memory_used();
 	}
@@ -235,7 +235,7 @@ class DooLog{
 		$log = $this->_profiles[$token];
         $log[0] = "End SQL Profiling $token";
 		$this->_logs[] = $log;
-        if($sqls = Doo::db()->show_sql())
+        if($sqls = Doo::db()->showSQL())
             $this->_profiles[$token]['sql'] = implode("\n\r", array_slice($sqls, $this->_profiles[$token]['sqlstart']));
         else
             $this->_profiles[$token]['sql'] = '';

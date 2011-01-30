@@ -230,8 +230,16 @@ class DooModel{
      * @param array $data Array of data (keys and values) to be insert
      * @return int The inserted record's Id
      */
+    public function insertAttributes($data){
+        return Doo::db()->insertAttributes($this, $data);
+    }
+    
+    /**
+     * Use insertAttributes() instead
+     * @deprecated deprecated since version 1.3
+     */
     public function insert_attributes($data){
-        return Doo::db()->insert_attributes($this, $data);
+        return $this->insertAttributes($data);
     }
 
     /**
@@ -332,8 +340,16 @@ class DooModel{
      * @param array $data Array of data (keys and values) to be insert
      * @return int The inserted record's Id
      */
-    public static function _insert_attributes($model, $data){
+    public static function _insertAttributes($model, $data){
         return Doo::db()->insert_attributes($model, $data);
+    }
+    
+    /**
+     * Use DooModel::_insertAttributes() instead.
+     * @deprecated deprecated since version 1.3
+     */
+    public static function _insert_attributes($model, $data){
+        return Doo::db()->insertAttributes($model, $data);
     }
 
     /**

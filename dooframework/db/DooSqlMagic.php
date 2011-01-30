@@ -50,7 +50,7 @@ class DooSqlMagic {
     public $check_model_exist=true;
 
     /**
-     * Enable/disable SQL tracking, to view SQL which has been queried, use show_sql()
+     * Enable/disable SQL tracking, to view SQL which has been queried, use showSQL()
      * @var bool
      */
     public $sql_tracking=false;
@@ -317,18 +317,35 @@ class DooSqlMagic {
     }
 
     /**
-     * Retrieve a list of executed SQL queries
+     * Use showSQL() instead.
+     * @deprecated deprecated since version 1.3
      * @return array
      */
     public function show_sql(){
+        return $this->showSQL();
+    }
+
+    /**
+     * Retrieve a list of executed SQL queries
+     * @return array
+     */
+    public function showSQL(){
         return $this->sql_list;
     }
 
     /**
+     * Use getQueryCount() instead
+     * @deprecated deprecated since version 1.3
+     */
+    public function get_query_count(){
+        return $this->getQueryCount();
+    }
+    
+    /**
      * Get the number of queries executed
      * @return int
      */
-    public function get_query_count(){
+    public function getQueryCount(){
         return sizeof($this->sql_list);
     }
 
@@ -872,9 +889,9 @@ class DooSqlMagic {
         //No need to match if it's a m to m relationship
         if(isset($opt['match']) && !($mtype=='has_many' && $rtype=='has_many'))
             if($opt['match']==true)
-                self::add_where_not_null($sqladd['where'], "{$relatedmodel->_table}.{$rparams['foreign_key']}", "{$model->_table}.{$mparams['foreign_key']}");
+                self::addWhereNotNull($sqladd['where'], "{$relatedmodel->_table}.{$rparams['foreign_key']}", "{$model->_table}.{$mparams['foreign_key']}");
             elseif($opt['match']==false)
-                self::add_where_is_null($sqladd['where'], "{$relatedmodel->_table}.{$rparams['foreign_key']}", "{$model->_table}.{$mparams['foreign_key']}");
+                self::addWhereIsNull($sqladd['where'], "{$relatedmodel->_table}.{$rparams['foreign_key']}", "{$model->_table}.{$mparams['foreign_key']}");
 
 
         //need to seperate the related model vars from the caller model, and add it as a Caller model's property
@@ -1902,12 +1919,23 @@ class DooSqlMagic {
     }
 
     /**
-     * Adds a new record with a list of keys & values (assoc array) (Prepares and execute the INSERT statements)
+     * Use insertAttributes() instead
+     * @deprecated deprecated since version 1.3
      * @param string|object $model The model object to be insert.
      * @param array Array of data (keys and values) to be insert
      * @return int The inserted record's Id
      */
     public function insert_attributes($model, $data){
+        return $this->insertAttributes($model, $data);
+    }
+    
+    /**
+     * Adds a new record with a list of keys & values (assoc array) (Prepares and execute the INSERT statements)
+     * @param string|object $model The model object to be insert.
+     * @param array Array of data (keys and values) to be insert
+     * @return int The inserted record's Id
+     */
+    public function insertAttributes($model, $data){
         if(is_string($model)){
             $model = Doo::loadModel($model,true);
             $table = $model->_table;
@@ -2308,7 +2336,7 @@ class DooSqlMagic {
         return array($rtype, $n);
     }
 
-    protected function auto_load($class_name){
+    protected function autoload($class_name){
         if($this->autoload){
             if($this->check_model_exist){
                 if(file_exists(Doo::conf()->MODEL_PATH . "$class_name.php")){
@@ -2322,8 +2350,7 @@ class DooSqlMagic {
         }
     }
 
-
-    protected static function add_where_not_null(&$where, $relatedKey, $modelKey){
+    protected static function addWhereNotNull(&$where, $relatedKey, $modelKey){
         if(empty($where)){
             $where = "WHERE ($relatedKey IS NOT NULL AND $modelKey IS NOT NULL)";
         }else{
@@ -2331,7 +2358,7 @@ class DooSqlMagic {
         }
     }
 
-    protected static function add_where_is_null(&$where, $relatedKey, $modelKey){
+    protected static function addWhereIsNull(&$where, $relatedKey, $modelKey){
         if(empty($where)){
             $where = "WHERE ($relatedKey IS NULL OR $modelKey IS NULL)";
         }else{

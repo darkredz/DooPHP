@@ -108,11 +108,19 @@ class DooController {
     protected $_view;
 
     /**
-     * Set PUT request variables in a controller. This method is to be used by the main web app class.
+     * Use initPutVars() instead
+     * @deprecated deprecated since version 1.3
      */
     public function init_put_vars(){
         parse_str(file_get_contents('php://input'), $this->puts);
     }
+    
+    /**
+     * Set PUT request variables in a controller. This method is to be used by the main web app class.
+     */
+    public function initPutVars(){
+        parse_str(file_get_contents('php://input'), $this->puts);
+    }    
 
     /**
      * The loader singleton, auto create if the singleton has not been created yet.
@@ -242,13 +250,22 @@ class DooController {
     }
 
     /**
+     * Use acceptType() instead
+     * @deprecated deprecated since version 1.3
+     * @return string Client accept type
+     */
+    public function accept_type(){
+        return $this->acceptType();
+    }
+
+    /**
      * Get the client specified accept type from the header sent
      *
      * <p>Instead of appending a extension name like '.json' to a URL,
      * clients can use 'Accept: application/json' for RESTful APIs.</p>
      * @return string Client accept type
      */
-    public function accept_type(){
+    public function acceptType(){
         $type = array(
             '*/*'=>'*',
             'html'=>'text/html,application/xhtml+xml',
@@ -412,7 +429,7 @@ class DooController {
      * Check if the connection is a SSL connection
      * @return bool determined if it is a SSL connection
      */
-    public function is_SSL(){
+    public function isSSL(){
         if(!isset($_SERVER['HTTPS']))
             return FALSE;
 
@@ -429,6 +446,14 @@ class DooController {
             return TRUE;
         }
         return FALSE;
+    }
+    
+    /**
+     * Use isSSL() instead
+     * @deprecated deprecated since version 1.3
+     */
+    public function is_SSL(){
+        return $this->isSSL();
     }
 
     /**

@@ -36,7 +36,7 @@ class MainController extends DooController{
         //echo '<h1>'. Doo::cache('php')->get('foodtotal') .'</h1>';
 
 
-        print_r(  Food::getById_first(6) );
+        print_r(  Food::getById__first(6) );
 
 
         //$food->id = 14;
@@ -45,17 +45,17 @@ class MainController extends DooController{
 
         //print_r( Food::_find($food) );
 
-        //print_r( $food->getById_location_first(6, 'Malaysia') );
+        //print_r( $food->getById_location__first(6, 'Malaysia') );
         //print_r( $food->getById_location(6, 'Malaysia', array('limit'=>1)) );
         //print_r( $food->relateFoodType($food, array('limit'=>'first')) );
         //print_r( $food->relateFoodType($food) );
-        //print_r( $food->relateFoodType_first($food) );
+        //print_r( $food->relateFoodType__first($food) );
 
-        //print_r( Food::getById_location_first(6, 'Malaysia') );
-        //print_r( Food::getById_location(6, 'Malaysia') );
-        //print_r( Food::getById_first(6) );
+        //print_r( Food::getById__location__first(6, 'Malaysia') );
+        //print_r( Food::getById__location(6, 'Malaysia') );
+        //print_r( Food::getById__first(6) );
         //print_r( Food::getByLocation('Malaysia') );
-        //print_r( Food::relateFoodType_first($food) );
+        //print_r( Food::relateFoodType__first($food) );
         //print_r( Food::relateFoodType() );
         //print_r( Food::relateFoodType_first() );
         //print_r( Food::_relate('', 'FoodType') );
@@ -75,13 +75,12 @@ class MainController extends DooController{
 
         # If no SQL is displayed, it means that the data are read from cache.
         # And of course your Model have to extend DooSmartModel
-        print_r(Doo::db()->show_sql());
+        print_r(Doo::db()->showSQL());
     }
 
     public function gen_models(){
         Doo::loadCore('db/DooModelGen');
-        $gen = new DooModelGen;
-        $gen->gen_mysql();
+        DooModelGen::genMySQL();
     }
 
     public function url(){

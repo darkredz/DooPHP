@@ -43,7 +43,7 @@ class MainController extends DooController{
 	
     public function gen_model(){
         Doo::loadCore('db/DooModelGen');
-        DooModelGen::gen_mysql();
+        DooModelGen::genMySQL();
     }
 
 }

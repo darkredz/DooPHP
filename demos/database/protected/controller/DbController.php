@@ -14,7 +14,7 @@ class DbController extends DooController{
     public function allFood(){
         $data['printr'] = Doo::db()->find('Food');
         $data['title'] = 'All Food in DB';
-        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->show_sql()) .'</pre>';
+        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->showSQL()) .'</pre>';
         $data['baseurl'] = Doo::conf()->APP_URL;
         $this->view()->render('template', $data);
     }
@@ -22,7 +22,7 @@ class DbController extends DooController{
     public function all_food_with_type(){
         $data['printr'] = Doo::db()->relate('Food', 'FoodType');
         $data['title'] = 'All Food with FoodType in DB';
-        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->show_sql()) .'</pre>';
+        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->showSQL()) .'</pre>';
         $data['baseurl'] = Doo::conf()->APP_URL;
         $this->view()->render('template', $data);
     }
@@ -30,7 +30,7 @@ class DbController extends DooController{
     public function foodtype_with_its_food(){
         $data['printr'] = Doo::db()->relate('FoodType','Food');
         $data['title'] = 'All FoodType with its Food list in DB';
-        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->show_sql()) .'</pre>';
+        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->showSQL()) .'</pre>';
         $data['baseurl'] = Doo::conf()->APP_URL;
         $this->view()->render('template', $data);
     }
@@ -38,7 +38,7 @@ class DbController extends DooController{
     public function foodtype_with_its_food_matched(){
         $data['printr'] = Doo::db()->relate('FoodType','Food', array('match'=>true));
         $data['title'] = 'All FoodType with its Food list in DB';
-        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->show_sql()) .'</pre>';
+        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->showSQL()) .'</pre>';
         $data['baseurl'] = Doo::conf()->APP_URL;
         $this->view()->render('template', $data);
     }
@@ -56,12 +56,12 @@ class DbController extends DooController{
         }catch(Exception $err){
             //to debug if there's any SQL error
             echo '<pre>';
-            print_r( Doo::db()->show_sql() );
+            print_r( Doo::db()->showSQL() );
             print_r($ee);
             exit;
         }
         $data['title'] = 'Food with FoodType by food name in DB';
-        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->show_sql()) .'</pre>';
+        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->showSQL()) .'</pre>';
         $data['baseurl'] = Doo::conf()->APP_URL;
         $this->view()->render('template', $data);
     }
@@ -79,7 +79,7 @@ class DbController extends DooController{
 
         $data['printr'] = $food->get_recipe();
         $data['title'] = 'Recipe by food name in DB';
-        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->show_sql()) .'</pre>';
+        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->showSQL()) .'</pre>';
         $data['baseurl'] = Doo::conf()->APP_URL;
         $this->view()->render('template', $data);
     }
@@ -95,7 +95,7 @@ class DbController extends DooController{
 
         $data['printr'] = $food;
         $data['title'] = 'Recipe by food id in DB';
-        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->show_sql()) .'</pre>';
+        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->showSQL()) .'</pre>';
         $data['baseurl'] = Doo::conf()->APP_URL;
         $this->view()->render('template', $data);
     }
@@ -113,7 +113,7 @@ class DbController extends DooController{
 
         $data['printr'] = $food_with_articles;
         $data['title'] = 'Food with Articles by food name in DB';
-        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->show_sql()) .'</pre>';
+        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->showSQL()) .'</pre>';
         $data['baseurl'] = Doo::conf()->APP_URL;
         $this->view()->render('template', $data);
     }
@@ -135,7 +135,7 @@ class DbController extends DooController{
 
         $data['printr'] = $food_with_articles;
         $data['title'] = 'Food with Articles by food name in DB';
-        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->show_sql()) .'</pre>';
+        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->showSQL()) .'</pre>';
         $data['baseurl'] = Doo::conf()->APP_URL;
         $this->view()->render('template', $data);
     }
@@ -159,7 +159,7 @@ class DbController extends DooController{
 
         $data['printr'] = $food_with_articles;
         $data['title'] = 'Food with Articles by food name in DB';
-        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->show_sql()) .'</pre>';
+        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->showSQL()) .'</pre>';
         $data['baseurl'] = Doo::conf()->APP_URL;
         $this->view()->render('template', $data);
     }
@@ -193,7 +193,7 @@ class DbController extends DooController{
         
         $data['printr'] = $food;
         $data['title'] = 'Food Inserted!';
-        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->show_sql()) .'</pre>';
+        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->showSQL()) .'</pre>';
         $data['baseurl'] = Doo::conf()->APP_URL;
         $this->view()->render('template', $data);
     }
@@ -227,14 +227,14 @@ class DbController extends DooController{
         }catch(Exception $err){
             //to debug if there's any SQL error
             echo '<pre>';
-            print_r( Doo::db()->show_sql() );
+            print_r( Doo::db()->showSQL() );
             print_r($err);
             exit;
         }
 
         $data['printr'] = $food;
         $data['title'] = 'Food Inserted with Ingredient ' . $this->params['ingredient'];
-        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->show_sql()) .'</pre>';
+        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->showSQL()) .'</pre>';
         $data['baseurl'] = Doo::conf()->APP_URL;
         $this->view()->render('template', $data);
     }
@@ -245,12 +245,12 @@ class DbController extends DooController{
         }catch(Exception $err){
             //to debug if there's any SQL error
             echo '<pre>';
-            print_r( Doo::db()->show_sql() );
+            print_r( Doo::db()->showSQL() );
             print_r($err);
             exit;
         }        $data['printr'] = $food;
         $data['title'] = 'Food with Ingredients';
-        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->show_sql()) .'</pre>';
+        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->showSQL()) .'</pre>';
         $data['baseurl'] = Doo::conf()->APP_URL;
         $this->view()->render('template', $data);
     }
@@ -261,12 +261,12 @@ class DbController extends DooController{
         }catch(Exception $err){
             //to debug if there's any SQL error
             echo '<pre>';
-            print_r( Doo::db()->show_sql() );
+            print_r( Doo::db()->showSQL() );
             print_r($err);
             exit;
         }        $data['printr'] = $food;
         $data['title'] = 'Ingredient with Food';
-        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->show_sql()) .'</pre>';
+        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->showSQL()) .'</pre>';
         $data['baseurl'] = Doo::conf()->APP_URL;
         $this->view()->render('template', $data);
     }
@@ -292,7 +292,7 @@ class DbController extends DooController{
 
         $data['printr'] = array($food, $ingredient);
         $data['title'] = 'Food with Ingredients Update';
-        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->show_sql()) .'</pre>';
+        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->showSQL()) .'</pre>';
         $data['baseurl'] = Doo::conf()->APP_URL;
         $this->view()->render('template', $data);
     }
@@ -307,7 +307,7 @@ class DbController extends DooController{
                                                         'limit'=>'first'
             ));
         $data['title'] = 'Food, Food Type and Articles';
-        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->show_sql()) .'</pre>';
+        $data['content'] = 'SQL executed. <pre>'. implode("\n\r", Doo::db()->showSQL()) .'</pre>';
         $data['baseurl'] = Doo::conf()->APP_URL;
         $this->view()->render('template', $data);
     }
