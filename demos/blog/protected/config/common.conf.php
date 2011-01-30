@@ -14,9 +14,12 @@ date_default_timezone_set('Asia/Kuala_Lumpur');
 
 
 //framework use, must defined, user full absolute path and end with / eg. /var/www/project/
-$config['SITE_PATH'] = str_replace('protected\config', '', str_replace('protected/config', '', dirname(__FILE__)));
-$config['BASE_PATH'] = str_replace('demos\blog', 'dooframework', str_replace('demos/blog', 'dooframework', $config['SITE_PATH']));
-$config['APP_MODE'] = 'dev';    //for production mode use 'prod'
+$config['SITE_PATH'] = realpath('..').'/blog/';
+//$config['PROTECTED_FOLDER'] = 'protected/';
+$config['BASE_PATH'] = realpath('../..').'/dooframework/';
+
+//for production mode use 'prod'
+$config['APP_MODE'] = 'dev';
 
 //----------------- optional, if not defined, default settings are optimized for production mode ----------------
 $config['SUBFOLDER'] = str_replace($_SERVER['DOCUMENT_ROOT'], '', str_replace('\\','/',$config['SITE_PATH']));

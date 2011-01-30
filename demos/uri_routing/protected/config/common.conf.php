@@ -12,9 +12,12 @@ date_default_timezone_set('Asia/Kuala_Lumpur');
 
 
 //framework use, must defined
-$config['SITE_PATH'] = str_replace('protected\config', '', str_replace('protected/config', '', dirname(__FILE__)));
-$config['BASE_PATH'] = str_replace('demos\uri_routing', 'dooframework', str_replace('demos/uri_routing', 'dooframework', $config['SITE_PATH']));
-$config['APP_MODE'] = 'dev'; //for production mode use 'prod'
+$config['SITE_PATH'] = realpath('..').'/uri_routing/';
+//$config['PROTECTED_FOLDER'] = 'protected/';
+$config['BASE_PATH'] = realpath('../..').'/dooframework/';
+
+//for production mode use 'prod'
+$config['APP_MODE'] = 'dev';
 
 //----------------- optional, if not defined, default settings are optimized for production mode ----------------
 $config['SUBFOLDER'] = str_replace($_SERVER['DOCUMENT_ROOT'], '', str_replace('\\','/',$config['SITE_PATH']));
