@@ -882,7 +882,7 @@ class DooValidator {
      * @return string
      */
     public function testMaxLength($value, $length=0, $msg=null){
-        if(strlen($value) > $length){
+        if(mb_strlen($value) > $length){
             if($msg!==null) return $msg;
             return "Input cannot be longer than the $length characters.";
         }
