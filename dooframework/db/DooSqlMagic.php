@@ -197,7 +197,7 @@ class DooSqlMagic {
             $this->pdo->commit();
         }
         else{
-            $this->pdo->exec("RELEASE SAVEPOINT LEVEL{$this->transLevel}");
+            $this->pdo->exec("RELEASE SAVEPOINT LEVEL{$this->transactionLevel}");
         }
     }
 
