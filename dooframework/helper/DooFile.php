@@ -19,7 +19,7 @@ class DooFile {
 
     public $chmod;
 
-    public function  __construct($chmod=null) {
+    public function  __construct($chmod=0777) {
         $this->chmod = $chmod;
     }
 

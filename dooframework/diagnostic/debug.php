@@ -100,8 +100,8 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
 		$dmsg = debug_backtrace();
 		$last = array_pop($dmsg);
 		if(isset($last['file'])){
-			$errfile = $last['file'];
-			$errline = $last['line'];
+//			$errfile = $last['file'];
+//			$errline = $last['line'];
 		}else{
 			$errfile = $dmsg[0]['args'][2];
 			$errline = $dmsg[0]['args'][3];

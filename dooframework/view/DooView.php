@@ -385,7 +385,7 @@ class DooView {
         $str = $this->compileTags($compiledLayoutView);
 
 		Doo::loadHelper('DooFile');
-		$fileManager = new DooFile();
+		$fileManager = new DooFile(0777);
 		$fileManager->create($cfilename, $str, 'w+');
 
     }
@@ -405,7 +405,7 @@ class DooView {
         $str = $this->compileTags(file_get_contents($vfilename));
 
 		Doo::loadHelper('DooFile');
-		$fileManager = new DooFile();
+		$fileManager = new DooFile(0777);
 		$fileManager->create($cfilename, $str, 'w+');
     }
 
