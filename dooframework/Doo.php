@@ -349,7 +349,7 @@ class Doo{
      * @param string $classname Class name to be loaded.
      */
     public static function autoload($classname){
-        if(class_exists($classname, false)===True)
+        if( class_exists($classname, false) === true )
 			return;
         
         //app
@@ -424,6 +424,41 @@ class Doo{
         
         if(isset($class[$classname]))
             self::loadCore($class[$classname]);
+        else if(empty(Doo::conf()->AUTOLOAD)===false){
+            if(Doo::conf()->APP_MODE=='dev'){
+                $includeSub = Doo::conf()->AUTOLOAD;
+                $rs = array();
+                foreach($includeSub as $sub){
+                    if(file_exists($sub)===false)
+                        $rs = array_merge($rs, DooFile::getFilePathList(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . $sub . '/') );                
+                    else
+                        $rs = array_merge($rs, DooFile::getFilePathList( $sub . '/') );                
+                }
+
+                $autoloadConfigFolder = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'config/autoload/';
+                
+                $rsExisting = null;
+                
+                if(file_exists($autoloadConfigFolder.'autoload.php')===true){
+                    $rsExisting = include($autoloadConfigFolder.'autoload.php');
+                }
+                
+                if($rs != $rsExisting){
+                    echo 'not same';
+                    if(!file_exists($autoloadConfigFolder)){
+                        mkdir($autoloadConfigFolder);
+                    }
+                    file_put_contents($autoloadConfigFolder.'autoload.php', '<?php return '.var_export($rs, true) . ';');                    
+                }                                
+            }
+            else{
+                $rs = include(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'config/autoload/autoload.php');
+            }
+
+            if( isset($rs[$classname . '.php'])===true ){
+                require_once $rs[$classname . '.php'];
+            }
+        }
     }
 
     /**

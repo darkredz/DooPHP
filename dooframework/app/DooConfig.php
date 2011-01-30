@@ -24,6 +24,13 @@
  * @since 1.0
  */
 class DooConfig{
+    
+    /**
+     * Directories consist of the classes needed in your application.
+     * @var array 
+     */
+    public $AUTOLOAD;
+    
     /**
      * Path to the location of your project directory.eg. /var/www/myproject/
      * @var string

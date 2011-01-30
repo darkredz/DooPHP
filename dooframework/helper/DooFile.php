@@ -261,6 +261,33 @@ class DooFile {
     }
 
     /**
+     * Get a list of files with its path in a directory (recursively)
+     * @param string $path
+     * @return array 
+     */
+    public static function getFilePathList($path){
+        $path = str_replace('\\', '/', $path);
+        if($path[strlen($path)-1] != '/'){
+            $path .= '/';
+        }
+        
+        $handle = opendir($path);
+        $rs = array();
+
+        while (false !== ($file = readdir($handle))){
+            if ($file != '.' && $file != '..' && $file!='.svn'){
+                if (is_dir($path.$file)===true){
+                        $rs = array_merge($rs, self::getFilePathList($path.$file.'/'));
+                }else{
+                    $rs[$file] = $path.$file;
+                }
+            }
+        }
+        closedir($handle);
+        return $rs;
+    }    
+    
+    /**
      * Get a list of folders or files or both in a given path.
      *
      * @param string $path Path to get the list of files/folders
@@ -278,7 +305,7 @@ class DooFile {
 		$filetype = array('.', '..');
 		$name = array();
 
-		$dir = @opendir($path);
+		$dir = opendir($path);
 		if ($dir === false ) {
 			return false;
 		}
