@@ -31,16 +31,16 @@ class DooWebApp{
      * Main function to run the web application
      */
     public function run(){
-        $this->throwHeader( $this->route_to() );
+        $this->throwHeader( $this->routeTo() );
     }
-
-    /**
+    
+     /**
      * Handles the routing process.
      * Auto routing, sub folder, subdomain, sub folder on subdomain are supported.
      * It can be used with or without the <i>index.php</i> in the URI
      * @return mixed HTTP status code such as 404 or URL for redirection
      */
-    public function route_to(){
+    public function routeTo(){
         Doo::loadCore('uri/DooUriRouter');
         $router = new DooUriRouter;
         $routeRs = $router->execute($this->route,Doo::conf()->SUBFOLDER);
@@ -174,7 +174,7 @@ class DooWebApp{
 
         if($is404===true)
             header('HTTP/1.1 404 Not Found');
-        $this->route_to();
+        $this->routeTo();
     }
 
     /**
@@ -225,7 +225,7 @@ class DooWebApp{
                 $_SERVER['REQUEST_URI'] = $moduleUri;
 
             ob_start();
-            $this->route_to();
+            $this->routeTo();
             $data = ob_get_contents();
             ob_end_clean();
             return $data;

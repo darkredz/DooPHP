@@ -674,14 +674,14 @@ class DooModel{
             }
 
             // if end with _first, add 'limit'=>'first' to Option array
-            if( substr($name,-6,strlen($field)) == '_first' ){
-                $field = str_replace('_first', '', $field);
+            if( substr($name,-7,strlen($field)) == '__first' ){
+                $field = str_replace('__first', '', $field);
                 $first['limit'] = 1;
             }
 
             // underscore _ as AND in SQL
-            if(strpos($field, '_')!==false){
-                $field = explode('_', $field);
+            if(strpos($field, '__')!==false){
+                $field = explode('__', $field);
             }
 
             $clsname = self::$className;
@@ -732,8 +732,8 @@ class DooModel{
             $relatedClass = substr($name,6);
 
             // if end with _first, add 'limit'=>'first' to Option array
-            if( substr($name,-6,strlen($relatedClass)) == '_first' ){
-                $relatedClass = str_replace('_first', '', $relatedClass);
+            if( substr($name,-7,strlen($relatedClass)) == '__first' ){
+                $relatedClass = str_replace('__first', '', $relatedClass);
                 $first['limit'] = 'first';
                 if(sizeof($args)===0){
                     $args[0] = $first;

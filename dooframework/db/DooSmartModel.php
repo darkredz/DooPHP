@@ -196,7 +196,7 @@ class DooSmartModel{
             }
         }
         else{
-            if($rs = Doo::cache(self::$cacheMode)->get(Doo::conf()->SITE_PATH . $id)){
+            if($rs = Doo::cache(self::$cacheMode)->get(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_PATH . $id)){
                 if($rs instanceof ArrayObject)
                     return $rs->getArrayCopy();
                 return $rs;
@@ -222,15 +222,15 @@ class DooSmartModel{
             $keysId = Doo::conf(self::$cacheMode)->SITE_PATH . 'mdl_'.self::$className;
             if($keys = Doo::cache(self::$cacheMode)->get($keysId)){
                 $listOfModelCache = $keys->getArrayCopy();
-                $listOfModelCache[] = Doo::conf()->SITE_PATH . $id;
+                $listOfModelCache[] = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_PATH . $id;
             }else{
                 $listOfModelCache = array();
-                $listOfModelCache[] = Doo::conf()->SITE_PATH . $id;
+                $listOfModelCache[] = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_PATH . $id;
             }
             if(is_array($value))
-                Doo::cache(self::$cacheMode)->set(Doo::conf()->SITE_PATH . $id, new ArrayObject($value));
+                Doo::cache(self::$cacheMode)->set(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_PATH . $id, new ArrayObject($value));
             else
-                Doo::cache(self::$cacheMode)->set(Doo::conf()->SITE_PATH . $id, $value);
+                Doo::cache(self::$cacheMode)->set(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_PATH . $id, $value);
             Doo::cache(self::$cacheMode)->set($keysId, new ArrayObject($listOfModelCache));
         }
     }
@@ -257,7 +257,7 @@ class DooSmartModel{
         }
         else{
             //loop and get the list and delete those start with the Model name, then delete them
-            $keysId = Doo::conf(self::$cacheMode)->SITE_PATH . 'mdl_'.self::$className;
+            $keysId = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_PATH . 'mdl_'.self::$className;
             if($keys = Doo::cache(self::$cacheMode)->get($keysId)){
                 $listOfModelCache = $keys->getArrayCopy();
                 foreach($listOfModelCache as $k){
@@ -274,7 +274,7 @@ class DooSmartModel{
             }else{
                 foreach($rmodels as $r){
                     //loop and get the list and delete those start with the Model name, then delete them
-                    $keysId = Doo::conf(self::$cacheMode)->SITE_PATH . 'mdl_'.get_class($r);
+                    $keysId = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_PATH . 'mdl_'.get_class($r);
                     if($keys = Doo::cache(self::$cacheMode)->get($keysId)){
                         $listOfModelCache = $keys->getArrayCopy();
                         foreach($listOfModelCache as $k){
@@ -798,8 +798,8 @@ class DooSmartModel{
         // Food::getById( $id );
         // Food::getById(14);
         // Food::getById(14, array('limit'=>1)) ;
-        // Food::getById_location(14, 'Malaysia') ;
-        // Food::getById_location(14, 'Malaysia', array('limit'=>1)) ;
+        // Food::getById__location(14, 'Malaysia') ;
+        // Food::getById__location(14, 'Malaysia', array('limit'=>1)) ;
         if(strpos($name, 'get')===0){
             if(self::$caseSensitive==false){
                 $field = strtolower( substr($name,5));
@@ -808,14 +808,14 @@ class DooSmartModel{
             }
 
             // if end with _first, add 'limit'=>'first' to Option array
-            if( substr($name,-6,strlen($field)) == '_first' ){
-                $field = str_replace('_first', '', $field);
+            if( substr($name,-7,strlen($field)) == '__first' ){
+                $field = str_replace('__first', '', $field);
                 $first['limit'] = 1;
             }
 
             // underscore _ as AND in SQL
-            if(strpos($field, '_')!==false){
-                $field = explode('_', $field);
+            if(strpos($field, '__')!==false){
+                $field = explode('__', $field);
             }
 
             $clsname = self::$className;
@@ -880,13 +880,13 @@ class DooSmartModel{
         // Food::relateFoodType( $optionsOrObject );  if 1 args, it will be option or object
         // Food::relateFoodType( $food, $options );  if more than 1
         # You can get only one by
-        //$food->relateFoodType_first();    this adds the 'limit'=>'first' to the Options
+        //$food->relateFoodType__first();    this adds the 'limit'=>'first' to the Options
         else if(strpos($name, 'relate')===0){
             $relatedClass = substr($name,6);
 
             // if end with _first, add 'limit'=>'first' to Option array
-            if( substr($name,-6,strlen($relatedClass)) == '_first' ){
-                $relatedClass = str_replace('_first', '', $relatedClass);
+            if( substr($name,-7,strlen($relatedClass)) == '__first' ){
+                $relatedClass = str_replace('__first', '', $relatedClass);
                 $first['limit'] = 'first';
                 if(sizeof($args)===0){
                     $args[0] = $first;
