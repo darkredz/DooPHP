@@ -351,43 +351,77 @@ class Doo{
     public static function autoload($classname){
         if(class_exists($classname, false)===True)
 			return;
-
+        
+        //app
+		$class['DooConfig']      = 'app/DooConfig';
+		$class['DooSiteMagic']   = 'app/DooSiteMagic';
+		$class['DooWebApp']      = 'app/DooWebApp';
+        
+        //auth
+		$class['DooAcl']         = 'auth/DooAcl';
+		$class['DooAuth']        = 'auth/DooAuth';
+		$class['DooDigestAuth']  = 'auth/DooDigestAuth';
+		$class['DooRbAcl']       = 'auth/DooRbAcl';    
+        
+        //cache
+		$class['DooApcCache']            = 'cache/DooApcCache';
+		$class['DooEAcceleratorCache']   = 'cache/DooEAcceleratorCache';
+		$class['DooFileCache']           = 'cache/DooFileCache';
+		$class['DooFrontCache']          = 'cache/DooFrontCache';
+		$class['DooMemCache']            = 'cache/DooMemCache';
+		$class['DooPhpCache']            = 'cache/DooPhpCache';
+		$class['DooXCache']              = 'cache/DooXCache';
+            
+        //controller
 		$class['DooController'] = 'controller/DooController';
-		$class['DooSiteMagic'] = 'app/DooSiteMagic';
-        $class['DooDigestAuth'] = 'auth/DooDigestAuth';
-        $class['DooAuth'] = 'auth/DooAuth';
-        $class['DooAcl'] = 'auth/DooAcl';
-        $class['DooFileCache'] = 'cache/DooFileCache';
-        $class['DooPhpCache'] = 'cache/DooPhpCache';
-        $class['DooFrontCache'] = 'cache/DooFrontCache';
-        $class['DooApcCache'] = 'cache/DooApcCache';
-        $class['DooMemCache'] = 'cache/DooMemCache';
-        $class['DooXCache'] = 'cache/DooXCache';
-        $class['DooEAcceleratorCache'] = 'cache/DooEAcceleratorCache';
-        $class['DooDbExpression'] = 'db/DooDbExpression';
-        $class['DooModelGen'] = 'db/DooModelGen';
-        $class['DooSqlMagic'] = 'db/DooSqlMagic';
-        $class['DooModel'] = 'db/DooModel';
-        $class['DooSmartModel'] = 'db/DooSmartModel';
-        $class['DooMasterSlave'] = 'db/DooMasterSlave';
-        $class['DooRestClient'] = 'helper/DooRestClient';
-        $class['DooUrlBuilder'] = 'helper/DooUrlBuilder';
-        $class['DooTextHelper'] = 'helper/DooTextHelper';
-        $class['DooValidator'] = 'helper/DooValidator';
-        $class['DooForm'] = 'helper/DooForm';
-        $class['DooMailer'] = 'helper/DooMailer';
-        $class['DooPager'] = 'helper/DooPager';
-        $class['DooGdImage'] = 'helper/DooGdImage';
-		$class['DooBenchmark'] = 'helper/DooBenchmark';
-        $class['DooFile'] = 'helper/DooFile';
-		$class['DooTimezone'] = 'helper/DooTimezone';
-        $class['DooLog'] = 'logging/DooLog';
-        $class['DooLoader'] = 'uri/DooLoader';
-        $class['DooView'] = 'view/DooView';
-		$class['DooViewBasic'] = 'view/DooViewBasic';
-		$class['DooSession'] = 'session/DooSession';
+        
+        //db
+		$class['DooDbExpression']    = 'db/DooDbExpression';
+		$class['DooMasterSlave']     = 'db/DooMasterSlave';
+		$class['DooModel']           = 'db/DooModel';
+		$class['DooModelGen']        = 'db/DooModelGen';
+		$class['DooSmartModel']      = 'db/DooSmartModel';
+		$class['DooSqlMagic']        = 'db/DooSqlMagic';
+        
+        //db/manage
+		$class['DooDbUpdater']       = 'db/manage/DooDbUpdater';
+		$class['DooManageDb']        = 'db/manage/DooManageDb';
+		$class['DooManageMySqlDb']   = 'db/manage/adapters/DooManageMySqlDb';
+		$class['DooManagePgSqlDb']   = 'db/manage/adapters/DooManagePgSqlDb';
+		$class['DooManageSqliteDb']  = 'db/manage/adapters/DooManageSqliteDb';
+        
+        //helper
+		$class['DooBenchmark']       = 'helper/DooBenchmark';
+		$class['DooFile']            = 'helper/DooFile';
+		$class['DooFlashMessenger']  = 'helper/DooFlashMessenger';
+		$class['DooForm']            = 'helper/DooForm';
+		$class['DooGdImage']         = 'helper/DooGdImage';
+		$class['DooMailer']          = 'helper/DooMailer';
+		$class['DooPager']           = 'helper/DooPager';
+		$class['DooRestClient']      = 'helper/DooRestClient';
+		$class['DooTextHelper']      = 'helper/DooTextHelper';
+		$class['DooTimezone']        = 'helper/DooTimezone';
+		$class['DooUrlBuilder']      = 'helper/DooUrlBuilder';
+		$class['DooValidator']       = 'helper/DooValidator';
+        
+        //logging
+		$class['DooLog'] = 'logging/DooLog';
+        
+        //session
+		$class['DooCacheSession'] = 'session/DooCacheSession';
+		$class['DooSession']      = 'session/DooSession';      
+        
+        //translate
 		$class['DooTranslator'] = 'translate/DooTranslator';
-
+        
+        //uri
+		$class['DooLoader'] = 'uri/DooLoader';
+		$class['DooUriRouter'] = 'uri/DooUriRouter';
+        
+        //view
+		$class['DooView'] = 'uri/DooView';
+		$class['DooViewBasic'] = 'uri/DooViewBasic';
+        
         if(isset($class[$classname]))
             self::loadCore($class[$classname]);
     }
