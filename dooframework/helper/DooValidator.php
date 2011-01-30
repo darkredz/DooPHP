@@ -135,6 +135,26 @@ class DooValidator {
 	 * Only ensure required fields are non null / accept not null on required
 	 */
 	const REQ_MODE_NULL_ONLY = 'null';
+    
+    /**
+     * Default require message to display field name "first_name is required."
+     */
+    const REQ_MSG_FIELDNAME = 'fieldname';
+    
+    /**
+     * Default require message to display "This is required."
+     */
+    const REQ_MSG_THIS = 'this';
+    
+    /**
+     * Default require message to convert field name with underscore to words. eg(field = first_name). "First name is required."
+     */    
+    const REQ_MSG_UNDERSCORE_TO_SPACE = 'underscore';
+    
+    /**
+     * Default require message to convert field name with camelcase to words. eg(field = firstName). "First name is required."
+     */    
+    const REQ_MSG_CAMELCASE_TO_SPACE = 'camelcase';
 
     /**
      * Validation mode
@@ -147,6 +167,18 @@ class DooValidator {
 	 * @var string empty/null
 	 */
 	public $requireMode = 'nullempty';
+    
+    /**
+     * Default method to generate error message for a required field.
+     * @var string
+     */
+    public $requiredMsgDefaultMethod = 'underscore';
+    
+    /**
+     * Default error message suffix for a required field.
+     * @var string
+     */
+    public $requiredMsgDefaultSuffix = ' field is required';
 
     /**
      * Trim the data fields. The data will be modified.
@@ -264,18 +296,18 @@ class DooValidator {
                         if($customRequireMsg!==null)
                             $errors[$fieldname] = $customRequireMsg;
                         else
-                            $errors[$fieldname] = $fieldname . ' field is required.';
+                            $errors[$fieldname] = $this->getRequiredFieldDefaultMsg($fieldname);
                     }else if($this->checkMode==DooValidator::CHECK_SKIP){
                         if(in_array($fieldname, $optErrorRemove))
                             continue;
                         if($customRequireMsg!==null)
                             return $customRequireMsg;
-                        return $fieldname . ' field is required.';
+                        return $this->getRequiredFieldDefaultMsg($fieldname);
                     }else if($this->checkMode==DooValidator::CHECK_ALL_ONE){
                         if($customRequireMsg!==null)
                             $errors[$fieldname] = $customRequireMsg;
                         else
-                            $errors[$fieldname] = $fieldname . ' field is required.';
+                            $errors[$fieldname] = $this->getRequiredFieldDefaultMsg($fieldname);
                     }
                 }
         }
@@ -341,6 +373,35 @@ class DooValidator {
             }
             return $errors;
         }
+    }
+    
+    /**
+     * Set default settings to display the default error message for required fields
+     * @param type $displayMethod Default error message display method. use: DooValidator::REQ_MSG_UNDERSCORE_TO_SPACE, DooValidator::REQ_MSG_CAMELCASE_TO_SPACE, DooValidator::REQ_MSG_THIS, DooValidator::REQ_MSG_FIELDNAME
+     * @param type $suffix suffix for the error message. Default is ' field is required'
+     */
+    public function setRequiredFieldDefaults( $displayMethod = DooValidator::REQ_MSG_UNDERSCORE_TO_SPACE, $suffix = ' field is required'){
+        $this->requiredMsgDefaultMethod = $displayMethod;
+        $this->requiredMsgDefaultSuffix = $suffix;
+    }
+    
+    /**
+     * Get the default error message for required field
+     * @param string $fieldname Name of the field
+     * @return string Error message
+     */
+    public function getRequiredFieldDefaultMsg($fieldname){
+        if($this->requiredMsgDefaultMethod==DooValidator::REQ_MSG_UNDERSCORE_TO_SPACE)
+            return ucfirst(str_replace('_', ' ', $fieldname)) . $this->requiredMsgDefaultSuffix;
+        
+        if($this->requiredMsgDefaultMethod==DooValidator::REQ_MSG_THIS)
+            return 'This ' . $this->requiredMsgDefaultSuffix;        
+        
+        if($this->requiredMsgDefaultMethod==DooValidator::REQ_MSG_CAMELCASE_TO_SPACE)
+            return ucfirst(strtolower(preg_replace('/([A-Z])/', ' $1', $fieldname))) . $this->requiredMsgDefaultSuffix;
+        
+        if($this->requiredMsgDefaultMethod==DooValidator::REQ_MSG_FIELDNAME)
+            return $fieldname . $this->requiredMsgDefaultSuffix;
     }
 
     public function testOptional($value){}
