@@ -27,6 +27,14 @@ class DooConfig{
     
     /**
      * Directories consist of the classes needed in your application.
+     * <code>
+     * $config['AUTOLOAD'] = array(
+     *                      //internal directories, live in the app
+     *                      'class', 'model', 'module/example/controller', 
+     *                      //external directories, live outside the app
+     *                      '/var/php/library/classes'
+     *                  );
+     * </code>
      * @var array 
      */
     public $AUTOLOAD;
