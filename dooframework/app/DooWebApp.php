@@ -58,11 +58,11 @@ class DooWebApp{
                     require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER_ORI . 'module/'. $moduleName .'/controller/'.$moduleParts[1].'.php';                    
                 }else{
                     require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'module/'. $moduleName .'/controller/'.$moduleParts[1].'.php';                    
+                    Doo::conf()->PROTECTED_FOLDER_ORI = Doo::conf()->PROTECTED_FOLDER;
                 }
                 
                 //set class name
                 $routeRs[0] = $moduleParts[1];
-                Doo::conf()->PROTECTED_FOLDER_ORI = Doo::conf()->PROTECTED_FOLDER;
                 Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI . 'module/'.$moduleName.'/';
             }
 
@@ -183,7 +183,7 @@ class DooWebApp{
     }
 
     /**
-     * Process a module.
+     * Process a module from the main application.
      *
      * <p>This is similar to rerouting to a Controller. The framework offer 3 ways to process and render a module.</p>
      *
@@ -229,10 +229,22 @@ class DooWebApp{
             else
                 $_SERVER['REQUEST_URI'] = $moduleUri;
 
+            $tmp = Doo::conf()->PROTECTED_FOLDER;
+            if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true){
+                Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI;
+                $tmpOri = Doo::conf()->PROTECTED_FOLDER_ORI;
+            }
+            
             ob_start();
             $this->routeTo();
             $data = ob_get_contents();
             ob_end_clean();
+            
+            Doo::conf()->PROTECTED_FOLDER = $tmp;
+            
+            if(isset($tmpOri)===true)
+                Doo::conf()->PROTECTED_FOLDER_ORI = $tmpOri;
+            
             return $data;
         }
         //if Controller name passed in:  Doo::app()->module('admin/SomeController', 'login',  array('nav'=>'home'));
@@ -292,11 +304,11 @@ class DooWebApp{
     }
 
     /**
-     * Advanced version of DooWebApp::module().
+     * Advanced version of DooWebApp::module(). Process a module from the main application or other modules.
      *
      * Module rendered using this method is located in SITE_PATH/PROTECTED_FOLDER/module
      *
-     * @param string $moduleName Name of the module. Folder name.
+     * @param string $moduleName Name of the module folder. To execute Controller/method in the main application, pass a null or empty string value for $moduleName.
      * @param string|array $moduleUri URI or Controller name of the module
      * @param string $action Action to be called
      * @param array $params Parameters to be passed in to the Module
