@@ -261,7 +261,7 @@ class Doo{
      * @return mixed returns NULL by default. If $createObj is TRUE, it creates and return the Object(s) of the class name passed in.
      */
     public static function loadModel($class_name, $createObj=FALSE){
-        return self::load($class_name, self::conf()->MODEL_PATH, $createObj);
+        return self::load($class_name, self::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'model/', $createObj);
     }
 
     /**
@@ -738,26 +738,33 @@ class DooWebApp{
     public function run(){
         $this->throwHeader( $this->routeTo() );
     }
-
-    /**
+    
+     /**
      * Handles the routing process.
      * Auto routing, sub folder, subdomain, sub folder on subdomain are supported.
      * It can be used with or without the <i>index.php</i> in the URI
      * @return mixed HTTP status code such as 404 or URL for redirection
      */
     public function routeTo(){
+        Doo::loadCore('uri/DooUriRouter');
         $router = new DooUriRouter;
         $routeRs = $router->execute($this->route,Doo::conf()->SUBFOLDER);
 
         if($routeRs[0]!==null && $routeRs[1]!==null){
             //dispatch, call Controller class
+            require_once Doo::conf()->BASE_PATH ."controller/DooController.php";
             if($routeRs[0][0]!=='[')
                 require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/{$routeRs[0]}.php";
             else{
                 $moduleParts = explode(']', $routeRs[0]);
                 $moduleName = substr($moduleParts[0],1);
-                require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'module/'. $moduleName .'/controller/'.$moduleParts[1].'.php';
-
+                
+                if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true){
+                    require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER_ORI . 'module/'. $moduleName .'/controller/'.$moduleParts[1].'.php';                    
+                }else{
+                    require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'module/'. $moduleName .'/controller/'.$moduleParts[1].'.php';                    
+                }
+                
                 //set class name
                 $routeRs[0] = $moduleParts[1];
                 Doo::conf()->PROTECTED_FOLDER_ORI = Doo::conf()->PROTECTED_FOLDER;
@@ -818,6 +825,7 @@ class DooWebApp{
             $controller_file = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/{$controller_name}.php";
 
             if(file_exists($controller_file)){
+                require_once Doo::conf()->BASE_PATH ."controller/DooController.php";
                 require_once $controller_file;
 
 				//check if method name exists in controller
@@ -843,7 +851,7 @@ class DooWebApp{
                     $controller->params = $params;
 
                 if($_SERVER['REQUEST_METHOD']==='PUT')
-                    $controller->init_put_vars();
+                    $controller->initPutVars();
 
                 //before run, normally used for ACL auth
 				if($rs = $controller->beforeRun($controller_name, $method_name)){
@@ -1000,11 +1008,25 @@ class DooWebApp{
      * @return string Output of the module
      */
     public function getModule($moduleName, $moduleUri, $action=null, $params=null){
-        Doo::conf()->PROTECTED_FOLDER_ORI = $tmp = Doo::conf()->PROTECTED_FOLDER;
-        Doo::conf()->PROTECTED_FOLDER = $tmp . 'module/'.$moduleName.'/';
-        $result = $this->module($moduleUri, $action, $params);
-        Doo::conf()->PROTECTED_FOLDER = $tmp;
-        Doo::conf()->PROTECTED_FOLDER_ORI = null;
+        if(empty($moduleName)===false){
+            if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===false){
+                Doo::conf()->PROTECTED_FOLDER_ORI = $tmp = Doo::conf()->PROTECTED_FOLDER;
+                Doo::conf()->PROTECTED_FOLDER = $tmp . 'module/'.$moduleName.'/';
+                $result = $this->module($moduleUri, $action, $params);
+                Doo::conf()->PROTECTED_FOLDER = $tmp;
+            }else{
+                $tmp = Doo::conf()->PROTECTED_FOLDER;
+                Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI . 'module/'.$moduleName.'/';
+                $result = $this->module($moduleUri, $action, $params);
+                Doo::conf()->PROTECTED_FOLDER = $tmp;                
+            }
+        }
+        else{
+            $tmp = Doo::conf()->PROTECTED_FOLDER;
+            Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI;
+            $result = $this->module($moduleUri, $action, $params);
+            Doo::conf()->PROTECTED_FOLDER = $tmp;
+        }
         return $result;
     }
 
