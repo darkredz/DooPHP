@@ -262,7 +262,7 @@ class Doo{
      * @return mixed returns NULL by default. If $createObj is TRUE, it creates and return the Object(s) of the class name passed in.
      */
     public static function loadModel($class_name, $createObj=FALSE){
-        return self::load($class_name, self::conf()->MODEL_PATH, $createObj);
+        return self::load($class_name, self::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'model/', $createObj);
     }
 
     /**

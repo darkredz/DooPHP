@@ -53,8 +53,13 @@ class DooWebApp{
             else{
                 $moduleParts = explode(']', $routeRs[0]);
                 $moduleName = substr($moduleParts[0],1);
-                require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'module/'. $moduleName .'/controller/'.$moduleParts[1].'.php';
-
+                
+                if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true){
+                    require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER_ORI . 'module/'. $moduleName .'/controller/'.$moduleParts[1].'.php';                    
+                }else{
+                    require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'module/'. $moduleName .'/controller/'.$moduleParts[1].'.php';                    
+                }
+                
                 //set class name
                 $routeRs[0] = $moduleParts[1];
                 Doo::conf()->PROTECTED_FOLDER_ORI = Doo::conf()->PROTECTED_FOLDER;
@@ -298,11 +303,25 @@ class DooWebApp{
      * @return string Output of the module
      */
     public function getModule($moduleName, $moduleUri, $action=null, $params=null){
-        Doo::conf()->PROTECTED_FOLDER_ORI = $tmp = Doo::conf()->PROTECTED_FOLDER;
-        Doo::conf()->PROTECTED_FOLDER = $tmp . 'module/'.$moduleName.'/';
-        $result = $this->module($moduleUri, $action, $params);
-        Doo::conf()->PROTECTED_FOLDER = $tmp;
-        Doo::conf()->PROTECTED_FOLDER_ORI = null;
+        if(empty($moduleName)===false){
+            if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===false){
+                Doo::conf()->PROTECTED_FOLDER_ORI = $tmp = Doo::conf()->PROTECTED_FOLDER;
+                Doo::conf()->PROTECTED_FOLDER = $tmp . 'module/'.$moduleName.'/';
+                $result = $this->module($moduleUri, $action, $params);
+                Doo::conf()->PROTECTED_FOLDER = $tmp;
+            }else{
+                $tmp = Doo::conf()->PROTECTED_FOLDER;
+                Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI . 'module/'.$moduleName.'/';
+                $result = $this->module($moduleUri, $action, $params);
+                Doo::conf()->PROTECTED_FOLDER = $tmp;                
+            }
+        }
+        else{
+            $tmp = Doo::conf()->PROTECTED_FOLDER;
+            Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI;
+            $result = $this->module($moduleUri, $action, $params);
+            Doo::conf()->PROTECTED_FOLDER = $tmp;
+        }
         return $result;
     }
 
