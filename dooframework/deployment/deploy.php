@@ -32,6 +32,7 @@ class Doo{
     protected static $_acl;
 	protected static $_session;
 	protected static $_translator;
+    protected static $_globalApps;
 
     /**
      * @return DooConfig configuration settings defined in <i>common.conf.php</i>, auto create if the singleton has not been created yet.
@@ -42,13 +43,59 @@ class Doo{
         }
         return self::$_conf;
     }
+    
+    /**
+     * Set the list of Doo applications. 
+     * <code>
+     * //by default, Doo::loadModelFromApp() will load from this application path
+     * $apps['default'] = '/var/path/to/shared/app/'
+     * $apps['app2'] = '/var/path/to/shared/app2/'
+     * $apps['app3'] = '/var/path/to/shared/app3/' 
+     * </code>
+     * @param array $apps 
+     */
+    public static function setGlobalApps($apps){
+        self::$_globalApps = $apps;
+    }
+    
+    /**
+     * Imports the definition of Model class(es) from a Doo application
+     * @param string|array $modelName Name(s) of the Model class to be imported
+     * @param string $appName Name of the application to be loaded from
+     * @param bool $createObj Determined whether to create object(s) of the class
+     * @return mixed returns NULL by default. If $createObj is TRUE, it creates and return the Object(s) of the class name passed in.
+     */
+    public static function loadModelFromApp($modelName, $appName='default', $createObj=false){
+        return self::load($modelName, self::$_globalApps[$appName] . 'model/', $createObj);
+    }
+    
+    /**
+     * Imports the definition of User defined class(es) from a Doo application
+     * @param string|array $className Name(s) of the Model class to be imported
+     * @param string $appName Name of the application to be loaded from
+     * @param bool $createObj Determined whether to create object(s) of the class
+     * @return mixed returns NULL by default. If $createObj is TRUE, it creates and return the Object(s) of the class name passed in.
+     */
+    public static function loadClassFromApp($className, $appName='default', $createObj=false){
+        return self::load($className, self::$_globalApps[$appName] . 'class/', $createObj);
+    }
+    
+    /**
+     * Imports the definition of Controller class from a Doo application
+     * @param string $class_name Name of the class to be imported
+     */
+    public static function loadControllerFromApp($controllerName, $appName='default'){
+        return self::load($controllerName, self::$_globalApps[$appName] . 'controller/');
+    }
 
     /**
-     * @return DooWebApp the application singleton, auto create if the singleton has not been created yet.
+	 * @param string $appType The type of application you want. Options are: 'DooWebApp' and 'DooCliApp'
+     * @return DooWebApp|DooCliApp the application singleton, auto create if the singleton has not been created yet.
      */
-    public static function app(){
+    public static function app($appType='DooWebApp'){
         if(self::$_app===NULL){
-            self::$_app = new DooWebApp;
+            self::loadCore('app/' . $appType);
+            self::$_app = new $appType();
         }
         return self::$_app;
     }
@@ -474,10 +521,9 @@ class Doo{
     }
 
     public static function version(){
-        return '1.3';
+        return '1.3.1';
     }
 }
-
 
 /**
  * DooConfig class file.
