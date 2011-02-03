@@ -44,12 +44,13 @@ class Doo{
     }
 
     /**
-     * @return DooWebApp the application singleton, auto create if the singleton has not been created yet.
+	 * @param string $appType The type of application you want. Options are: 'DooWebApp' and 'DooCliApp'
+     * @return DooWebApp|DooCliApp the application singleton, auto create if the singleton has not been created yet.
      */
-    public static function app(){
+    public static function app($appType='DooWebApp'){
         if(self::$_app===NULL){
-            self::loadCore('app/DooWebApp');
-            self::$_app = new DooWebApp;
+            self::loadCore('app/' . $appType);
+            self::$_app = new $appType();
         }
         return self::$_app;
     }
@@ -262,7 +263,7 @@ class Doo{
      * @return mixed returns NULL by default. If $createObj is TRUE, it creates and return the Object(s) of the class name passed in.
      */
     public static function loadModel($class_name, $createObj=FALSE){
-        return self::load($class_name, self::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'model/', $createObj);
+        return self::load($class_name, self::conf()->MODEL_PATH, $createObj);
     }
 
     /**
