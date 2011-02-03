@@ -465,17 +465,26 @@ class Doo{
         if(isset($class[$classname]))
             self::loadCore($class[$classname]);
         else if(empty(Doo::conf()->AUTOLOAD)===false){
+            if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true){
+                $path = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER_ORI;
+            }else{
+                $path = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER;                            
+            }
+
             if(Doo::conf()->APP_MODE=='dev'){
                 $includeSub = Doo::conf()->AUTOLOAD;
                 $rs = array();
                 foreach($includeSub as $sub){
-                    if(file_exists($sub)===false)
-                        $rs = array_merge($rs, DooFile::getFilePathList(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . $sub . '/') );                
-                    else
+                    if(file_exists($sub)===false){                      
+                        if(file_exists(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER. $sub)===true){
+                            $rs = array_merge($rs, DooFile::getFilePathList(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER. $sub . '/') );                
+                        }
+                    }else{
                         $rs = array_merge($rs, DooFile::getFilePathList( $sub . '/') );                
+                    }
                 }
 
-                $autoloadConfigFolder = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'config/autoload/';
+                $autoloadConfigFolder = $path . 'config/autoload/';
                 
                 $rsExisting = null;
                 
@@ -484,7 +493,6 @@ class Doo{
                 }
                 
                 if($rs != $rsExisting){
-                    echo 'not same';
                     if(!file_exists($autoloadConfigFolder)){
                         mkdir($autoloadConfigFolder);
                     }
@@ -492,12 +500,20 @@ class Doo{
                 }                                
             }
             else{
-                $rs = include(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'config/autoload/autoload.php');
+                $rs = include($path . 'config/autoload/autoload.php');
             }
 
             if( isset($rs[$classname . '.php'])===true ){
                 require_once $rs[$classname . '.php'];
             }
+            //autoloading namespaced class
+            else if(isset(Doo::conf()->APP_NAMESPACE_ID)===true){
+                $pos = strpos($classname, Doo::conf()->APP_NAMESPACE_ID);
+                if($pos===0){
+                    $classname = str_replace('\\','/',substr($classname, strlen(Doo::conf()->APP_NAMESPACE_ID)+1));
+                    require_once $path . $classname . '.php';
+                }
+            }                
         }
     }
 

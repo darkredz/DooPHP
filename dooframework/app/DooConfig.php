@@ -179,6 +179,12 @@ class DooConfig{
      * @var array
      */
     public $MODULES;
+    
+    /**
+     * Unique string ID of the application to be used with PHP 5.3 namespace and auto loading of namespaced classes
+     * @var string
+     */
+    public $APP_NAMESPACE_ID;
 	
     /**
      * Set the configurations. SITE_PATH, BASE_PATH and APP_URL is required
