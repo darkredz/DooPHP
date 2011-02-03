@@ -168,12 +168,6 @@ class DooConfig{
      */
     public $TEMPLATE_GLOBAL_TAGS;
 
-	/**
-	 * Path to model files. Allows you to share models between apps
-	 * @var string
-	 */
-	public $MODEL_PATH;
-    
     /**
      * Defines modules that are allowed to be accessed from an auto route URI.
      * Example:
@@ -206,10 +200,7 @@ class DooConfig{
 
 		if ($this->TEMPLATE_ENGINE===null)
 			$this->TEMPLATE_ENGINE='DooView';
-
-		if ($this->MODEL_PATH===null)
-			$this->MODEL_PATH=$this->SITE_PATH . $this->PROTECTED_FOLDER . 'model/';
-
+        
     }
 
     /**

@@ -261,7 +261,7 @@ class Doo{
      * @return mixed returns NULL by default. If $createObj is TRUE, it creates and return the Object(s) of the class name passed in.
      */
     public static function loadModel($class_name, $createObj=FALSE){
-        return self::load($class_name, self::conf()->MODEL_PATH, $createObj);
+        return self::load($class_name, self::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'model/', $createObj);
     }
 
     /**
@@ -639,12 +639,6 @@ class DooConfig{
      * @var array
      */
     public $TEMPLATE_GLOBAL_TAGS;
-
-	/**
-	 * Path to model files. Allows you to share models between apps
-	 * @var string
-	 */
-	public $MODEL_PATH;
     
     /**
      * Defines modules that are allowed to be accessed from an auto route URI.
@@ -678,10 +672,6 @@ class DooConfig{
 
 		if ($this->TEMPLATE_ENGINE===null)
 			$this->TEMPLATE_ENGINE='DooView';
-
-		if ($this->MODEL_PATH===null)
-			$this->MODEL_PATH=$this->SITE_PATH . $this->PROTECTED_FOLDER . 'model/';
-
     }
 
     /**
