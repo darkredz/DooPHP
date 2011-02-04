@@ -37,17 +37,6 @@
  * @since 1.0
  */
 class DooSqlMagic {
-    /**
-     * Enable/disable auto loading Models
-     * @var bool
-     */
-    public $autoload=true;
-
-    /**
-     * Check existance of Model class before loading it
-     * @var bool
-     */
-    public $check_model_exist=true;
 
     /**
      * Enable/disable SQL tracking, to view SQL which has been queried, use showSQL()
@@ -60,6 +49,12 @@ class DooSqlMagic {
      * @var bool
      */
     public $connected = false;
+    
+    /**
+     * Path to the folder where the model class files are located. Ends with a slash. eg. /var/www/modelfiles/
+     * @var string
+     */
+    public $modelPath;
 
     protected $map;
     protected $dbconfig;
@@ -76,6 +71,26 @@ class DooSqlMagic {
     const JOIN_RIGHT_OUTER = 'RIGHT OUTER';
     const JOIN_INNER = 'INNER';
     const JOIN = '';
+    
+    public function loadModel($className, $createObj=false){
+        if( class_exists($className, false)===true ){
+            if($createObj===true){           
+                return new $className;
+            }
+            return;
+        }
+        
+        if(empty($this->modelPath)===true) {
+            return Doo::loadModel($className, $createObj);
+        }
+        else {
+            require_once $this->modelPath . $className . '.php';
+            
+            if($createObj===true){
+                return new $className;
+            }
+        }
+    }
 
     /**
      * Set the database configuration
@@ -476,7 +491,7 @@ class DooSqlMagic {
             }
         }else{
             //require file only when String is passed in
-            Doo::loadModel($model);
+            $this->loadModel($model);
             $class_name = $model;
             $model = new $model;
         }
@@ -514,7 +529,7 @@ class DooSqlMagic {
 					$fTableName = $fmodel->_table;
 					$fmodel_class = get_class($fmodel);
 				}else{
-					$fmodel = Doo::loadModel($filter['model'], true);
+					$fmodel = $this->loadModel($filter['model'], true);
 					$fTableName = $fmodel->_table;
 					$fmodel_class = $filter['model'];
 				}
@@ -715,7 +730,7 @@ class DooSqlMagic {
             }
         }else{
             //require file only when String is passed in
-            Doo::loadModel($model);
+            $this->loadModel($model);
             $class_name = $model;
             $model = new $model;
         }
@@ -867,7 +882,7 @@ class DooSqlMagic {
 			if($rtype==NULL)
 				throw new SqlMagicException("Model $class_name does not relate to $rmodel", SqlMagicException::RelationNotFound);
 
-			Doo::loadModel($rmodel);
+			$this->loadModel($rmodel);
 			$relatedmodel = new $rmodel;
 			$rtable = $relatedmodel->_table;
 
@@ -1009,7 +1024,7 @@ class DooSqlMagic {
                 $sqladd['include'] = $tmodel->_table;
                 $tmodel_class = get_class($tmodel);
             }else{
-                $tmodel = Doo::loadModel($opt['include'], true);
+                $tmodel = $this->loadModel($opt['include'], true);
                 $sqladd['include'] = $tmodel->_table;
                 $tmodel_class = $opt['include'];
             }
@@ -1079,7 +1094,7 @@ class DooSqlMagic {
 					$fTableName = $fmodel->_table;
 					$fmodel_class = get_class($fmodel);
 				}else{
-					$fmodel = Doo::loadModel($filter['model'], true);
+					$fmodel = $this->loadModel($filter['model'], true);
 					$fTableName = $fmodel->_table;
 					$fmodel_class = $filter['model'];
 				}
@@ -1734,7 +1749,7 @@ class DooSqlMagic {
 
 		$modelObj = $model;
 		if (is_string($modelObj)) {
-			Doo::loadModel($modelObj);
+			$this->loadModel($modelObj);
 			$modelObj = new $modelObj();
 		}
 		$mdl_pk = $modelObj->_primarykey;
@@ -1747,7 +1762,7 @@ class DooSqlMagic {
 				$rOpt['select'] = "$mdl_tbl.$mdl_pk, " . $rOpt['select'];
 			}
 		}
-		$mainR = Doo::db()->relate($model, $rmodel[0], $rOpt);
+		$mainR = $this->relate($model, $rmodel[0], $rOpt);
 
         if($mainR===null)
             return;
@@ -1762,11 +1777,11 @@ class DooSqlMagic {
 			if(isset($rOpt['select'])){
 				$rOpt['select'] = "$mdl_tbl.$mdl_pk, " . $rOpt['select'];
 			}else{
-				Doo::loadModel($rm);
+				$this->loadModel($rm);
                 $newrm = new $rm;
 				$rOpt['select'] = "$mdl_tbl.$mdl_pk, {$newrm->_table}.*";
 			}
-			$r[] = Doo::db()->relate($model, $rm, $rOpt);
+			$r[] = $this->relate($model, $rm, $rOpt);
 		}
 
         $relatedClass = $rmodel;
@@ -1817,7 +1832,7 @@ class DooSqlMagic {
      */
     public function relateExpand($model, $rmodel, $opt=null){
         $rm = $rmodel[0];
-        $mainR = Doo::db()->relate($model, $rm, (isset($opt[$rm])) ? $opt[$rm] : null );
+        $mainR = $this->relate($model, $rm, (isset($opt[$rm])) ? $opt[$rm] : null );
         $id = array();
 
         if($mainR===NULL) return;
@@ -1834,11 +1849,11 @@ class DooSqlMagic {
             }
         }
 
-        Doo::loadModel($rm);
+        $this->loadModel($rm);
         $newrm = new $rm;
 
         $rm2 = $rmodel[1];
-        Doo::loadModel($rm2);
+        $this->loadModel($rm2);
         $newrm2 = new $rm2;
 
         $rOpt = (isset($opt[$rm2])) ? $opt[$rm2] : null;
@@ -1854,7 +1869,7 @@ class DooSqlMagic {
            $rOpt['where'] = $newrm->_table.'.'. $newrm->_primarykey .' IN ('. implode(',', $id) .') ';
         }
 
-        $r = Doo::db()->relate($rm, $rm2, $rOpt);
+        $r = $this->relate($rm, $rm2, $rOpt);
 
 		if (!empty($r)) {
 			foreach($mainR as $k=>$v){
@@ -1937,7 +1952,7 @@ class DooSqlMagic {
      */
     public function insertAttributes($model, $data){
         if(is_string($model)){
-            $model = Doo::loadModel($model,true);
+            $model = $this->loadModel($model,true);
             $table = $model->_table;
         }else{
             $table = $model->_table;
@@ -2117,7 +2132,7 @@ class DooSqlMagic {
      */
     public function update_attributes($model, $data, $opt=NULL){
         if(is_string($model)){
-            $model = Doo::loadModel($model,true);
+            $model = $this->loadModel($model,true);
             $table = $model->_table;
         }else{
             $table = $model->_table;
@@ -2247,7 +2262,7 @@ class DooSqlMagic {
 	 */
 	public function deleteAll($model) {
 		if (!is_object($model)) {
-			Doo::loadModel($model);
+			$this->loadModel($model);
 			$model = new $model;
 		}
 
@@ -2285,7 +2300,7 @@ class DooSqlMagic {
             }
         }else{
             //require file only when String is passed in
-            Doo::loadModel($model);
+            $this->loadModel($model);
             $model = new $model;
         }
 
@@ -2334,20 +2349,6 @@ class DooSqlMagic {
 
         //return relation type, relation params (foreign_key, through)
         return array($rtype, $n);
-    }
-
-    protected function autoload($class_name){
-        if($this->autoload){
-            if($this->check_model_exist){
-                if(file_exists(Doo::conf()->MODEL_PATH . "$class_name.php")){
-                    require_once(Doo::conf()->MODEL_PATH . "$class_name.php");
-                }else{
-                    throw new SqlMagicException("Model $class_name file not found at ".Doo::conf()->MODEL_PATH."$class_name.php", SqlMagicException::UnexpectedClass);
-                }
-            }else{
-                require_once(Doo::conf()->MODEL_PATH . "$class_name.php");
-            }
-        }
     }
 
     protected static function addWhereNotNull(&$where, $relatedKey, $modelKey){
