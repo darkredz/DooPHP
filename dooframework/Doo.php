@@ -389,8 +389,8 @@ class Doo{
      * @param string $classname Class name to be loaded.
      */
     public static function autoload($classname){
-        if( class_exists($classname, false) === true )
-			return;
+//        if( class_exists($classname, false) === true )
+//			return;
         
         //app
 		$class['DooConfig']      = 'app/DooConfig';
@@ -464,56 +464,60 @@ class Doo{
         
         if(isset($class[$classname]))
             self::loadCore($class[$classname]);
-        else if(empty(Doo::conf()->AUTOLOAD)===false){
+        else{ 
             if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true){
                 $path = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER_ORI;
             }else{
                 $path = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER;                            
             }
-
-            if(Doo::conf()->APP_MODE=='dev'){
-                $includeSub = Doo::conf()->AUTOLOAD;
-                $rs = array();
-                foreach($includeSub as $sub){
-                    if(file_exists($sub)===false){                      
-                        if(file_exists(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER. $sub)===true){
-                            $rs = array_merge($rs, DooFile::getFilePathList(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER. $sub . '/') );                
+            
+            if(empty(Doo::conf()->AUTOLOAD)===false){
+                if(Doo::conf()->APP_MODE=='dev'){
+                    $includeSub = Doo::conf()->AUTOLOAD;
+                    $rs = array();
+                    foreach($includeSub as $sub){
+                        if(file_exists($sub)===false){     
+                            if(file_exists($path. $sub)===true){
+                                $rs = array_merge($rs, DooFile::getFilePathList($path. $sub . '/') );                
+                            }
+                        }else{
+                            $rs = array_merge($rs, DooFile::getFilePathList( $sub . '/') );                
                         }
-                    }else{
-                        $rs = array_merge($rs, DooFile::getFilePathList( $sub . '/') );                
                     }
+
+                    $autoloadConfigFolder = $path . 'config/autoload/';
+
+                    $rsExisting = null;
+
+                    if(file_exists($autoloadConfigFolder.'autoload.php')===true){
+                        $rsExisting = include($autoloadConfigFolder.'autoload.php');
+                    }
+
+                    if($rs != $rsExisting){
+                        if(!file_exists($autoloadConfigFolder)){
+                            mkdir($autoloadConfigFolder);
+                        }
+                        file_put_contents($autoloadConfigFolder.'autoload.php', '<?php return '.var_export($rs, true) . ';');                    
+                    }                                
+                }
+                else{
+                    $rs = include($path . 'config/autoload/autoload.php');
                 }
 
-                $autoloadConfigFolder = $path . 'config/autoload/';
-                
-                $rsExisting = null;
-                
-                if(file_exists($autoloadConfigFolder.'autoload.php')===true){
-                    $rsExisting = include($autoloadConfigFolder.'autoload.php');
+                if( isset($rs[$classname . '.php'])===true ){
+                    require_once $rs[$classname . '.php'];
+                    return;
                 }
-                
-                if($rs != $rsExisting){
-                    if(!file_exists($autoloadConfigFolder)){
-                        mkdir($autoloadConfigFolder);
-                    }
-                    file_put_contents($autoloadConfigFolder.'autoload.php', '<?php return '.var_export($rs, true) . ';');                    
-                }                                
-            }
-            else{
-                $rs = include($path . 'config/autoload/autoload.php');
-            }
-
-            if( isset($rs[$classname . '.php'])===true ){
-                require_once $rs[$classname . '.php'];
-            }
-            //autoloading namespaced class
-            else if(isset(Doo::conf()->APP_NAMESPACE_ID)===true){
+            }            
+            
+            //autoloading namespaced class                
+            if(isset(Doo::conf()->APP_NAMESPACE_ID)===true && strpos($classname, '\\')!==false){
                 $pos = strpos($classname, Doo::conf()->APP_NAMESPACE_ID);
                 if($pos===0){
                     $classname = str_replace('\\','/',substr($classname, strlen(Doo::conf()->APP_NAMESPACE_ID)+1));
                     require_once $path . $classname . '.php';
                 }
-            }                
+            }
         }
     }
 
