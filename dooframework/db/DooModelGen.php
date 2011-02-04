@@ -42,8 +42,8 @@ class DooModelGen{
      * Use DooModelGen::genMySQL() instead
      * @deprecated deprecated since version 1.3
      */
-	public static function gen_mysql($comments=true, $vrules=true, $extends='DooModel', $createBase=true, $baseSuffix='Base', $chmod=null) {
-        self::genMySQL($comments, $vrules, $extends, $createBase, $baseSuffix, $chmod);
+	public static function gen_mysql($comments=true, $vrules=true, $extends='DooModel', $createBase=true, $baseSuffix='Base', $chmod=null, $path=null) {
+        self::genMySQL($comments, $vrules, $extends, $createBase, $baseSuffix, $chmod, $path);
     }
     
     /**
@@ -54,14 +54,20 @@ class DooModelGen{
      * @param bool $createBase Generate base model class, will not rewrite/replace model classes if True.
      * @param string $baseSuffix Suffix string for the base model.
      * @param int $chmod Chmod for file manager
+     * @param string $path Path to write the model class files
      */
-	public static function genMySQL($comments=true, $vrules=true, $extends='DooModel', $createBase=true, $baseSuffix='Base', $chmod=null) {
+	public static function genMySQL($comments=true, $vrules=true, $extends='DooModel', $createBase=true, $baseSuffix='Base', $chmod=null, $path=null) {
+        if($path===null){
+            $path = self::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'model/';
+        }
+        
 		Doo::loadHelper('DooFile');
-                if($chmod===null){
-                    $fileManager = new DooFile();
-                }else{
-                    $fileManager = new DooFile($chmod);
-                }
+        if($chmod===null){
+            $fileManager = new DooFile();
+        }else{
+            $fileManager = new DooFile($chmod);
+        }
+        
 		$dbconf = Doo::db()->getDefaultDbConfig();
 		if(!isset($dbconf) || empty($dbconf)) {
 			echo "<html><head><title>DooPHP Model Generator - DB: Error</title></head><body bgcolor=\"#2e3436\"><span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Please setup the DB first in index.php and db.conf.php</span></span>";
@@ -200,7 +206,7 @@ class DooModelGen{
 			$filestr .= "}";
 
 			if($createBase!=True) {
-				if($fileManager->create(Doo::conf()->MODEL_PATH . "$classname.php", $filestr, 'w+')) {
+				if($fileManager->create($path. "$classname.php", $filestr, 'w+')) {
 					echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
 				} else {
 					echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#f00;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#f00;\"> could not be generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#f00;\">.php</span></span><br/><br/>";
@@ -209,7 +215,7 @@ class DooModelGen{
 
 				if($fileManager->create(Doo::conf()->MODEL_PATH."base/{$classname}{$baseSuffix}.php", $filestr, 'w+')) {
 					echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Base model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">{$classname}{$baseSuffix}</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
-					$clsfile = Doo::conf()->MODEL_PATH . "$classname.php";
+					$clsfile = $path. "$classname.php";
 					if(!file_exists($clsfile)) {
 						$filestr = "<?php\nDoo::loadModel('base/{$classname}{$baseSuffix}');\n\nclass $classname extends {$classname}{$baseSuffix}{\n}";
 						if ($fileManager->create($clsfile, $filestr, 'w+')) {
@@ -235,8 +241,8 @@ class DooModelGen{
      * Use DooModelGen::genSqlite() instead
      * @deprecated deprecated since version 1.3
      */
-    public static function gen_sqlite($extends='', $createBase=false, $addmaps=false, $filenameModelPrefix = ''){
-        self::genSqlite($extends, $createBase, $addmaps, $filenameModelPrefix);
+    public static function gen_sqlite($extends='', $createBase=false, $addmaps=false, $filenameModelPrefix = '', $baseSuffix='Base', $chmod=null, $path=null){
+        self::genSqlite($extends, $createBase, $addmaps, $filenameModelPrefix, $baseSuffix, $chmod, $path);
     }
     
     /**
@@ -245,11 +251,21 @@ class DooModelGen{
      * @param bool $createBase Generate base model class, will not rewrite/replace model classes if True.
      * @param bool $addmaps Writes table relation map in Model class analyze with foreign keys available (You do not need to define in the maps in db.conf.php) 
      * @param string $filenameModelPrefix Add a prefix for the model class name
+     * @param string $baseSuffix Suffix string for the base model.
+     * @param int $chmod Chmod for file manager
+     * @param string $path Path to write the model class files
      */
-    public static function genSqlite($extends='', $createBase=false, $addmaps=false, $filenameModelPrefix = ''){
+    public static function genSqlite($extends='', $createBase=false, $addmaps=false, $filenameModelPrefix = '', $baseSuffix='Base', $chmod=null, $path=null){
+        if($path===null){
+            $path = self::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'model/';
+        }
         
 		Doo::loadHelper('DooFile');
-		$fileManager = new DooFile(0777);
+        if($chmod===null){
+            $fileManager = new DooFile();
+        }else{
+            $fileManager = new DooFile($chmod);
+        }
 
 		// get database info
         $dbconf = Doo::db()->getDefaultDbConfig();
@@ -337,7 +353,7 @@ class DooModelGen{
                if($createBase!=True)
                    $filestr .= "class $classname{\n";
                else
-                   $filestr .= "class {$classname}Base{\n";
+                   $filestr .= "class {$classname}{$baseSuffix}{\n";
             }
 
             // export class variables
@@ -352,18 +368,18 @@ class DooModelGen{
 
             // write content
             if($createBase!=True){
-				if ($fileManager->create(Doo::conf()->MODEL_PATH . "$classname.php", $filestr, 'w+')) {
+				if ($fileManager->create($path. "$classname.php", $filestr, 'w+')) {
 					echo "<span style=\"font-size:100%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
 				} else {
 					echo "<span style=\"font-size:100%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#f00;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#f00;\"> could not be generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#f00;\">.php</span></span><br/><br/>";
 				}
                 
             } else {
-				if ($fileManager->create(Doo::conf()->MODEL_PATH . "base/{$classname}Base.php", $filestr, 'w+')) {
-					echo "<span style=\"font-size:100%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Base model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">{$classname}Base</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
-					$clsfile = Doo::conf()->MODEL_PATH . "$classname.php";
+				if ($fileManager->create($path. "base/{$classname}{$baseSuffix}.php", $filestr, 'w+')) {
+					echo "<span style=\"font-size:100%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Base model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">{$classname}{$baseSuffix}</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
+					$clsfile = $path. "$classname.php";
 					if(!file_exists($clsfile)){
-						$filestr = "<?php\nDoo::loadModel('base/{$classname}Base');\n\nclass $classname extends {$classname}Base{\n}\n?>";
+						$filestr = "<?php\nDoo::loadModel('base/{$classname}{$baseSuffix}');\n\nclass $classname extends {$classname}{$baseSuffix}{\n}\n?>";
 						if ($fileManager->create($clsfile, $filestr, 'w+')){
 							$clsExtendedNum++;
 							echo "<span style=\"font-size:100%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
@@ -372,7 +388,7 @@ class DooModelGen{
 						}
 					}
 				} else {
-					echo "<span style=\"font-size:100%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#f00;\">Base model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#f00;\"> could not be generated. File - </span><strong><span style=\"color:#729fbe;\">{$classname}Base</span></strong><span style=\"color:#f00;\">.php</span></span><br/><br/>";
+					echo "<span style=\"font-size:100%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#f00;\">Base model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#f00;\"> could not be generated. File - </span><strong><span style=\"color:#729fbe;\">{$classname}{$baseSuffix}</span></strong><span style=\"color:#f00;\">.php</span></span><br/><br/>";
 				}
             }
         }
@@ -389,7 +405,10 @@ class DooModelGen{
         self::genPgSQL(); 
     }
     
-    public static function genPgSQL(){
+    public static function genPgSQL($path=null){
+        if($path===null){
+            $path = self::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'model/';
+        }
         
 		Doo::loadHelper('DooFile');
 		$fileManager = new DooFile(0777);
@@ -468,7 +487,7 @@ class DooModelGen{
            $filestr .= "    public \$_primarykey = '$pkey';\n";
            $filestr .= "    public \$_fields = array('$fieldnames');\n";
            $filestr .= "}\n?>";
-		   if ($fileManager->create(Doo::conf()->MODEL_PATH . "$classname.php", $filestr, 'w+')) {
+		   if ($fileManager->create($path. "$classname.php", $filestr, 'w+')) {
 				echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
 		   } else {
 			   echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#f00;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#f00;\"> could not be generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#f00;\">.php</span></span><br/><br/>";
