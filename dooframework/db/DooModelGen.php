@@ -58,7 +58,7 @@ class DooModelGen{
      */
 	public static function genMySQL($comments=true, $vrules=true, $extends='DooModel', $createBase=true, $baseSuffix='Base', $chmod=null, $path=null) {
         if($path===null){
-            $path = self::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'model/';
+            $path = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'model/';
         }
         
 		Doo::loadHelper('DooFile');
@@ -257,7 +257,7 @@ class DooModelGen{
      */
     public static function genSqlite($extends='', $createBase=false, $addmaps=false, $filenameModelPrefix = '', $baseSuffix='Base', $chmod=null, $path=null){
         if($path===null){
-            $path = self::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'model/';
+            $path = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'model/';
         }
         
 		Doo::loadHelper('DooFile');
@@ -407,7 +407,7 @@ class DooModelGen{
     
     public static function genPgSQL($path=null){
         if($path===null){
-            $path = self::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'model/';
+            $path = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'model/';
         }
         
 		Doo::loadHelper('DooFile');
