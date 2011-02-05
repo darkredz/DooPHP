@@ -213,7 +213,7 @@ class DooModelGen{
 				}
 			}else {
 
-				if($fileManager->create(Doo::conf()->MODEL_PATH."base/{$classname}{$baseSuffix}.php", $filestr, 'w+')) {
+				if($fileManager->create(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "model/base/{$classname}{$baseSuffix}.php", $filestr, 'w+')) {
 					echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Base model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">{$classname}{$baseSuffix}</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
 					$clsfile = $path. "$classname.php";
 					if(!file_exists($clsfile)) {
