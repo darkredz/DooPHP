@@ -501,7 +501,7 @@ class Doo{
                     }                                
                 }
                 else{
-                    $rs = include($path . 'config/autoload/autoload.php');
+                    $rs = include_once($path . 'config/autoload/autoload.php');
                 }
 
                 if( isset($rs[$classname . '.php'])===true ){
