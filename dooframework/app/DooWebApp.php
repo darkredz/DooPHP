@@ -44,13 +44,21 @@ class DooWebApp{
         Doo::loadCore('uri/DooUriRouter');
         $router = new DooUriRouter;
         $routeRs = $router->execute($this->route,Doo::conf()->SUBFOLDER);
-
+        
         if($routeRs[0]!==null && $routeRs[1]!==null){
             //dispatch, call Controller class
             require_once Doo::conf()->BASE_PATH ."controller/DooController.php";
-            if($routeRs[0][0]!=='[')
-                require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/{$routeRs[0]}.php";
-            else{
+            
+            if($routeRs[0][0]!=='['){
+                if(strpos($routeRs[0], '\\')!==false){
+                    $nsClassFile = str_replace('\\','/',$routeRs[0]);
+                    $nsClassFile = explode(Doo::conf()->APP_NAMESPACE_ID.'/', $nsClassFile, 2);
+                    $nsClassFile = $nsClassFile[1];
+                    require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . $nsClassFile .'.php';                    
+                }else{
+                    require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/{$routeRs[0]}.php";
+                }
+            }else{
                 $moduleParts = explode(']', $routeRs[0]);
                 $moduleName = substr($moduleParts[0],1);
                 
@@ -112,7 +120,7 @@ class DooWebApp{
 
             list($controller_name, $method_name, $params, $moduleName )= $router->auto_connect(Doo::conf()->SUBFOLDER, (isset($this->route['autoroute_alias'])===true)?$this->route['autoroute_alias']:null );
 
-            if(isset($moduleName)){
+            if(isset($moduleName)===true){
                 Doo::conf()->PROTECTED_FOLDER_ORI = Doo::conf()->PROTECTED_FOLDER;
                 Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI . 'module/'.$moduleName.'/';
             }
@@ -123,43 +131,89 @@ class DooWebApp{
                 require_once Doo::conf()->BASE_PATH ."controller/DooController.php";
                 require_once $controller_file;
 
-				//check if method name exists in controller
 				$methodsArray = get_class_methods($controller_name);
-				$restMethod = $method_name .'_'. strtolower($_SERVER['REQUEST_METHOD']);
-				$inRestMethod = in_array($restMethod, $methodsArray);
 
-				if( in_array($method_name, $methodsArray)===false && $inRestMethod===false ){
+                //if the method not in controller class, check for a namespaced class with the same file name.
+                if($methodsArray===null && isset(Doo::conf()->APP_NAMESPACE_ID)===true){
+                    if(isset($moduleName)===true){
+                        $controller_name = Doo::conf()->APP_NAMESPACE_ID . '\\module\\'. $moduleName .'\\controller\\' . $controller_name;                        
+                    }else{
+                        $controller_name = Doo::conf()->APP_NAMESPACE_ID . '\\controller\\' . $controller_name;
+                    }
+    				$methodsArray = get_class_methods($controller_name);   
+                }
+                
+                //if method not found in both both controller and namespaced controller, 404 error
+                if($methodsArray===null){
+                    if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true)
+                        Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI;
 					$this->throwHeader(404);
-					return;
-				}
-
-				if( $inRestMethod===true ){
-					$method_name = $restMethod;
-				}
-
-                $controller = new $controller_name;
-
-                if(!$controller->autoroute)
-                    $this->throwHeader(404);
-
-                if($params!=null)
-                    $controller->params = $params;
-
-                if($_SERVER['REQUEST_METHOD']==='PUT')
-                    $controller->initPutVars();
-
-                //before run, normally used for ACL auth
-				if($rs = $controller->beforeRun($controller_name, $method_name)){
-					return $rs;
-				}
-
-				$routeRs = $controller->$method_name();
-                $controller->afterRun($routeRs);
-				return $routeRs;
+					return;                    
+                }
             }
+            else if(isset($moduleName)===true && isset(Doo::conf()->APP_NAMESPACE_ID)===true){
+                if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true)
+                    Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI;                
+                
+                $controller_file = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . '/controller/'.$moduleName.'/'.$controller_name .'.php';                 
+                
+                if(file_exists($controller_file)===false){
+					$this->throwHeader(404);
+					return;                    
+                }                
+                $controller_name = Doo::conf()->APP_NAMESPACE_ID .'\\controller\\'.$moduleName.'\\'.$controller_name;                
+                #echo 'module = '.$moduleName.'<br>';
+                #echo $controller_file.'<br>';                
+                #echo $controller_name.'<br>';                   
+				$methodsArray = get_class_methods($controller_name);                
+            }            
             else{
+                if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true)
+                    Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI;                
+                $this->throwHeader(404);
+                return;
+            }
+            
+            //check for REST request as well, utilized method_GET(), method_PUT(), method_POST, method_DELETE()
+            $restMethod = $method_name .'_'. strtolower($_SERVER['REQUEST_METHOD']);
+            $inRestMethod = in_array($restMethod, $methodsArray);
+            
+            //check if method() and method_GET() etc. doesn't exist in the controller, 404 error
+            if( in_array($method_name, $methodsArray)===false && $inRestMethod===false ){
+                if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true)
+                    Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI;
+                $this->throwHeader(404);
+                return;
+            }
+
+            //use method_GET() etc. if available
+            if( $inRestMethod===true ){
+                $method_name = $restMethod;
+            }
+
+            $controller = new $controller_name;
+
+            //if autoroute in this controller is disabled, 404 error
+            if($controller->autoroute===false){
+                if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true)
+                    Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI;
                 $this->throwHeader(404);
             }
+
+            if($params!=null)
+                $controller->params = $params;
+
+            if($_SERVER['REQUEST_METHOD']==='PUT')
+                $controller->initPutVars();
+
+            //before run, normally used for ACL auth
+            if($rs = $controller->beforeRun($controller_name, $method_name)){
+                return $rs;
+            }
+
+            $routeRs = $controller->$method_name();
+            $controller->afterRun($routeRs);
+            return $routeRs;            
         }
         else{
             $this->throwHeader(404);
