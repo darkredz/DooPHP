@@ -191,6 +191,14 @@ class DooSqlMagic {
     }
 
     /**
+     * Close a database connection
+     */
+    public function disconnect(){
+        $this->pdo = null;
+        $this->connected = false;
+    }
+    
+    /**
      * Initiates a transaction. Transactions can be nestable.
      */
     public function beginTransaction() {
