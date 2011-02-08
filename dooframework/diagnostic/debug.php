@@ -148,6 +148,7 @@ function setErrorHandler($errno, $errstr, $errfile, $errline, $errcontext=null){
 
 
     echo "<html><head><title>DooPHP Diagnostics - $errstr</title>";
+	echo '<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />';
 	
     //css
     echo '<style>
