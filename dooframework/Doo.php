@@ -339,7 +339,11 @@ class Doo{
      * @return mixed returns NULL by default. If $createObj is TRUE, it creates and return the Object(s) of the class name passed in.
      */
     public static function loadModelAt($class_name, $moduleFolder=Null, $createObj=FALSE){
-        $moduleFolder = ($moduleFolder===Null) ? Doo::conf()->PROTECTED_FOLDER_ORI : Doo::conf()->PROTECTED_FOLDER_ORI . 'module/' . $moduleFolder;
+        if($moduleFolder===null){
+            $moduleFolder = Doo::getAppPath();
+        }else{
+            $moduleFolder = Doo::getAppPath() . 'module/' . $moduleFolder;            
+        }
         return self::load($class_name, self::conf()->SITE_PATH . $moduleFolder . "/model/", $createObj);
     }
 
@@ -350,8 +354,11 @@ class Doo{
      * @param string $path module folder name. Default is the main app folder.
      */
     public static function loadControllerAt($class_name, $moduleFolder=Null){
-        $moduleFolder = ($moduleFolder===Null) ? Doo::conf()->PROTECTED_FOLDER_ORI : Doo::conf()->PROTECTED_FOLDER_ORI . 'module/' . $moduleFolder;
-        require_once self::conf()->SITE_PATH . $moduleFolder . '/controller/'.$class_name.'.php';
+        if($moduleFolder===null){
+            $moduleFolder = Doo::getAppPath();
+        }else{
+            $moduleFolder = Doo::getAppPath() . 'module/' . $moduleFolder;            
+        }        require_once self::conf()->SITE_PATH . $moduleFolder . '/controller/'.$class_name.'.php';
     }
 
     /**
@@ -363,7 +370,11 @@ class Doo{
      * @return mixed returns NULL by default. If $createObj is TRUE, it creates and return the Object(s) of the class name passed in.
      */
     public static function loadClassAt($class_name, $moduleFolder=Null, $createObj=FALSE){
-        $moduleFolder = ($moduleFolder===Null) ? Doo::conf()->PROTECTED_FOLDER_ORI : Doo::conf()->PROTECTED_FOLDER_ORI . 'module/' . $moduleFolder;
+        if($moduleFolder===null){
+            $moduleFolder = Doo::getAppPath();
+        }else{
+            $moduleFolder = Doo::getAppPath() . 'module/' . $moduleFolder;            
+        }
         return self::load($class_name, self::conf()->SITE_PATH . $moduleFolder. "/class/", $createObj);
     }
 
@@ -374,13 +385,10 @@ class Doo{
      * @param string $moduleFolder Folder name of the module. If Null, the class will be loaded from main app.
      */
     public static function loadPlugin($class_name, $moduleFolder=Null){
-        if($moduleFolder===Null){
-            if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===True)
-                require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER_ORI . 'plugin/'. $class_name .'.php';
-            else
-                require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'plugin/'. $class_name .'.php';
+        if($moduleFolder===null){
+            require_once Doo::getAppPath() . 'plugin/'. $class_name .'.php';
         }else{
-            require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER_ORI .'module/'. $moduleFolder .'/plugin/'. $class_name .'.php';
+            require_once Doo::getAppPath() .'module/'. $moduleFolder .'/plugin/'. $class_name .'.php';
         }
     }
 	
