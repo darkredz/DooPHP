@@ -147,7 +147,11 @@ class DooGdImage {
                 return imagejpeg($img, $file, $this->generatedQuality);
                 break;
             case 'png':
-                return imagepng($img, $file, $this->generatedQuality);
+                if($this->generatedQuality>9)
+                        $quality = 9;
+                else
+                    $quality = $this->generatedQuality;
+                return imagepng($img, $file, $quality);
                 break;
             default:
                 return false;
