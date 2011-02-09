@@ -520,6 +520,18 @@ class Doo{
             }
         }
     }
+    
+    /**
+     * Get the path where the Application source is located.
+     * @return string
+     */
+    public static function getAppPath(){
+        if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true){
+            return Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER_ORI;
+        }else{
+            return Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER;                            
+        }        
+    }
 
     /**
      * Simple benchmarking. To used this, set <code>$config['START_TIME'] = microtime(true);</code> in <i>common.conf.php</i> .
