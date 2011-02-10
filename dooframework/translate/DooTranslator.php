@@ -183,9 +183,9 @@ class DooTranslator {
 			$this->_cacheIt = true;
 		}
 
-		switch ($this->_adapter) {
+		switch (strtolower($this->_adapter)) {
 			// CSV
-			case 'Csv':
+			case 'csv':
 				$filename = $data;
 				$this->_file = @fopen($filename, 'rb');
 				if (!$this->_file) {
@@ -215,7 +215,7 @@ class DooTranslator {
 				}
 				break;
 			// GETTEXT
-			case 'Gettext':
+			case 'gettext':
 				$this->_file = @fopen($data, 'rb');;
 				if (!$this->_file) {
 					throw new DooTranslatorException('Error opening translation file "' . $filename . '".');
@@ -279,11 +279,11 @@ class DooTranslator {
 				$this->_data[''] = trim($this->_data['']);
 				break;
 			// Array
-			case 'Array':
+			case 'array':
 				$this->_data = $data;
 				break;
 			// Ini
-			case 'Ini':
+			case 'ini':
 				$this->_file = $data;
 				if (!file_exists($this->_file)) {
 					throw new DooTranslatorException('Error opening translation file "' . $filename . '".');
