@@ -289,7 +289,7 @@ class DooTranslator {
 					throw new DooTranslatorException('Error opening translation file "' . $filename . '".');
 				}
 				$inidata = parse_ini_file($data, false);
-				$this->_data = array_merge($this->_data, $inidata);
+                $this->_data = $inidata;
 				break;
 		}
 		// if caching on cach it
