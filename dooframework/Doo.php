@@ -344,7 +344,7 @@ class Doo{
         }else{
             $moduleFolder = Doo::getAppPath() . 'module/' . $moduleFolder;            
         }
-        return self::load($class_name, self::conf()->SITE_PATH . $moduleFolder . "/model/", $createObj);
+        return self::load($class_name, $moduleFolder . "/model/", $createObj);
     }
 
     /**
@@ -358,7 +358,8 @@ class Doo{
             $moduleFolder = Doo::getAppPath();
         }else{
             $moduleFolder = Doo::getAppPath() . 'module/' . $moduleFolder;            
-        }        require_once self::conf()->SITE_PATH . $moduleFolder . '/controller/'.$class_name.'.php';
+        }        
+		require_once $moduleFolder . '/controller/'.$class_name.'.php';
     }
 
     /**
@@ -375,7 +376,7 @@ class Doo{
         }else{
             $moduleFolder = Doo::getAppPath() . 'module/' . $moduleFolder;            
         }
-        return self::load($class_name, self::conf()->SITE_PATH . $moduleFolder. "/class/", $createObj);
+        return self::load($class_name, $moduleFolder. "/class/", $createObj);
     }
 
     /**
