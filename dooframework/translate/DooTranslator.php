@@ -187,7 +187,7 @@ class DooTranslator {
 			// CSV
 			case 'csv':
 				$filename = $data;
-				$this->_file = @fopen($filename, 'rb');
+				$this->_file = fopen($filename, 'rb');
 				if (!$this->_file) {
 					throw new DooTranslatorException('Error opening translation file "' . $filename . '".');
 				}
@@ -216,7 +216,7 @@ class DooTranslator {
 				break;
 			// GETTEXT
 			case 'gettext':
-				$this->_file = @fopen($data, 'rb');;
+				$this->_file = fopen($data, 'rb');;
 				if (!$this->_file) {
 					throw new DooTranslatorException('Error opening translation file "' . $filename . '".');
 				}
@@ -254,7 +254,7 @@ class DooTranslator {
 				for($count = 0; $count < $total; ++$count) {
 					if ($origtemp[$count * 2 + 1] != 0) {
 						fseek($this->_file, $origtemp[$count * 2 + 2]);
-						$original = @fread($this->_file, $origtemp[$count * 2 + 1]);
+						$original = fread($this->_file, $origtemp[$count * 2 + 1]);
 						$original = explode(chr(00), $original);
 					} else {
 						$original[0] = '';
