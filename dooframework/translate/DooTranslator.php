@@ -46,7 +46,7 @@ class DooTranslator {
 	* Supported adapters
 	*/
 
-	private $_supportedAdapters = array("Csv", "Gettext", "Array", "Ini");
+	private $_supportedAdapters = array("csv", "gettext", "array", "ini");
 
 	/**
 	* Supported cache types
@@ -87,6 +87,7 @@ class DooTranslator {
 	*/
 
 	public function __construct($adapter, $data, $options=array()) {
+        $adapter = strtolower($adapter);
 		if (!in_array($adapter, $this->_supportedAdapters)) {
 			throw new DooTranslatorException($adapter . " is not supported by DooTranslator, supported types are: " . implode(', ', $this->_supportedAdapters));
 		}
@@ -183,7 +184,7 @@ class DooTranslator {
 			$this->_cacheIt = true;
 		}
 
-		switch (strtolower($this->_adapter)) {
+		switch ($this->_adapter) {
 			// CSV
 			case 'csv':
 				$filename = $data;
