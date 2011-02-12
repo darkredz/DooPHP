@@ -182,6 +182,20 @@ class DooConfig{
     
     /**
      * Unique string ID of the application to be used with PHP 5.3 namespace and auto loading of namespaced classes
+     * If you wish to use namespace with the framework, your classes must have a namespace starting with this ID.
+     * Example below is located at /var/www/app/protected/controller/test
+	 * <code>
+     * <?php
+     * namespace myapp\controller\test;
+     * class MyController extends \DooController {
+     *     .....
+     * } ?>
+	 *
+	 * //in common.conf.php
+     * $config['APP_NAMESPACE_ID'] = 'myapp';
+	 *
+	 * </code>
+	 *
      * @var string
      */
     public $APP_NAMESPACE_ID;
