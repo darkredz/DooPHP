@@ -339,8 +339,12 @@ class Doo{
      * @return mixed returns NULL by default. If $createObj is TRUE, it creates and return the Object(s) of the class name passed in.
      */
     public static function loadModelAt($class_name, $moduleFolder=Null, $createObj=FALSE){
-        $moduleFolder = ($moduleFolder===Null) ? Doo::conf()->PROTECTED_FOLDER_ORI : Doo::conf()->PROTECTED_FOLDER_ORI . 'module/' . $moduleFolder;
-        return self::load($class_name, self::conf()->SITE_PATH . $moduleFolder . "/model/", $createObj);
+        if($moduleFolder===null){
+            $moduleFolder = Doo::getAppPath();
+        }else{
+            $moduleFolder = Doo::getAppPath() . 'module/' . $moduleFolder;            
+        }
+        return self::load($class_name, $moduleFolder . "/model/", $createObj);
     }
 
     /**
@@ -350,8 +354,12 @@ class Doo{
      * @param string $path module folder name. Default is the main app folder.
      */
     public static function loadControllerAt($class_name, $moduleFolder=Null){
-        $moduleFolder = ($moduleFolder===Null) ? Doo::conf()->PROTECTED_FOLDER_ORI : Doo::conf()->PROTECTED_FOLDER_ORI . 'module/' . $moduleFolder;
-        require_once self::conf()->SITE_PATH . $moduleFolder . '/controller/'.$class_name.'.php';
+        if($moduleFolder===null){
+            $moduleFolder = Doo::getAppPath();
+        }else{
+            $moduleFolder = Doo::getAppPath() . 'module/' . $moduleFolder;            
+        }        
+		require_once $moduleFolder . '/controller/'.$class_name.'.php';
     }
 
     /**
@@ -363,8 +371,12 @@ class Doo{
      * @return mixed returns NULL by default. If $createObj is TRUE, it creates and return the Object(s) of the class name passed in.
      */
     public static function loadClassAt($class_name, $moduleFolder=Null, $createObj=FALSE){
-        $moduleFolder = ($moduleFolder===Null) ? Doo::conf()->PROTECTED_FOLDER_ORI : Doo::conf()->PROTECTED_FOLDER_ORI . 'module/' . $moduleFolder;
-        return self::load($class_name, self::conf()->SITE_PATH . $moduleFolder. "/class/", $createObj);
+        if($moduleFolder===null){
+            $moduleFolder = Doo::getAppPath();
+        }else{
+            $moduleFolder = Doo::getAppPath() . 'module/' . $moduleFolder;            
+        }
+        return self::load($class_name, $moduleFolder. "/class/", $createObj);
     }
 
     /**
@@ -374,13 +386,10 @@ class Doo{
      * @param string $moduleFolder Folder name of the module. If Null, the class will be loaded from main app.
      */
     public static function loadPlugin($class_name, $moduleFolder=Null){
-        if($moduleFolder===Null){
-            if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===True)
-                require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER_ORI . 'plugin/'. $class_name .'.php';
-            else
-                require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'plugin/'. $class_name .'.php';
+        if($moduleFolder===null){
+            require_once Doo::getAppPath() . 'plugin/'. $class_name .'.php';
         }else{
-            require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER_ORI .'module/'. $moduleFolder .'/plugin/'. $class_name .'.php';
+            require_once Doo::getAppPath() .'module/'. $moduleFolder .'/plugin/'. $class_name .'.php';
         }
     }
 	
@@ -389,8 +398,8 @@ class Doo{
      * @param string $classname Class name to be loaded.
      */
     public static function autoload($classname){
-        if( class_exists($classname, false) === true )
-			return;
+//        if( class_exists($classname, false) === true )
+//			return;
         
         //app
 		$class['DooConfig']      = 'app/DooConfig';
@@ -464,41 +473,73 @@ class Doo{
         
         if(isset($class[$classname]))
             self::loadCore($class[$classname]);
-        else if(empty(Doo::conf()->AUTOLOAD)===false){
-            if(Doo::conf()->APP_MODE=='dev'){
-                $includeSub = Doo::conf()->AUTOLOAD;
-                $rs = array();
-                foreach($includeSub as $sub){
-                    if(file_exists($sub)===false)
-                        $rs = array_merge($rs, DooFile::getFilePathList(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . $sub . '/') );                
-                    else
-                        $rs = array_merge($rs, DooFile::getFilePathList( $sub . '/') );                
-                }
-
-                $autoloadConfigFolder = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'config/autoload/';
-                
-                $rsExisting = null;
-                
-                if(file_exists($autoloadConfigFolder.'autoload.php')===true){
-                    $rsExisting = include($autoloadConfigFolder.'autoload.php');
-                }
-                
-                if($rs != $rsExisting){
-                    echo 'not same';
-                    if(!file_exists($autoloadConfigFolder)){
-                        mkdir($autoloadConfigFolder);
+        else{ 
+            if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true){
+                $path = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER_ORI;
+            }else{
+                $path = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER;                            
+            }
+            
+            if(empty(Doo::conf()->AUTOLOAD)===false){
+                if(Doo::conf()->APP_MODE=='dev'){
+                    $includeSub = Doo::conf()->AUTOLOAD;
+                    $rs = array();
+                    foreach($includeSub as $sub){
+                        if(file_exists($sub)===false){     
+                            if(file_exists($path. $sub)===true){
+                                $rs = array_merge($rs, DooFile::getFilePathList($path. $sub . '/') );                
+                            }
+                        }else{
+                            $rs = array_merge($rs, DooFile::getFilePathList( $sub . '/') );                
+                        }
                     }
-                    file_put_contents($autoloadConfigFolder.'autoload.php', '<?php return '.var_export($rs, true) . ';');                    
-                }                                
-            }
-            else{
-                $rs = include(Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'config/autoload/autoload.php');
-            }
 
-            if( isset($rs[$classname . '.php'])===true ){
-                require_once $rs[$classname . '.php'];
+                    $autoloadConfigFolder = $path . 'config/autoload/';
+
+                    $rsExisting = null;
+
+                    if(file_exists($autoloadConfigFolder.'autoload.php')===true){
+                        $rsExisting = include($autoloadConfigFolder.'autoload.php');
+                    }
+
+                    if($rs != $rsExisting){
+                        if(!file_exists($autoloadConfigFolder)){
+                            mkdir($autoloadConfigFolder);
+                        }
+                        file_put_contents($autoloadConfigFolder.'autoload.php', '<?php return '.var_export($rs, true) . ';');                    
+                    }                                
+                }
+                else{
+                    $rs = include_once($path . 'config/autoload/autoload.php');
+                }
+
+                if( isset($rs[$classname . '.php'])===true ){
+                    require_once $rs[$classname . '.php'];
+                    return;
+                }
+            }            
+            
+            //autoloading namespaced class                
+            if(isset(Doo::conf()->APP_NAMESPACE_ID)===true && strpos($classname, '\\')!==false){
+                $pos = strpos($classname, Doo::conf()->APP_NAMESPACE_ID);
+                if($pos===0){
+                    $classname = str_replace('\\','/',substr($classname, strlen(Doo::conf()->APP_NAMESPACE_ID)+1));
+                    require_once $path . $classname . '.php';
+                }
             }
         }
+    }
+    
+    /**
+     * Get the path where the Application source is located.
+     * @return string
+     */
+    public static function getAppPath(){
+        if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true){
+            return Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER_ORI;
+        }else{
+            return Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER;                            
+        }        
     }
 
     /**
@@ -521,7 +562,7 @@ class Doo{
     }
 
     public static function version(){
-        return '1.3.1';
+        return '1.4';
     }
 }
 
@@ -553,6 +594,14 @@ class DooConfig{
     
     /**
      * Directories consist of the classes needed in your application.
+     * <code>
+     * $config['AUTOLOAD'] = array(
+     *                      //internal directories, live in the app
+     *                      'class', 'model', 'module/example/controller', 
+     *                      //external directories, live outside the app
+     *                      '/var/php/library/classes'
+     *                  );
+     * </code>
      * @var array 
      */
     public $AUTOLOAD;
@@ -685,7 +734,7 @@ class DooConfig{
      * @var array
      */
     public $TEMPLATE_GLOBAL_TAGS;
-    
+
     /**
      * Defines modules that are allowed to be accessed from an auto route URI.
      * Example:
@@ -697,6 +746,28 @@ class DooConfig{
      * @var array
      */
     public $MODULES;
+    
+    /**
+     * Unique string ID of the application to be used with PHP 5.3 namespace and auto loading of namespaced classes
+     * If you wish to use namespace with the framework, your classes must have a namespace starting with this ID.
+     * Example below is located at /var/www/app/protected/controller/test and can be access via autoroute http://localhost/test/my/method
+     * <code>
+     * <?php
+     * namespace myapp\controller\test;
+     * class MyController extends \DooController {
+     *     .....
+     * } ?>
+     *
+	 * //You would need to enable autoload to use Namespace classes in index.php 
+     * spl_autoload_register('Doo::autoload');
+	 * 
+	 * //in common.conf.php
+     * $config['APP_NAMESPACE_ID'] = 'myapp';
+     * </code>
+	 *
+     * @var string
+     */
+    public $APP_NAMESPACE_ID;
 	
     /**
      * Set the configurations. SITE_PATH, BASE_PATH and APP_URL is required
@@ -718,6 +789,7 @@ class DooConfig{
 
 		if ($this->TEMPLATE_ENGINE===null)
 			$this->TEMPLATE_ENGINE='DooView';
+        
     }
 
     /**
@@ -785,13 +857,19 @@ class DooWebApp{
         Doo::loadCore('uri/DooUriRouter');
         $router = new DooUriRouter;
         $routeRs = $router->execute($this->route,Doo::conf()->SUBFOLDER);
-
+        
         if($routeRs[0]!==null && $routeRs[1]!==null){
             //dispatch, call Controller class
-            require_once Doo::conf()->BASE_PATH ."controller/DooController.php";
-            if($routeRs[0][0]!=='[')
-                require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/{$routeRs[0]}.php";
-            else{
+            if($routeRs[0][0]!=='['){
+                if(strpos($routeRs[0], '\\')!==false){
+                    $nsClassFile = str_replace('\\','/',$routeRs[0]);
+                    $nsClassFile = explode(Doo::conf()->APP_NAMESPACE_ID.'/', $nsClassFile, 2);
+                    $nsClassFile = $nsClassFile[1];
+                    require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . $nsClassFile .'.php';                    
+                }else{
+                    require_once Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/{$routeRs[0]}.php";
+                }
+            }else{
                 $moduleParts = explode(']', $routeRs[0]);
                 $moduleName = substr($moduleParts[0],1);
                 
@@ -853,7 +931,7 @@ class DooWebApp{
 
             list($controller_name, $method_name, $params, $moduleName )= $router->auto_connect(Doo::conf()->SUBFOLDER, (isset($this->route['autoroute_alias'])===true)?$this->route['autoroute_alias']:null );
 
-            if(isset($moduleName)){
+            if(isset($moduleName)===true){
                 Doo::conf()->PROTECTED_FOLDER_ORI = Doo::conf()->PROTECTED_FOLDER;
                 Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI . 'module/'.$moduleName.'/';
             }
@@ -861,46 +939,91 @@ class DooWebApp{
             $controller_file = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . "controller/{$controller_name}.php";
 
             if(file_exists($controller_file)){
-                require_once Doo::conf()->BASE_PATH ."controller/DooController.php";
                 require_once $controller_file;
 
-				//check if method name exists in controller
 				$methodsArray = get_class_methods($controller_name);
-				$restMethod = $method_name .'_'. strtolower($_SERVER['REQUEST_METHOD']);
-				$inRestMethod = in_array($restMethod, $methodsArray);
 
-				if( in_array($method_name, $methodsArray)===false && $inRestMethod===false ){
+                //if the method not in controller class, check for a namespaced class with the same file name.
+                if($methodsArray===null && isset(Doo::conf()->APP_NAMESPACE_ID)===true){
+                    if(isset($moduleName)===true){
+                        $controller_name = Doo::conf()->APP_NAMESPACE_ID . '\\module\\'. $moduleName .'\\controller\\' . $controller_name;                        
+                    }else{
+                        $controller_name = Doo::conf()->APP_NAMESPACE_ID . '\\controller\\' . $controller_name;
+                    }
+    				$methodsArray = get_class_methods($controller_name);   
+                }
+                
+                //if method not found in both both controller and namespaced controller, 404 error
+                if($methodsArray===null){
+                    if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true)
+                        Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI;
 					$this->throwHeader(404);
-					return;
-				}
-
-				if( $inRestMethod===true ){
-					$method_name = $restMethod;
-				}
-
-                $controller = new $controller_name;
-
-                if(!$controller->autoroute)
-                    $this->throwHeader(404);
-
-                if($params!=null)
-                    $controller->params = $params;
-
-                if($_SERVER['REQUEST_METHOD']==='PUT')
-                    $controller->initPutVars();
-
-                //before run, normally used for ACL auth
-				if($rs = $controller->beforeRun($controller_name, $method_name)){
-					return $rs;
-				}
-
-				$routeRs = $controller->$method_name();
-                $controller->afterRun($routeRs);
-				return $routeRs;
+					return;                    
+                }
             }
+            else if(isset($moduleName)===true && isset(Doo::conf()->APP_NAMESPACE_ID)===true){
+                if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true)
+                    Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI;                
+                
+                $controller_file = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . '/controller/'.$moduleName.'/'.$controller_name .'.php';                 
+                
+                if(file_exists($controller_file)===false){
+					$this->throwHeader(404);
+					return;                    
+                }                
+                $controller_name = Doo::conf()->APP_NAMESPACE_ID .'\\controller\\'.$moduleName.'\\'.$controller_name;                
+                #echo 'module = '.$moduleName.'<br>';
+                #echo $controller_file.'<br>';                
+                #echo $controller_name.'<br>';                   
+				$methodsArray = get_class_methods($controller_name);                
+            }            
             else{
+                if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true)
+                    Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI;                
+                $this->throwHeader(404);
+                return;
+            }
+            
+            //check for REST request as well, utilized method_GET(), method_PUT(), method_POST, method_DELETE()
+            $restMethod = $method_name .'_'. strtolower($_SERVER['REQUEST_METHOD']);
+            $inRestMethod = in_array($restMethod, $methodsArray);
+            
+            //check if method() and method_GET() etc. doesn't exist in the controller, 404 error
+            if( in_array($method_name, $methodsArray)===false && $inRestMethod===false ){
+                if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true)
+                    Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI;
+                $this->throwHeader(404);
+                return;
+            }
+
+            //use method_GET() etc. if available
+            if( $inRestMethod===true ){
+                $method_name = $restMethod;
+            }
+
+            $controller = new $controller_name;
+
+            //if autoroute in this controller is disabled, 404 error
+            if($controller->autoroute===false){
+                if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true)
+                    Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI;
                 $this->throwHeader(404);
             }
+
+            if($params!=null)
+                $controller->params = $params;
+
+            if($_SERVER['REQUEST_METHOD']==='PUT')
+                $controller->initPutVars();
+
+            //before run, normally used for ACL auth
+            if($rs = $controller->beforeRun($controller_name, $method_name)){
+                return $rs;
+            }
+
+            $routeRs = $controller->$method_name();
+            $controller->afterRun($routeRs);
+            return $routeRs;            
         }
         else{
             $this->throwHeader(404);
@@ -1153,7 +1276,6 @@ class DooWebApp{
     }
 
 }
-
 
 /**
  * DooUriRouter class file.
@@ -1935,7 +2057,6 @@ class DooUriRouter{
         }
         return $params;
     }
-
 }
 
 /**
@@ -2568,17 +2689,6 @@ class DooController {
 	public function  __call($name,  $arguments) {
 		if ($name == 'renderLayout') {
 			throw new Exception('renderLayout is no longer supported by DooController. Please use $this->view()->renderLayout instead');
-		} else {
-			if (function_exists('get_called_class')) {
-				$err = get_called_class() . ": Tried to call unknown method: {$name}";
-			} else {
-				$err = "DooController: Someone tried to call unknown method: {$name}";
-			}
-
-			if (!empty ($arguments)) {
-				$err .= '\n\t called with arguments: ' . implode(', ', $arguments);
-			}
-			Doo::logger()->err($err);
 		}
 	}
 
