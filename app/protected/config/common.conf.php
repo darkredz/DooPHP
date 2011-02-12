@@ -74,12 +74,15 @@ $config['ERROR_404_ROUTE'] = '/error';
 /**
  * Unique string ID of the application to be used with PHP 5.3 namespace and auto loading of namespaced classes
  * If you wish to use namespace with the framework, your classes must have a namespace starting with this ID.
- * Example below is located at /var/www/app/protected/controller/test
+ * Example below is located at /var/www/app/protected/controller/test and can be access via autoroute http://localhost/test/my/method
  * <?php
  * namespace myapp\controller\test;
  * class MyController extends \DooController {
  *     .....
  * } ?>
+ *
+ * You would need to enable autoload to use Namespace classes in index.php 
+ * spl_autoload_register('Doo::autoload');
  *
  * $config['APP_NAMESPACE_ID'] = 'myapp';
  *
