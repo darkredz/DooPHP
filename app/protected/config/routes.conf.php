@@ -45,6 +45,13 @@
  * To define alias for a Controller inside a module, you may use an array:
  * $route['autoroute_alias']['/customer'] = array('controller'=>'ClientController', 'module'=>'example');
  * $route['autoroute_alias']['/company/client'] = array('controller'=>'ClientController', 'module'=>'example');
+ *
+ * Auto routes can be accessed via URL pattern: http://domain.com/controller/method
+ * If you have a camel case method listAllUser(), it can be accessed via http://domain.com/controller/listAllUser or http://domain.com/controller/list-all-user
+ * In any case you want to control auto route to be accessed ONLY via dashed URL (list-all-user)
+ *
+ * $route['autoroute_force_dash'] = true;	//setting this to false or not defining it will keep auto routes accessible with the 2 URLs.
+ *
  */
  
 $route['*']['/'] = array('MainController', 'index');
