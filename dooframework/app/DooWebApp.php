@@ -44,7 +44,7 @@ class DooWebApp{
         Doo::loadCore('uri/DooUriRouter');
         $router = new DooUriRouter;
         $routeRs = $router->execute($this->route,Doo::conf()->SUBFOLDER);
-        
+
         if($routeRs[0]!==null && $routeRs[1]!==null){
             //dispatch, call Controller class
             require_once Doo::conf()->BASE_PATH ."controller/DooController.php";
@@ -226,17 +226,16 @@ class DooWebApp{
      * @param bool $is404 send a 404 status in header
      */
     public function reroute($routeuri, $is404=false){
-        if(isset($this->route['*'][$routeuri]) || isset($this->route['get'][$routeuri]) || isset($this->route['post'][$routeuri]) || isset($this->route['put'][$routeuri]) || isset($this->route['delete'][$routeuri]) ){
-            if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true){
-                Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI;
-                unset( Doo::conf()->PROTECTED_FOLDER_ORI );
-            }
-        }
 
         if(Doo::conf()->SUBFOLDER!='/')
             $_SERVER['REQUEST_URI'] = substr(Doo::conf()->SUBFOLDER, 0, strlen(Doo::conf()->SUBFOLDER)-1) . $routeuri;
         else
             $_SERVER['REQUEST_URI'] = $routeuri;
+
+        if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true){
+            Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI;
+            unset( Doo::conf()->PROTECTED_FOLDER_ORI );
+        }
 
         if($is404===true)
             header('HTTP/1.1 404 Not Found');
