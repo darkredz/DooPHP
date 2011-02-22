@@ -1,4 +1,19 @@
 <?php
+/**
+ * DooCliController class file.
+ *
+ * @author Richard Myers <richard.myers@hotmail.co.uk>
+ * @link http://www.doophp.com/
+ * @copyright Copyright &copy; 2011 Leng Sheng Hong
+ * @license http://www.doophp.com/license
+ */
+
+/**
+ * DooCliController is the controller for CLI application should be use with Doo::app('DooCliApp')->run();
+ * @author Richard Myers <richard.myers@hotmail.co.uk>
+ * @package doo.app
+ * @since 1.4 
+ */
 Doo::loadCore('app/DooCliApp');
 class DooCliController {
 

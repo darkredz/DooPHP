@@ -1,5 +1,19 @@
 <?php
+/**
+ * DooCliApp class file.
+ *
+ * @author Richard Myers <richard.myers@hotmail.co.uk>
+ * @link http://www.doophp.com/
+ * @copyright Copyright &copy; 2011 Leng Sheng Hong
+ * @license http://www.doophp.com/license
+ */
 
+/**
+ * DooCliApp for CLI application usage
+ * @author Richard Myers <richard.myers@hotmail.co.uk>
+ * @package doo.app
+ * @since 1.4 
+ */
 class DooCliApp {
 
 	const STREAM_STD_IN = "STD_IN";
