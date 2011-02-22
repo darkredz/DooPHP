@@ -11,7 +11,7 @@
 /**
  * DooCliController is the controller for CLI application should be use with Doo::app('DooCliApp')->run();
  * @author Richard Myers <richard.myers@hotmail.co.uk>
- * @package doo.app
+ * @package doo.controller
  * @since 1.4 
  */
 Doo::loadCore('app/DooCliApp');
