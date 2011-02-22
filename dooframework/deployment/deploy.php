@@ -562,7 +562,7 @@ class Doo{
     }
 
     public static function version(){
-        return '1.4';
+        return '1.4.1';
     }
 }
 
@@ -857,9 +857,9 @@ class DooWebApp{
         Doo::loadCore('uri/DooUriRouter');
         $router = new DooUriRouter;
         $routeRs = $router->execute($this->route,Doo::conf()->SUBFOLDER);
-        
+
         if($routeRs[0]!==null && $routeRs[1]!==null){
-            //dispatch, call Controller class
+            //dispatch, call Controller class            
             if($routeRs[0][0]!=='['){
                 if(strpos($routeRs[0], '\\')!==false){
                     $nsClassFile = str_replace('\\','/',$routeRs[0]);
@@ -929,7 +929,14 @@ class DooWebApp{
         //if auto route is on, then auto search Controller->method if route not defined by user
         else if(Doo::conf()->AUTOROUTE){
 
-            list($controller_name, $method_name, $params, $moduleName )= $router->auto_connect(Doo::conf()->SUBFOLDER, (isset($this->route['autoroute_alias'])===true)?$this->route['autoroute_alias']:null );
+            list($controller_name, $method_name, $method_name_ori, $params, $moduleName )= $router->auto_connect(Doo::conf()->SUBFOLDER, (isset($this->route['autoroute_alias'])===true)?$this->route['autoroute_alias']:null );
+
+            if(empty($this->route['autoroute_force_dash'])===false){
+                if($method_name!=='index' && $method_name===$method_name_ori && ctype_lower($method_name_ori)===false){
+                    $this->throwHeader(404);
+                    return;
+                }
+            }
 
             if(isset($moduleName)===true){
                 Doo::conf()->PROTECTED_FOLDER_ORI = Doo::conf()->PROTECTED_FOLDER;
@@ -1036,10 +1043,16 @@ class DooWebApp{
      * @param bool $is404 send a 404 status in header
      */
     public function reroute($routeuri, $is404=false){
+
         if(Doo::conf()->SUBFOLDER!='/')
             $_SERVER['REQUEST_URI'] = substr(Doo::conf()->SUBFOLDER, 0, strlen(Doo::conf()->SUBFOLDER)-1) . $routeuri;
         else
             $_SERVER['REQUEST_URI'] = $routeuri;
+
+        if(isset(Doo::conf()->PROTECTED_FOLDER_ORI)===true){
+            Doo::conf()->PROTECTED_FOLDER = Doo::conf()->PROTECTED_FOLDER_ORI;
+            unset( Doo::conf()->PROTECTED_FOLDER_ORI );
+        }
 
         if($is404===true)
             header('HTTP/1.1 404 Not Found');
@@ -1349,13 +1362,6 @@ class DooWebApp{
  * </code>
  * </p>
  *
- * <p>If you do not want case sensitive routing you can force all routes to lowercase. Note this will also result in
- * All parmeters being converted to lowercase as well.
- * <code>
- * $route['force_lowercase'] = true;	// Setting this to false or not defining it will keep routes case sensetive.
- * </code>
- * </p>
- *
  * <p>If you have your controller file name different from its class name, eg. home.php HomeController
  * <code>
  * $route['*']['/'] = array('home', 'index', 'className'=>'HomeController');
@@ -1409,6 +1415,22 @@ class DooWebApp{
  * $route['autoroute_alias']['/company/client'] = array('controller'=>'ClientController', 'module'=>'example');
  * </code>
  * </p>
+ *
+ * <p>Auto routes can be accessed via URL: http://domain.com/controller/method
+ * If you have a camel case method listAllUser(), it can be accessed via http://domain.com/controller/listAllUser or http://domain.com/controller/list-all-user
+ * In any case you want to control auto route to be accessed via dashed URL (list-all-user)
+ * <code>
+ * $route['autoroute_force_dash'] = true;	//setting this to false or not defining it will keep routes accessible with the 2 URLs.
+ * </code>
+ * </p>
+ *
+ * <p>If you do not want case sensitive routing you can force all routes to lowercase. Note this will also result in
+ * All parmeters being converted to lowercase as well.
+ * <code>
+ * $route['force_lowercase'] = true;	// Setting this to false or not defining it will keep routes case sensetive.
+ * </code>
+ * </p>
+ *
  * <p>See http://doophp.com/doc/guide/uri-routing for information in configuring Routes</p>
  *
  * @author Leng Sheng Hong <darkredz@gmail.com>
@@ -1905,7 +1927,7 @@ class DooUriRouter{
 
         //if method is in uri, replace - to camelCase. else method is empty, make it access index
         if(empty($uri[1])===false){
-            $method_name = $uri[1];
+            $method_name = $method_name_ori = $uri[1];
 
             //controller name can't start with a -, and it can't have more than 1 -
             if( strpos($method_name, '-')===0 || strpos($method_name, '--')!==false ){
@@ -1921,7 +1943,7 @@ class DooUriRouter{
 
 			Doo::conf()->AUTO_VIEW_RENDER_PATH[] = $uri[1];
 		}else{
-            $method_name = 'index';
+            $method_name = $method_name_ori = 'index';
 			Doo::conf()->AUTO_VIEW_RENDER_PATH[] = 'index';
 		}
 
@@ -1980,10 +2002,10 @@ class DooUriRouter{
 
                     //explode and parse the method name + parameters
                     $uridecode = explode('/', substr($uridecode, strlen($r)));
-                    $method_name = $uridecode[0];
+                    $method_name = $method_name_ori = $uridecode[0];
 
                     if(empty($method_name)===true){
-                        $method_name = 'index';
+                        $method_name = $method_name_ori = 'index';
                     }else{
                         if(sizeof($uridecode)>1){
                             $params=array_slice($uridecode, 1);
@@ -2007,7 +2029,7 @@ class DooUriRouter{
             }
         }
 
-        return array($controller_name, $method_name, $params, $module);
+        return array($controller_name, $method_name, $method_name_ori, $params, $module);
     }
 
     /**
@@ -2057,6 +2079,7 @@ class DooUriRouter{
         }
         return $params;
     }
+
 }
 
 /**
