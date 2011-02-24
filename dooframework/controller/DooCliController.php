@@ -141,7 +141,7 @@ class DooCliController {
 		do {
 			if (!empty($choices))
 				$this->write("\nUnknown or Invalid Option(s). Please select another option(s): ");
-			$choices = explode(',', trim(fgets(Doo::app()->streamStdIn)));
+			$choices = explode(',', trim(fgets(DooCliApp::$streamStdIn)));
 			
 			$allPass = true;
 			foreach($choices as $choice) {
