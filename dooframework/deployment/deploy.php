@@ -94,7 +94,8 @@ class Doo{
      */
     public static function app($appType='DooWebApp'){
         if(self::$_app===NULL){
-            self::loadCore('app/' . $appType);
+            if($appType!=='DooWebApp')          
+                self::loadCore('app/' . $appType);
             self::$_app = new $appType();
         }
         return self::$_app;
@@ -854,7 +855,6 @@ class DooWebApp{
      * @return mixed HTTP status code such as 404 or URL for redirection
      */
     public function routeTo(){
-        Doo::loadCore('uri/DooUriRouter');
         $router = new DooUriRouter;
         $routeRs = $router->execute($this->route,Doo::conf()->SUBFOLDER);
 
