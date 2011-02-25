@@ -2,7 +2,7 @@
 
 ##Introduction
 * [Website](http://doophp.com/)
-* [Documentation](http://doophp.com/docs)
+* [Documentation](http://doophp.com/doc)
 * [Benchmark](http://doophp.com/benchmark)
 * [Google Code](http://code.google.com/p/doophp/)
 * [Twitter](http://twitter.com/doophp)
