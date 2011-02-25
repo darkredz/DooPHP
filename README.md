@@ -29,4 +29,4 @@ DooPHP believes in doing things as simple as possible. It is a framework for KIS
 		
 So why do things the hard way?
 
-Read more at (http://www.doophp.com)
+Read more at [http://www.doophp.com](http://www.doophp.com)
