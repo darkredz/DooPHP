@@ -246,7 +246,8 @@ class DooWebApp{
 
         if($is404===true)
             header('HTTP/1.1 404 Not Found');
-        $this->routeTo();
+        //$this->routeTo();
+        $this->throwHeader( $this->routeTo() );
     }
 
     /**
