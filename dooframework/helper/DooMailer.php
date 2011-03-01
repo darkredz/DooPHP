@@ -231,7 +231,7 @@ class DooMailer {
 		$body .= "--{$boundryMixed}" . $this->_headerEOL;
 		$body .= "Content-Type: multipart/alternative; boundary=\"{$boundryAlt}\"" . $this->_headerEOL . $this->_headerEOL;
 
-		if (isset($this->_bodyText)) {
+		if ($this->_bodyText !== false) {
 			$body.= "--{$boundryAlt}" . $this->_headerEOL;
 			$body.= "Content-Type: text/plain; charset=\"{$this->_charset}\"" . $this->_headerEOL;
 			$body.= "Content-Transfer-Encoding: 7bit" . $this->_headerEOL . $this->_headerEOL;
@@ -239,7 +239,7 @@ class DooMailer {
 			$body.= $this->_headerEOL . $this->_headerEOL;
 		}
 		
-		if (isset($this->_bodyHtml)) {
+		if ($this->_bodyHtml !== false) {
 			$body.= "--{$boundryAlt}" . $this->_headerEOL;
 			$body.= "Content-Type: text/html; charset=\"{$this->_charset}\"" . $this->_headerEOL;
 			$body.= "Content-Transfer-Encoding: 7bit" . $this->_headerEOL . $this->_headerEOL;
@@ -251,7 +251,7 @@ class DooMailer {
 		$body .= "--{$boundryAlt}--" . $this->_headerEOL . $this->_headerEOL;
 
 		// add attachments if there are any
-		if ($this->hasAttachments == true) {
+		if ($this->hasAttachments === true) {
 			foreach ($this->_attachments as $a) {
 				$body .= "--{$boundryMixed}" . $this->_headerEOL;
 				$body .= 'Content-Type: ' . $a['file_type'] . '; name="' . $a['file_name'] . '"' . $this->_headerEOL;
