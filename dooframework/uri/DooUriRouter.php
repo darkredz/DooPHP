@@ -71,13 +71,6 @@
  * </code>
  * </p>
  *
- * <p>If you do not want case sensitive routing you can force all routes to lowercase. Note this will also result in
- * All parmeters being converted to lowercase as well.
- * <code>
- * $route['force_lowercase'] = true;	// Setting this to false or not defining it will keep routes case sensetive.
- * </code>
- * </p>
- *
  * <p>If you have your controller file name different from its class name, eg. home.php HomeController
  * <code>
  * $route['*']['/'] = array('home', 'index', 'className'=>'HomeController');
@@ -131,6 +124,22 @@
  * $route['autoroute_alias']['/company/client'] = array('controller'=>'ClientController', 'module'=>'example');
  * </code>
  * </p>
+ *
+ * <p>Auto routes can be accessed via URL: http://domain.com/controller/method
+ * If you have a camel case method listAllUser(), it can be accessed via http://domain.com/controller/listAllUser or http://domain.com/controller/list-all-user
+ * In any case you want to control auto route to be accessed via dashed URL (list-all-user)
+ * <code>
+ * $route['autoroute_force_dash'] = true;	//setting this to false or not defining it will keep routes accessible with the 2 URLs.
+ * </code>
+ * </p>
+ *
+ * <p>If you do not want case sensitive routing you can force all routes to lowercase. Note this will also result in
+ * All parmeters being converted to lowercase as well.
+ * <code>
+ * $route['force_lowercase'] = true;	// Setting this to false or not defining it will keep routes case sensetive.
+ * </code>
+ * </p>
+ *
  * <p>See http://doophp.com/doc/guide/uri-routing for information in configuring Routes</p>
  *
  * @author Leng Sheng Hong <darkredz@gmail.com>
@@ -156,6 +165,7 @@ class DooUriRouter{
      */
     public function execute($routeArr,$subfolder='/'){
         list($route, $params) = $this->connect($routeArr,$subfolder);
+
         if($route[0]==='redirect'){
             if(sizeof($route)===2)
                 self::redirect($route[1]);
@@ -226,6 +236,7 @@ class DooUriRouter{
      * </code>
      */
 	private function connect($routes, $subfolder) {
+
 		$skipNormalRoutes = false;	// Used to allow for parse through to check root and catchall
 									// routes if * and type routes do not meet / criteria
 
@@ -271,6 +282,7 @@ class DooUriRouter{
 
 		//$this->log('Trimmed off trailing slashes from Request Uri: ' . $requestedUri);
 
+
 		// Got a root url (ie. Homepage)
 		if ($requestedUri === '/') {
 			//$this->log('Got a root URL');
@@ -301,6 +313,7 @@ class DooUriRouter{
 			}
 
 			//$this->log('Possible Routes: ', $possibleRoutes);
+
 			// We if we simply have the full route (ie. No params needed)
 			if (isset($possibleRoutes[$requestedUri])===true) {
 				// Ensure the url does not contain : in it
@@ -326,6 +339,7 @@ class DooUriRouter{
 		 * Note that Identical Routes MUST have different REQUIREMENT (match) for the param,
 		 * if not the first which is defined will matched, therefore preventing any others being matched
 		 */
+
 		$uriPartsOrig = explode('/', $requestedUri);
 		$uriPartsSize = sizeof($uriPartsOrig);
 
@@ -350,23 +364,23 @@ class DooUriRouter{
 				// If first part of uri not match first part of route then skip.
 				// We expect ALL routes at this stage to begin with a static segment.
 				// Note: We exploded with a leading / so element 0 in both arrays is an empty string
-				if (str_replace($uriExtension, "", $uriParts[1]) !== $routeParts[1]) {
+				if ($uriParts[1] !== $routeParts[1]) {
 					//$this->log('First path not match');
 					continue;
 				}
 
 				// If the route allows extensions check that the extension provided is a correct match
 				if (isset($routeData['extension'])===true) {
-//					if ($uriExtension === false) {
-//						continue;		// We need an extension for this to match so can't be a match
-//					} else {
+					if ($uriExtension === false) {
+						continue;		// We need an extension for this to match so can't be a match
+					} else {
 						$routeExtension = $routeData['extension'];
 						if (is_string($routeExtension)===true && $uriExtension!==$routeExtension ) {
 							continue;	// Extensions do not match so can't be a match
 						} elseif (is_array($routeExtension)===true && in_array($uriExtension, $routeExtension)===false) {
 							continue;	// Extension not in allowed extensions so can't be a match
 						}
-//					}
+					}
 				}
 
 				// Now check the other statics parts of the url (we deal with parameters later
@@ -377,8 +391,7 @@ class DooUriRouter{
 					if ($routePart[0] === ':')
 						continue;	// This routePart is a parameter in the Uri
 
-//					if ($routePart !== $uriParts[$i])
-					if ($routePart !== str_replace($uriExtension, "", $uriParts[$i]))
+					if ($routePart !== $uriParts[$i])
 						continue 2; // The static part of this route does not match the route part
 				}
 
@@ -623,7 +636,7 @@ class DooUriRouter{
 
         //if method is in uri, replace - to camelCase. else method is empty, make it access index
         if(empty($uri[1])===false){
-            $method_name = $uri[1];
+            $method_name = $method_name_ori = $uri[1];
 
             //controller name can't start with a -, and it can't have more than 1 -
             if( strpos($method_name, '-')===0 || strpos($method_name, '--')!==false ){
@@ -639,7 +652,7 @@ class DooUriRouter{
 
 			Doo::conf()->AUTO_VIEW_RENDER_PATH[] = $uri[1];
 		}else{
-            $method_name = 'index';
+            $method_name = $method_name_ori = 'index';
 			Doo::conf()->AUTO_VIEW_RENDER_PATH[] = 'index';
 		}
 
@@ -698,10 +711,10 @@ class DooUriRouter{
 
                     //explode and parse the method name + parameters
                     $uridecode = explode('/', substr($uridecode, strlen($r)));
-                    $method_name = $uridecode[0];
+                    $method_name = $method_name_ori = $uridecode[0];
 
                     if(empty($method_name)===true){
-                        $method_name = 'index';
+                        $method_name = $method_name_ori = 'index';
                     }else{
                         if(sizeof($uridecode)>1){
                             $params=array_slice($uridecode, 1);
@@ -725,7 +738,7 @@ class DooUriRouter{
             }
         }
 
-        return array($controller_name, $method_name, $params, $module);
+        return array($controller_name, $method_name, $method_name_ori, $params, $module);
     }
 
     /**
