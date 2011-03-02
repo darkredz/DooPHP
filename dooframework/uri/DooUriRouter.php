@@ -364,7 +364,7 @@ class DooUriRouter{
 				// If first part of uri not match first part of route then skip.
 				// We expect ALL routes at this stage to begin with a static segment.
 				// Note: We exploded with a leading / so element 0 in both arrays is an empty string
-				if ($uriParts[1] !== $routeParts[1]) {
+				if (str_replace($uriExtension, "", $uriParts[1]) !== $routeParts[1]) {
 					//$this->log('First path not match');
 					continue;
 				}
@@ -422,14 +422,24 @@ class DooUriRouter{
 				return array($routeData, $params);
 			}
 
-			if (isset($routes['*']['root'])===true) {
+			if (isset($routes['*']['root'])===true || isset($routes[$type]['root'])) {
 
 				// Note: Root Routes should always start with a parameter ie. ['*']['root']['/:param']
 				// Therefore we wont look at running some checks used by non root routes
 				//$this->log('No Route Yet Found. Trying Root routes');
-				$rootRoute = $routes['*']['root'];
+				if(isset($routes[$type]['root'])===true)
+					$rootRoutes = $routes[$type]['root'];
+				else
+					$rootRoutes = null;
 
-				foreach($rootRoute as $routeKey=>$routeData) {
+				if(isset($routes['*']['root'])===true){
+					if($rootRoutes !== null)
+						$rootRoutes = array_merge($routes['*']['root'], $rootRoutes);
+					else
+						$rootRoutes = $routes['*']['root'];
+				}
+
+				foreach($rootRoutes as $routeKey=>$routeData) {
 					$uriParts = $uriPartsOrig;
 					$routeParts = explode('/', $routeKey);
 
@@ -496,8 +506,19 @@ class DooUriRouter{
 
 		if(isset($routes['*']['catchall'])===true) {
 			//$this->log('No Route Yet Found. Trying Catch All Routes');
-			$routeCatch = $routes['*']['catchall'];
-			foreach($routes['*']['catchall'] as $routeKey=>$routeData) {
+			if(isset($routes[$type]['catchall'])===true)
+				$catchRoutes = $routes[$type]['catchall'];
+			else
+				$catchRoutes = null;
+
+			if(isset($routes['*']['catchall'])===true){
+				if($catchRoutes !== null)
+					$catchRoutes = array_merge($routes['*']['catchall'], $catchRoutes);
+				else
+					$catchRoutes = $routes['*']['catchall'];
+			}
+
+			foreach($catchRoutes as $routeKey=>$routeData) {
 
 				// If the route allows extensions check that the extension provided is a correct match
 				if (isset($routeData['extension'])===true) {
