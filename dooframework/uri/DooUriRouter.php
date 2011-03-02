@@ -371,15 +371,20 @@ class DooUriRouter{
 
 				// If the route allows extensions check that the extension provided is a correct match
 				if (isset($routeData['extension'])===true) {
-					if ($uriExtension === false) {
-						continue;		// We need an extension for this to match so can't be a match
-					} else {
+					if ($uriExtension !== false || (isset($routeData['extensionOptional']) && $routeData['extensionOptional'] === true)) {
 						$routeExtension = $routeData['extension'];
 						if (is_string($routeExtension)===true && $uriExtension!==$routeExtension ) {
 							continue;	// Extensions do not match so can't be a match
 						} elseif (is_array($routeExtension)===true && in_array($uriExtension, $routeExtension)===false) {
 							continue;	// Extension not in allowed extensions so can't be a match
 						}
+						
+						if ($uriExtension !== false) {
+							// Made it this far so got a valid extension so remove from URL
+							$uriParts[$uriPartsSize - 1] = $uriLastPartNoExtension;
+						}
+					} else {
+						continue;		// We need an extension for this to match so can't be a match
 					}
 				}
 
@@ -396,9 +401,6 @@ class DooUriRouter{
 				}
 
 				//$this->log('Got a route match. RouteKey: ' . $routeKey);
-				if (isset($routeData['extension'])===true && $uriExtension !== false) {
-					$uriParts[$uriPartsSize - 1] = $uriLastPartNoExtension;
-				}
 
 				$params = $this->parse_params($uriParts, $routeParts);
 				//$this->log('Got Parameter Values:', $params);
@@ -438,15 +440,20 @@ class DooUriRouter{
 
 					// If the route allows extensions check that the extension provided is a correct match
 					if (isset($routeData['extension'])===true) {
-						if ($uriExtension === false) {
-							continue;		// We need an extension for this to match so can't be a match
-						} else {
+						if ($uriExtension !== false || (isset($routeData['extensionOptional']) && $routeData['extensionOptional'] === true)) {
 							$routeExtension = $routeData['extension'];
-							if (is_string($routeExtension)===true && $uriExtension !== $routeExtension) {
+							if (is_string($routeExtension)===true && $uriExtension!==$routeExtension ) {
 								continue;	// Extensions do not match so can't be a match
 							} elseif (is_array($routeExtension)===true && in_array($uriExtension, $routeExtension)===false) {
 								continue;	// Extension not in allowed extensions so can't be a match
 							}
+
+							if ($uriExtension !== false) {
+								// Made it this far so got a valid extension so remove from URL
+								$uriParts[$uriPartsSize - 1] = $uriLastPartNoExtension;
+							}
+						} else {
+							continue;		// We need an extension for this to match so can't be a match
 						}
 					}
 
@@ -463,9 +470,6 @@ class DooUriRouter{
 					}
 
 					//$this->log('Got a route match. RouteKey: ' . $routeKey);
-					if (isset($routeData['extension'])===true && $uriExtension !== false) {
-						$uriParts[$uriPartsSize - 1] = $uriLastPartNoExtension;
-					}
 
 					$params = $this->parse_params($uriParts, $routeParts);
 					//$this->log('Got Parameter Values:', $params);
@@ -497,15 +501,20 @@ class DooUriRouter{
 
 				// If the route allows extensions check that the extension provided is a correct match
 				if (isset($routeData['extension'])===true) {
-					if ($uriExtension === false) {
-						continue;		// We need an extension for this to match so can't be a match
-					} else {
+					if ($uriExtension !== false || (isset($routeData['extensionOptional']) && $routeData['extensionOptional'] === true)) {
 						$routeExtension = $routeData['extension'];
-						if (is_string($routeExtension)===true && $uriExtension !== $routeExtension) {
+						if (is_string($routeExtension)===true && $uriExtension!==$routeExtension ) {
 							continue;	// Extensions do not match so can't be a match
 						} elseif (is_array($routeExtension)===true && in_array($uriExtension, $routeExtension)===false) {
 							continue;	// Extension not in allowed extensions so can't be a match
 						}
+
+						if ($uriExtension !== false) {
+							// Made it this far so got a valid extension so remove from URL
+							$uriParts[$uriPartsSize - 1] = $uriLastPartNoExtension;
+						}
+					} else {
+						continue;		// We need an extension for this to match so can't be a match
 					}
 				}
 
@@ -527,10 +536,6 @@ class DooUriRouter{
 							continue 2; // The static part of this route does not match the route part
 						}
 					}
-				}
-
-				if (isset($routeData['extension'])===true && $uriExtension !== false) {
-					$uriParts[$uriPartsSize - 1] = $uriLastPartNoExtension;
 				}
 
 				$params = $this->parse_params_catch($uriParts, $routeParts);
