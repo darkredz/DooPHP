@@ -27,6 +27,9 @@
  */
 abstract class DooManageDb {
 
+	protected $_tableDefinitionCache = array();
+
+
 	/**
 	 *  Usable Column Types
 	 */
@@ -42,12 +45,6 @@ abstract class DooManageDb {
 	const COL_TYPE_DATE		 = 'date';
 	const COL_TYPE_TIME		 = 'time';
 	const COL_TYPE_TIMESTAMP = 'timestamp';
-
-	/**
-     * Determined whether the database connection is made.
-     * @var bool
-     */
-    public $connected = false;
 
 	/**
 	 * A mapping of Doo generic datatypes to RDBMS native datatypes for columns
@@ -85,12 +82,6 @@ abstract class DooManageDb {
 	);
 
 	/**
-	 * Array of all SQL commands run against db
-	 * @var array
-	 */
-	protected $sqlList = array();
-
-	/**
      * The RDBMS specific quote character before an identifiers name
      * This must be defined in each specific adapter
      * @var string
@@ -104,117 +95,18 @@ abstract class DooManageDb {
      */
     protected $identiferQuoteSuffix = null;
 
-	/**
-	 * Database configuration to use
-	 * @var array
-	 */
-	protected $dbconfig;
-
-
-	/**
-	 * A PDO Object for accessing the Database
-	 * @var object
-	 */
-	protected $pdo = null;
-
-	/**
-     * Enable/disable SQL tracking, to view SQL which has been queried, use showSQL()
-     * @var bool
-     */
-	private $sqlTracking=false;
-
-	/**
-     * Set the database configuration
-     * @param array $dbconfig Connection information (db_host, db_name, db_user, db_pwd, db_driver, db_connection_cache)
-     */
-    public function setDb($dbconfig){
-        $this->dbconfig = $dbconfig;
-    }
-
-	/**
-     * Connects to the database with the default database connection configuration
-     */
-    public function connect(){
-        if($this->dbconfig == NULL) {
-			return;
-		}
-        try {
-            if ($this->dbconfig[4] == 'sqlite') {
-                $this->pdo = new PDO("{$this->dbconfig[4]}:{$this->dbconfig[0]}");
-			} else {
-                $this->pdo = new PDO("{$this->dbconfig[4]}:host={$this->dbconfig[0]};dbname={$this->dbconfig[1]}", $this->dbconfig[2], $this->dbconfig[3],array(PDO::ATTR_PERSISTENT => $this->dbconfig[5]));
-			}
-			$this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->connected = true;
-            if (isset($this->dbconfig['charset']) && isset($this->dbconfig['collate'])) {
-                $this->pdo->exec("SET NAMES '". $this->dbconfig['charset']. "' COLLATE '". $this->dbconfig['collate'] ."'");
-            } else if (isset($this->dbconfig['charset']) ) {
-                $this->pdo->exec("SET NAMES '". $this->dbconfig['charset']. "'");
-            }
-        } catch(PDOException $ex) {
-            throw new DooManageDbException('Failed to open the DB connection', $ex->getMessage());
-        }
-    }
-
-
-	/**
-     * Execute a query to the connected database
-     * @param string $query SQL query prepared statement
-     * @param array $param Values used in the prepared SQL
-     * @return PDOStatement
-     */
-    public function query($query){
-        if($this->sqlTracking === true) {
-            $this->sqlList[] = $query;
-        }
-        $stmt = $this->pdo->prepare($query);
-        $stmt->execute();
-        return $stmt;
-    }
-
-	/**
-	 * Should SQL querys being executed be logged?
-	 * @param bool $enable True if tracking should be on, false otherwise
-	 */
-	public function enableSqlHistory($enable = true) {
-		$this->sqlTracking = $enable;
-	}
-
-	/**
-     * Retrieve a list of executed SQL queries
-     * @return array
-     */
-    public function getSqlHistory(){
-        return $this->sqlList;
-    }
-
-    /**
-     * Get the number of queries executed
-     * @return int
-     */
-    public function getQueryCount(){
-        return sizeof($this->sqlList);
-    }
-
-	/**
-     * Reset list of executed SQL queries
-     * @return void
-     */
-    public function resetSqlHistory(){
-        $this->sqlList = array();
-    }
-
+	
+	
 	/**
 	 * Checks to see if the specified table
 	 *
 	 * @param string $table Name of the table to check existance of
 	 */
 	public function tableExists($table) {
-		$stmt = $this->query("show tables like '{$table}'");
-		$result = $stmt->fetch();
+		$result = Doo::db()->fetchAll("show tables like '{$table}'");
 		return !empty($result);
 	}
-	
+
 	/**
 	 * Creates a new table within the active database
 	 *
@@ -242,10 +134,9 @@ abstract class DooManageDb {
 	 * @return bool on success of the tables creation
 	 */
 	public function createTable($table, $cols, $options=null) {
-		$statement = $this->_sqlCreateTable($table, $cols, $options);
 		try {
-			$this->query($statement);
-		} catch (PDOException $ex) {
+			Doo::db()->query($this->_sqlCreateTable($table, $cols, $options));
+		} catch (Exception $ex) {
 			throw new DooManageDbException("Error Creating Table : $table", $ex->getMessage());
 		}
 	}
@@ -265,7 +156,7 @@ abstract class DooManageDb {
 
 		foreach($columnDefinitions as $name => $attributes) {
 			try {
-				$columnDefs[] = $this->buildColumnDefinition($name, $attributes);
+				$columnDefs[] = $this->quoteName($name) . $this->buildColumnDefinition($name, $attributes);
 			} catch (DooDbAdminException $ex) {
 				$errors[$name] = $ex->getMessage();
 			}
@@ -288,7 +179,7 @@ abstract class DooManageDb {
 		$tableQuotted = $this->quoteName($table);
 		$statement = $this->_sqlDropTable($tableQuotted);
 		try {
-			$this->query($statement);
+			Doo::db()->query($statement);
 		} catch (PDOException $ex) {
 			throw new DooManageDbException("Error Dropping Table : $table", $ex->getMessage());
 		}
@@ -303,6 +194,65 @@ abstract class DooManageDb {
 		return "DROP TABLE IF EXISTS $table";
 	}
 
+	public function renameTable($originalTableName, $newTableName) {
+
+		$this->checkIdentifier('table', $newTableName);
+		
+		$originalTableNameQuoted = $this->quoteName($originalTableName);
+		$newTableNameQuoted = $this->quoteName($newTableName);
+		
+		$statement = $this->_renameTable($originalTableNameQuoted, $newTableNameQuoted);
+		try {
+			Doo::db()->query($statement);
+		} catch (PDOException $ex) {
+			throw new DooManageDbException("Error Renaming Table : {$originalTableName} to {$newTableName}", $ex->getMessage());
+		}
+	}
+
+	protected function _renameTable($originalTableName, $newTableName) {
+		return "ALTER TABLE {$originalTableName} RENAME TO {$newTableName}";
+	}
+
+
+	public function columnExists($table, $name) {
+		$tableDefinition = $this->fetchTableDefinition($table);
+		if (isset($tableDefinition[$name])) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public function getTableDefinition($table) {
+		$tableDefinition = $this->fetchTableDefinition($table);
+		if (isset($tableDefinition)) {
+			return $tableDefinition;
+		} else {
+			return false;
+		}
+	}
+
+	public function getColumnDefinition($table, $name) {
+		$tableDefinition = $this->fetchTableDefinition($table);
+		if (isset($tableDefinition[$name])) {
+			return $tableDefinition[$name];
+		} else {
+			return false;
+		}
+	}
+
+	protected function fetchTableDefinition($table) {
+		if (!isset($this->_tableDefinitionCache[$table])) {			
+			$this->_tableDefinitionCache[$table] = $this->_fetchTableDefinition($table);
+		}
+		return $this->_tableDefinitionCache[$table];
+	}
+
+	protected function _fetchTableDefinition($table) {
+		return array();
+	}
+
+	
 	/**
 	 * Adds a new column $name to $table with $attributes
 	 *
@@ -328,7 +278,7 @@ abstract class DooManageDb {
 	public function addColumn($table, $name, array $attributes) {
 		$statement = $this->_sqlAddColumn($table, $name, $attributes);
 		try {
-			$this->query($statement);
+			Doo::db()->query($statement);
 		} catch (PDOException $ex) {
 			throw new DooManageDbException("Error Adding Column ($name) to Table ($table)", $ex->getMessage());
 		}
@@ -337,7 +287,8 @@ abstract class DooManageDb {
 	protected function _sqlAddColumn($table, $name, array $attributes) {
 		$columnDefinition = $this->buildColumnDefinition($name, $attributes);
 		$table = $this->quoteName($table);
-		return "ALTER TABLE $table ADD COLUMN $columnDefinition";
+		$name = $this->quoteName($name);
+		return "ALTER TABLE {$table} ADD COLUMN {$name} {$columnDefinition}";
 	}
 
 	/**
@@ -349,7 +300,7 @@ abstract class DooManageDb {
 	public function dropColumn($table, $name) {
 		$statement = $this->_sqlDropColumn($this->quoteName($table), $name);
 		try {
-			$this->query($statement);
+			Doo::db()->query($statement);
 		} catch (PDOException $ex) {
 			throw new DooManageDbException("Error Dropping Column ($name) from Table ($table)", $ex->getMessage());
 		}
@@ -357,6 +308,29 @@ abstract class DooManageDb {
 
 	protected function _sqlDropColumn($table, $name) {
 		return "ALTER TABLE $table DROP COLUMN $name";
+	}
+	
+	public function updateColumnDefinition($table, $name, $definition, $newColumnName = null) {
+		
+		$statement = $this->_updateColumnDefinition($table, $name, $definition, $newColumnName);
+		try {
+			Doo::db()->query($statement);
+		} catch (PDOException $ex) {
+			throw new DooManageDbException("Error Updating Column ($name) Definition", $ex->getMessage());
+		}
+		
+	}
+	protected function _updateColumnDefinition($table, $name, $definition, $newName) {
+		$newColumnDefinition = $this->buildColumnDefinition($name, $definition);
+		$table = $this->quoteName($table);
+		$name = $this->quoteName($name);
+		if ($newName === null) {
+			return "ALTER TABLE {$table} MODIFY {$name} {$newColumnDefinition}";
+		} else {
+			$this->checkIdentifier('column', $newName);
+			$newName = $this->quoteName($newName);
+			return "ALTER TABLE {$table} CHANGE {$name} {$newName} {$newColumnDefinition}";
+		}
 	}
 
 
@@ -440,10 +414,20 @@ abstract class DooManageDb {
         $this->columnDefineAutoincPrimary($columnDefinition, $autoinc, $primary);
 
         // done
-        $name = $this->quoteName($name);
-        return "$name $columnDefinition";
+        return $columnDefinition;
 	}
 
+	/**
+	 * Adds SQL DB Engine specific auto increment and primary key clauses inplace to the column definition
+	 * @param string $columnDefinition Reference to the columnDefention to append to
+	 * @param bool $autoinc True if this column should be a primary key
+	 * @param bool $primary True if this column should be a primary key
+	 * @return void
+	 */
+	abstract protected function columnDefineAutoincPrimary(&$columnDefinition, $autoinc, $primary);
+
+
+	
 	/**
 	 * Creates an index on a table.
 	 *
@@ -476,12 +460,11 @@ abstract class DooManageDb {
 		}
 
 		if ($unique) {
-			return $this->query("CREATE UNIQUE INDEX $name ON $table ($colNames)");
+			return Doo::db()->query("CREATE UNIQUE INDEX $name ON $table ($colNames)");
 		} else {
-			return $this->query("CREATE INDEX $name ON $table ($colNames)");
+			return Doo::db()->query("CREATE INDEX $name ON $table ($colNames)");
 		}
 	}
-
 
 	/**
 	 * Drops a database from a table in the database
@@ -491,10 +474,16 @@ abstract class DooManageDb {
 	 */
 	public function dropIndex($table, $name) {
 		$name = $this->modifyIndexName($table, $name);
-		return $this->_dropIndex($table, $name);
+		return Doo::db()->query($this->_dropIndex($table, $name));
 	}
 
-
+	/**
+	 * Drops an index from a table and specifically implemented for each db engine
+	 * @param string $table Name of the table the index is for
+	 * @param string $name Name of the index to be removed
+	 */
+	abstract protected function _dropIndex($table, $name);
+	
 	/**
 	 * Used to allow an index name to be modified if required by a specific db engine
 	 * @param string $table Name of the table
@@ -503,24 +492,6 @@ abstract class DooManageDb {
 	protected function modifyIndexName($table, $name) {
 		return $name;
 	}
-
-	
-	/**
-	 * Drops an index from a table and specifically implemented for each db engine
-	 * @param string $table Name of the table the index is for
-	 * @param string $name Name of the index to be removed
-	 */
-	abstract protected function _dropIndex($table, $name);
-
-
-	/**
-	 * Adds SQL DB Engine specific auto increment and primary key clauses inplace to the column definition
-	 * @param string $columnDefinition Reference to the columnDefention to append to
-	 * @param bool $autoinc True if this column should be a primary key
-	 * @param bool $primary True if this column should be a primary key
-	 * @return void
-	 */
-	abstract protected function columnDefineAutoincPrimary(&$columnDefinition, $autoinc, $primary);
 
 
 
@@ -566,6 +537,7 @@ abstract class DooManageDb {
 	}
 
 
+	
 	/**
 	 * Checks if a database identifier is allowed
 	 * @param string $type the type of identified table|column

@@ -81,13 +81,53 @@ class DooManageMySqlDb extends DooManageDb {
 		return $statement;
 	}
 
+	protected function  _fetchTableDefinition($table) {
+		$fullTableDefinition = Doo::db()->fetchAll('DESCRIBE ' . $table);
+		$tableDefinition = array();
+		foreach ($fullTableDefinition as $columnDefinition) {
+			$fieldName = $columnDefinition['Field'];
+			$type = strtolower($columnDefinition['Type']);
+
+			$size = null;
+			if (strpos($type, '(') !== false) {
+				$size = substr($type, strpos($type, '(') + 1, -1);
+				$type = substr($type, 0, strpos($type, '('));
+				if ($type != 'char' && $type != 'varchar') {
+					$size = null;
+				}
+			}
+			$require = $columnDefinition['Null'] == 'YES' ? false : true;
+			$default = $columnDefinition['Default'];
+			$primary = $columnDefinition['Key'] == 'PRI' ? true : false;
+			$autoInc = strpos($columnDefinition['Extra'], 'auto_increment') === false ? false : true;
+
+			if ($type == 'boolean' || $type == 'tinyint' && $size == 1) $type = DooManageDb::COL_TYPE_BOOL;
+			elseif ($type == 'integer') $type = DooManageDb::COL_TYPE_INT;
+			elseif ($type == 'double') $type = DooManageDb::COL_TYPE_FLOAT;
+			elseif ($type == 'longtext') $type = DooManageDb::COL_TYPE_CLOB;
+			elseif ($type == 'datetime') $type = DooManageDb::COL_TYPE_TIMESTAMP;
+
+			$tableDefinition[$fieldName] = array(
+				'autoinc' => $autoInc,
+				'default' => $default,
+				'primary' => $primary,
+				'require' => $require,
+				'scope' => null,
+				'size' => $size,
+				'type' => $type,
+				
+			);
+		}
+		return $tableDefinition;
+	}
+
 	/**
 	 * Drops an index from a table and specifically implemented for each db engine
 	 * @param string $table Name of the table the index is for
 	 * @param string $name Name of the index to be removed
 	 */
 	protected function _dropIndex($table, $name) {
-		return $this->query("ALTER TABLE $table DROP INDEX $name");
+		return "ALTER TABLE $table DROP INDEX $name";
 	}
 
 	/**
