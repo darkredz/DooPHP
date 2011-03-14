@@ -22,7 +22,7 @@ abstract class DooDbUpdater {
 	 * A DooDbAdmin adapater for the active DB engine
 	 * @var DooManageDb
 	 */
-	public $db = null;
+	public $dbManager = null;
 
 
 	/**
@@ -32,15 +32,11 @@ abstract class DooDbUpdater {
 	public function __construct($dbConfig) {
 
 		// Load the correct Db Manager adapter based on the db_engine/driver being used
-		$this->db = $this->getDbEngineManager($dbConfig[4]);	// element 4 is the db_driver
-
-		// Configure the database connection settings
-		$this->db->setDb($dbConfig);
-		$this->db->connect();
+		$this->dbManager = $this->getDbEngineManager($dbConfig[4]);	// element 4 is the db_driver
 	}
 
 	public function enableDebugging($enable) {
-		$this->db->enableSqlHistory($enable);
+		Doo::db()->sql_tracking = $enable;
 	}
 
 	

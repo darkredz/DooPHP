@@ -510,7 +510,7 @@ abstract class DooManageDb {
 			}
 			return $value;
 		} else {
-			return $this->pdo->quote($value, $type);
+			return Doo::db()->quote($value, $type);
 		}
 	}
 
