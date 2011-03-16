@@ -350,7 +350,8 @@ class DooController {
                             'png'=>'image/png',
                             'jpg'=>'image/jpeg',
                             'gif'=>'image/gif',
-                            'csv'=>'text/csv'
+                            'csv'=>'text/csv',
+							'tsv'=>'text/tsv'
 						);
         if(isset($extensions[$type]))
             header("Content-Type: {$extensions[$type]}; charset=$charset");
