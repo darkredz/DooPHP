@@ -2206,61 +2206,55 @@ class DooSqlMagic {
         $this->update($model, $opt);
         foreach($rmodels as $rmodel){
             #echo $rmodel->{$rmodel->_primarykey} . '<br>';
-            //if related model id is set, means update the existing record!
-            if(isset($rmodel->{$rmodel->_primarykey})){
-                $this->update($rmodel);
-            }
-            //insert the related model with the relation's foreign key
-            else{
-                $class_name = get_class($model);
-                $rclass_name = get_class($rmodel);
+		  $class_name = get_class($model);
+		  $rclass_name = get_class($rmodel);
 
-                //get how the related model relates to the main model object
-                list($rtype,$rparams) = self::relationType($this->map, $rclass_name, $class_name);
-                if($rtype==NULL)
-                    throw new SqlMagicException("Model $class_name does not relate to $rclass_name", SqlMagicException::RelationNotFound);
-                #print_r(array($rtype,$rparams));
+		  //get how the related model relates to the main model object
+		  list($rtype,$rparams) = self::relationType($this->map, $rclass_name, $class_name);
+		  if($rtype==NULL)
+			 throw new SqlMagicException("Model $class_name does not relate to $rclass_name", SqlMagicException::RelationNotFound);
+		  #print_r(array($rtype,$rparams));
 
-                if($rtype=='has_many' && isset($rparams['foreign_key']) && isset($rparams['through'])){
-                    //echo '<h2>Insert MAny to many</h2>';
-                    //select only the primary key (id) and the set properties
-                    $obj = get_object_vars($rmodel);
-                    $fieldstr ='';
-                    foreach($obj as $o=>$v){
-                        if(isset($v) && in_array($o, $model->_fields)){
-                            $fieldstr .= ','.$o;
-                        }
-                    }
-                    $fieldstr = "{$rmodel->_primarykey}$fieldstr";
+		  if($rtype=='has_many' && isset($rparams['foreign_key']) && isset($rparams['through'])){
+			 //echo '<h2>Insert MAny to many</h2>';
+			 //select only the primary key (id) and the set properties
+			 $obj = get_object_vars($rmodel);
+			 $fieldstr ='';
+			 foreach($obj as $o=>$v){
+				if(isset($v) && in_array($o, $model->_fields)){
+				    $fieldstr .= ','.$o;
+				}
+			 }
+			 $fieldstr = "{$rmodel->_primarykey}$fieldstr";
 
-                    //get the linked key(Model's foreign key) for the $model from the relationship defined. It's not always primary key of the Model
-                    $reversed_relation = self::relationType($this->map, $class_name, $rclass_name);
-                    $model_linked_key = $reversed_relation[1]['foreign_key'];
-                    //$mId = $model->{$rparams['foreign_key']};
-                    $mId = $model->{$model->_primarykey};
+			 //get the linked key(Model's foreign key) for the $model from the relationship defined. It's not always primary key of the Model
+			 $reversed_relation = self::relationType($this->map, $class_name, $rclass_name);
+			 $model_linked_key = $reversed_relation[1]['foreign_key'];
+			 //$mId = $model->{$rparams['foreign_key']};
+			 $mId = $model->{$model->_primarykey};
 
-                    //check if the related model already exist it true than insert to the 'through' table with the 2 ids.
-                    $chk_rmodel = $this->find($rmodel, array('select'=>$fieldstr, 'limit'=>1));
-                    if($chk_rmodel!=NULL){
-                        //echo '<h1>'.$chk_rmodel->{$rparams['foreign_key']}.'</h1>';
-                        $rId = $chk_rmodel->{$chk_rmodel->_primarykey};
-                    }else{
-                        //echo '<h2>Not found this related model in many-to-many. Insert it!</h2>';
-                        $rId = $this->insert($rmodel);
-                    }
+			 //check if the related model already exist it true than insert to the 'through' table with the 2 ids.
+			 $chk_rmodel = $this->find($rmodel, array('select'=>$fieldstr, 'limit'=>1));
+			 if($chk_rmodel!=NULL){
+				//echo '<h1>'.$chk_rmodel->{$rparams['foreign_key']}.'</h1>';
+				$this->update($rmodel); // if model exists, we update it
+				$rId = $chk_rmodel->{$chk_rmodel->_primarykey};
+			 }else{
+				//echo '<h2>Not found this related model in many-to-many. Insert it!</h2>';
+				$rId = $this->insert($rmodel); // if doesn't exist, we insert it
+			 }
 
-                    //insert into the 'through' Table, if exists dun create duplicates
-                    if($this->query("SELECT {$rparams['foreign_key']},{$model_linked_key} FROM {$rparams['through']} WHERE {$rparams['foreign_key']}=? AND {$model_linked_key}=?", array($rId,$mId))->fetch()==NULL){
-                        $this->query( "INSERT INTO {$rparams['through']} ({$model_linked_key},{$rparams['foreign_key']}) VALUES (?,?)", array($mId,$rId));
-                    }
-                }
-                else if(isset($rparams['foreign_key'])){
-                    //echo '<h2>Insert 1to1 or 1tomany</h2>';
-					list($rtype,$rparams) = self::relationType($this->map, $class_name, $rclass_name);
-                    $rmodel->{$rparams['foreign_key']} = $model->{$model->_primarykey};
-                    $this->insert($rmodel);
-                }
-            }
+			 //insert into the 'through' Table, if exists dun create duplicates
+			 if($this->query("SELECT {$rparams['foreign_key']},{$model_linked_key} FROM {$rparams['through']} WHERE {$rparams['foreign_key']}=? AND {$model_linked_key}=?", array($rId,$mId))->fetch()==NULL){
+				$this->query( "INSERT INTO {$rparams['through']} ({$model_linked_key},{$rparams['foreign_key']}) VALUES (?,?)", array($mId,$rId));
+			 }
+		  }
+		  else if(isset($rparams['foreign_key'])){
+			 //echo '<h2>Insert 1to1 or 1tomany</h2>';
+				 list($rtype,$rparams) = self::relationType($this->map, $class_name, $rclass_name);
+			 $rmodel->{$rparams['foreign_key']} = $model->{$model->_primarykey};
+			 $this->insert($rmodel);
+		  }
         }
     }
 

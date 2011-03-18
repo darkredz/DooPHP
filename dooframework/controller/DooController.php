@@ -473,7 +473,7 @@ class DooController {
      * @return string XML string
      */
     public function toXML($result, $output=false, $setXMLContentType=false, $encoding='utf-8'){
-        $str = '<?xml version="1.0" encoding="utf-8"?><result>';
+        $str = '<?xml version="1.0" encoding="'.$encoding.'"?><result>';
         foreach($result as $kk=>$vv){
             $cls = get_class($vv);
             $str .= '<' . $cls . '>';
