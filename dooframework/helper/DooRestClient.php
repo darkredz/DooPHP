@@ -43,6 +43,8 @@ class DooRestClient {
     protected $result;
     protected $header_code_received;
     protected $content_type_received;
+    protected $header_size_received;
+    protected $content_size_received;
 
     //for sending Accept header, this is to be used with requests to REST server which is built with Doo Framework
     const HTML = 'text/html';
@@ -188,6 +190,36 @@ class DooRestClient {
     }
 
     /**
+     * Get/Set desired header fields.
+     * The header fields are returned when no header array is passed into the method.
+     *
+     * Example fields input:
+     * <code>
+     * $client = new DooRestClient('http://somewebsite.com/api/rest');
+     * $client->header(array(
+     *                      'Access-Control-Allow-Methods'=>'POST, GET, PUT, DELETE',
+     *                      'Content-Type'=>'application/json; charset=utf-8'
+     *                  ));
+     *
+     * $client->execute('get');
+     * //or $client->get();
+     * </code>
+     * @param array $headerArr
+     * @return mixed
+     */
+    
+    public function header($headerArr=NULL){
+        if($headerArr==NULL)
+            return $this->curl_opt['HTTPHEADER'];
+
+        foreach($headerArr as $k=>$v){
+            $this->curl_opt['HTTPHEADER'] = array("$k: $v");
+        }
+                
+        return $this;
+    }
+
+    /**
      * Get/set authentication details for the RESTful call
      *
      * Authentication can be done with HTTP Basic or Digest. HTTP Auth Digest will be used by default.
@@ -313,6 +345,8 @@ class DooRestClient {
         $this->result = curl_exec($ch);
         $this->header_code_received = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $this->content_type_received = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        $this->header_size_received = intval(curl_getinfo($ch, CURLINFO_HEADER_SIZE));
+        $this->content_size_received = intval(curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD));
 
         curl_close($ch);
         return $this;
@@ -343,6 +377,8 @@ class DooRestClient {
         $this->result = curl_exec($ch);
         $this->header_code_received = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $this->content_type_received = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        $this->header_size_received = intval(curl_getinfo($ch, CURLINFO_HEADER_SIZE));
+        $this->content_size_received = intval(curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD));
 
         curl_close($ch);
         return $this;
@@ -373,6 +409,8 @@ class DooRestClient {
         $this->result = curl_exec($ch);
         $this->header_code_received = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $this->content_type_received = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        $this->header_size_received = intval(curl_getinfo($ch, CURLINFO_HEADER_SIZE));
+        $this->content_size_received = intval(curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD));
 
         curl_close($ch);
         return $this;
@@ -402,6 +440,8 @@ class DooRestClient {
         $this->result = curl_exec($ch);
         $this->header_code_received = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $this->content_type_received = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        $this->header_size_received = intval(curl_getinfo($ch, CURLINFO_HEADER_SIZE));
+        $this->content_size_received = intval(curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD));
 
         curl_close($ch);
         return $this;
@@ -440,6 +480,22 @@ class DooRestClient {
      */
     public function resultContentType(){
         return $this->content_type_received;
+    }
+
+    /**
+     * Get result's header size of the executed request
+     * @return int
+     */
+    public function resultHeaderSize(){
+        return $this->header_size_received;
+    }
+
+    /**
+     * Get result's content size of the executed request
+     * @return int
+     */
+    public function resultContentSize(){
+        return $this->content_size_received;
     }
 
     /**
