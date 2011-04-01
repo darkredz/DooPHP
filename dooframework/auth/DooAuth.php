@@ -89,6 +89,12 @@ class DooAuth {
     public $group;
 
     /**
+     * User ID from the session
+     * @var string
+     */
+    public $userID;	
+	
+    /**
      * Constructor - returns an instance object of DooAuth
      */
     public function __construct($appName) {
@@ -115,11 +121,15 @@ class DooAuth {
      * Set auth data for user session
      * @param string User name
      * @param mixed User group
+     * @param mixed User ID
      */
-    public function setData($username, $group=FALSE) {
+    public function setData($username, $group=false, $userID=null) {
         $this->appSession->AuthData = array();
         $this->username = $this->appSession->AuthData['_username'] = $username;
         $this->group = $this->appSession->AuthData['_group'] = $group;
+		if($userID!===null)
+			$this->userID = $this->appSession->AuthData['_userID'] = $userID;
+			
         $this->appSession->AuthData['_securityLevel'] = $this->getSecurityLevel();
         $this->appSession->AuthData['_time'] = time();
         switch ($this->securityLevel) {
@@ -196,9 +206,9 @@ class DooAuth {
                 return false;
             $time = time() - $this->_time;
             if ($time < $this->_authPostExpire)
-                return self::$FORM_DISCARDED;
+                return self::FORM_DISCARDED;
             elseif ($time > $this->_authPostWait)
-                return self::$FORM_TIMEOUT;
+                return self::FORM_TIMEOUT;
             return true;
         }
         return false;
