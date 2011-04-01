@@ -127,7 +127,7 @@ class DooAuth {
         $this->appSession->AuthData = array();
         $this->username = $this->appSession->AuthData['_username'] = $username;
         $this->group = $this->appSession->AuthData['_group'] = $group;
-		if($userID!===null)
+		if($userID!==null)
 			$this->userID = $this->appSession->AuthData['_userID'] = $userID;
 			
         $this->appSession->AuthData['_securityLevel'] = $this->getSecurityLevel();
@@ -220,61 +220,73 @@ class DooAuth {
             throw new DooAuthException("Application name cannot be empty");
         $this->appName = $appName;
     }
+    
     public function getApplicationName() {
         if (!isset ($this->appName))
             throw new DooAuthException("Application name not defined");
         return $this->appName;
     }
+    
     public function setSalt($salt) {
         if (!isset ($salt))
             throw new DooAuthException("Salt cannot be empty");
         $this->salt = $salt;
     }
+    
     public function getSalt() {
         if (!isset ($this->salt))
             throw new DooAuthException("Salt not defined");
         return $this->salt;
     }
+    
     public function setSecurityLevel($securityLevel) {
         if (!isset ($securityLevel))
             throw new DooAuthException("Security level cannot be empty");
         $this->securityLevel = $securityLevel;
     }
+    
     public function getSecurityLevel() {
         if (!isset ($this->securityLevel))
             throw new DooAuthException("Security level not defined");
         return $this->securityLevel;
     }
+    
     public function setSessionExpire($sessionExpire) {
         if (!isset ($sessionExpire))
             throw new DooAuthException("Session expire cannot be empty");
         $this->authSessionExpire = $sessionExpire;
     }
+    
     public function getSessionExpire() {
         if (!isset ($this->authSessionExpire))
             throw new DooAuthException("Session expire not defined");
         return $this->authSessionExpire;
     }
+    
     public function setPostExpire($postExpire) {
         if (!isset ($postExpire))
             throw new DooAuthException("Post expire cannot be empty");
         $this->authPostExpire = $postExpire;
     }
+    
     public function getPostExpire() {
         if (!isset ($this->authPostExpire))
             throw new DooAuthException("Post expire not defined");
         return $this->authPostExpire;
     }
+    
     public function setPostWait($postWait) {
         if (!isset ($postWait))
             throw new DooAuthException("Post wait cannot be empty");
         $this->authPostWait = $postWait;
     }
+    
     public function getPostWait() {
         if (!isset ($this->authPostWait))
             throw new DooAuthException("Post wait not defined");
         return $this->authPostWait;
     }
+    
     public function isValid() {
         return $this->isValid;
     }
