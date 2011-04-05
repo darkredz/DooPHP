@@ -29,8 +29,8 @@ class DooDigestAuth{
     /**
      * Authenticate against a list of username and passwords.
      *
-     * <p>HTTP Digest Authentication 401 doesn't work with PHP in CGI mode,
-     * you have to tweak stuff in .htaccess <code>RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]</code></p>
+     * <p>HTTP Digest Authentication doesn't work with PHP in CGI mode,
+     * you have to add this into your .htaccess <code>RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]</code></p>
      *
      * @param string $realm Name of the authentication session
      * @param array $users An assoc array of username and password: array('uname1'=>'pwd1', 'uname2'=>'pwd2')
@@ -43,6 +43,9 @@ class DooDigestAuth{
 
         //user => password
         //$users = array('admin' => '1234', 'guest' => 'guest');
+        if(!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) && strpos($_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 'Digest')===0){
+            $_SERVER['PHP_AUTH_DIGEST'] = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+        }
 
         if (empty($_SERVER['PHP_AUTH_DIGEST'])) {
             header('WWW-Authenticate: Digest realm="'.$realm.
