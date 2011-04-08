@@ -130,7 +130,7 @@ class DooDigestAuth{
      * // use $this->authUser
      * class AdminController extends DooController {
      *      public function manageAll(){
-     *          DooDigestAuth::authWithFunc('Admin Login', array($this, 'authUser'), 'GGGG', null, true);
+     *          DooDigestAuth::authWithFunc('Admin Login', array($this, 'authUser'), 'Login Failed!', null, true);
      *          //... CRUD code follows ...
      *      }
      * 
