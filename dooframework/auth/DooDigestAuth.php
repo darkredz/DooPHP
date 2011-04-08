@@ -97,7 +97,7 @@ class DooDigestAuth{
      * @deprecated Deprecated since 1.5
      */
     public static function http_auth($realm, $users, $fail_msg=NULL, $fail_url=NULL, $passwordHashed=false){
-        return self::authenticate($realm, $users, $fail_msg, $fail_url, $passwordHashed);
+        return self::auth($realm, $users, $fail_msg, $fail_url, $passwordHashed);
     }
 
     /**
