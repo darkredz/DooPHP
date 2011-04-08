@@ -38,10 +38,8 @@ class DooDigestAuth{
      * @param string $fail_url URL to be redirect if the User cancel the login
      * @return string The username if login success.
      */
-    public static function http_auth($realm, $users, $fail_msg=NULL, $fail_url=NULL){
-        $realm = "Restricted area - $realm";
-
-        //user => password
+    public static function http_auth($realm, $users, $fail_msg=NULL, $fail_url=NULL, $passwordHashed=false){
+        //user => password, eg.
         //$users = array('admin' => '1234', 'guest' => 'guest');
         if(!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) && strpos($_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 'Digest')===0){
             $_SERVER['PHP_AUTH_DIGEST'] = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
@@ -71,7 +69,11 @@ class DooDigestAuth{
         }
 
         // generate the valid response
-        $A1 = md5($data['username'] . ':' . $realm . ':' . $users[$data['username']]);
+        if ($passwordHashed) { 
+            $A1 = $users[$data['username']];             
+        } else { 
+            $A1 = md5($data['username'] .':'. self::getRealm($realm) .':'. $users[$data['username']]);             
+        } 
         $A2 = md5($_SERVER['REQUEST_METHOD'].':'.$data['uri']);
         $valid_response = md5($A1.':'.$data['nonce'].':'.$data['nc'].':'.$data['cnonce'].':'.$data['qop'].':'.$A2);
 
@@ -89,7 +91,31 @@ class DooDigestAuth{
         // ok, valid username & password
         return $data['username'];
     }
-
+    
+    /** 
+     * Get realm for HTTP Digest (works for safe mode = on/off) 
+     * @return string
+     */ 
+    public static function getRealm($realm) { 
+        if (ini_get('safe_mode')) { 
+            return $realm . '-' . getmyuid();             
+        } else { 
+            return $realm;             
+        } 
+    }
+    
+    /**
+     * Generates a hashed passphrase for a certain realm used in HTTP digest authentication.
+     * Use this method to generate a hash value and store it in DB if you planned to use HTTP digest auth with hased password
+     * @param string $username
+     * @param string $password
+     * @param string $realm
+     * @return string
+     */
+    public static function hashPassphrase($username, $password, $realm){
+        return md5($username .':'. self::getRealm($realm) .':'. $password);
+    }
+    
     /**
      * Method to parse the http auth header, works with IE.
      *
@@ -98,7 +124,7 @@ class DooDigestAuth{
      * @param string $txt header string to parse
      * @return array An assoc array of the digest auth session
      */
-    private static function http_digest_parse($txt)
+    protected static function http_digest_parse($txt)
     {
         $res = preg_match("/username=\"([^\"]+)\"/i", $txt, $match);
         $data['username'] = (isset($match[1]))?$match[1]:null;
