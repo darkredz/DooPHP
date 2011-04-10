@@ -197,6 +197,8 @@ class DooAuth {
                 $this->isValid = true;
                 $this->appSession->AuthData['_time'] = time();
                 $this->username = $authData['_username'];
+				if(isset($authData['_userID']))
+					$this->userID = $authData['_userID'];
                 $this->group = $authData['_group'];
             }
         } else
