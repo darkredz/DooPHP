@@ -359,10 +359,10 @@ class DooGdImage {
         }
         else if($imginfo['height'] > $imginfo['width']){
             $resizeWidth = $width;
-            $resizeHeight = ($imginfo['height']/$imginfo['width'])*$resizeWidth;
+            $resizeHeight = ceil($imginfo['height']/$imginfo['width'])*$resizeWidth;
         }else{
             $resizeHeight = $height;
-            $resizeWidth = ($imginfo['width']/$imginfo['height'])*$resizeHeight;
+            $resizeWidth = ceil($imginfo['width']/$imginfo['height'])*$resizeHeight;
         }
 
         //For GD version 2.0.1 only
@@ -394,7 +394,7 @@ class DooGdImage {
     }
 
 
-	    public function adaptiveResizeCropExcess($file, $width=128, $height=128, $rename=''){
+    public function adaptiveResizeCropExcess($file, $width=128, $height=128, $rename=''){
         $file = $this->uploadPath . $file;
 
         $imginfo = $this->getInfo($file);
