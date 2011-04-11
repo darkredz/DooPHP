@@ -56,11 +56,11 @@ class DooModelGen{
      * @param int $chmod Chmod for file manager
      * @param string $path Path to write the model class files
      */
-	public static function genMySQL($comments=true, $vrules=true, $extends='DooModel', $createBase=true, $baseSuffix='Base', $chmod=null, $path=null) {
+	public static function genMySQL($comments=true, $vrules=true, $extends='DooModel', $createBase=true, $baseSuffix='Base', $useAutoload=false, $chmod=null, $path=null) {
         if($path===null){
             $path = Doo::conf()->SITE_PATH . Doo::conf()->PROTECTED_FOLDER . 'model/';
         }
-        
+		$loaderStr = '';
 		Doo::loadHelper('DooFile');
         if($chmod===null){
             $fileManager = new DooFile();
@@ -109,16 +109,30 @@ class DooModelGen{
 			}
 
 			if( !empty($extends) ) {
-				if($createBase!=True) {
-					if($extends==DooModelGen::EXTEND_MODEL || $extends==DooModelGen::EXTEND_SMARTMODEL)
-						$filestr = "<?php\nDoo::loadCore('db/$extends');\n\nclass $classname extends $extends{\n";
-					else
-						$filestr = "<?php\nDoo::loadClass('$extends');\n\nclass $classname extends $extends{\n";
-				}else {
-					if($extends==DooModelGen::EXTEND_MODEL || $extends==DooModelGen::EXTEND_SMARTMODEL)
-						$filestr = "<?php\nDoo::loadCore('db/$extends');\n\nclass {$classname}{$baseSuffix} extends $extends{\n";
-					else
-						$filestr = "<?php\nDoo::loadClass('$extends');\n\nclass {$classname}{$baseSuffix} extends $extends{\n";
+				if(!$useAutoload){
+					if($createBase!=True) {
+						if($extends==DooModelGen::EXTEND_MODEL || $extends==DooModelGen::EXTEND_SMARTMODEL)
+							$filestr = "<?php\nDoo::loadCore('db/$extends');\n\nclass $classname extends $extends{\n";
+						else
+							$filestr = "<?php\nDoo::loadClass('$extends');\n\nclass $classname extends $extends{\n";
+					}else {
+						if($extends==DooModelGen::EXTEND_MODEL || $extends==DooModelGen::EXTEND_SMARTMODEL)
+							$filestr = "<?php\nDoo::loadCore('db/$extends');\n\nclass {$classname}{$baseSuffix} extends $extends{\n";
+						else
+							$filestr = "<?php\nDoo::loadClass('$extends');\n\nclass {$classname}{$baseSuffix} extends $extends{\n";
+					}
+				}else{
+					if($createBase!=True) {
+						if($extends==DooModelGen::EXTEND_MODEL || $extends==DooModelGen::EXTEND_SMARTMODEL)
+							$filestr = "<?php\nclass $classname extends $extends{\n";
+						else
+							$filestr = "<?php\nclass $classname extends $extends{\n";
+					}else {
+						if($extends==DooModelGen::EXTEND_MODEL || $extends==DooModelGen::EXTEND_SMARTMODEL)
+							$filestr = "<?php\nclass {$classname}{$baseSuffix} extends $extends{\n";
+						else
+							$filestr = "<?php\nclass {$classname}{$baseSuffix} extends $extends{\n";
+					}
 				}
 			}else {
 				if($createBase!=True)
@@ -192,11 +206,16 @@ class DooModelGen{
 
 			if($vrules && !empty ($rules)) {
 				$filestr .= "\n    public function getVRules() {\n        return ". self::exportRules($rules) ."\n    }\n\n";
+				
+				if(!$useAutoload){
+					$loaderStr = "Doo::loadHelper('DooValidator');";
+				}
+				
 				if(empty($extends)) {
 					$filestr .="    public function validate(\$checkMode='all'){
 		//You do not need this if you extend DooModel or DooSmartModel
 		//MODE: all, all_one, skip
-		Doo::loadHelper('DooValidator');
+		{$loaderStr}
 		\$v = new DooValidator;
 		\$v->checkMode = \$checkMode;
 		return \$v->validate(get_object_vars(\$this), \$this->getVRules());
@@ -217,7 +236,10 @@ class DooModelGen{
 					echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Base model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">{$classname}{$baseSuffix}</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
 					$clsfile = $path. "$classname.php";
 					if(!file_exists($clsfile)) {
-						$filestr = "<?php\nDoo::loadModel('base/{$classname}{$baseSuffix}');\n\nclass $classname extends {$classname}{$baseSuffix}{\n}";
+						if(!$useAutoload){
+							$loaderStr = "\nDoo::loadModel('base/{$classname}{$baseSuffix}');\n";
+						}
+						$filestr = "<?php{$loaderStr}\nclass $classname extends {$classname}{$baseSuffix}{\n}";
 						if ($fileManager->create($clsfile, $filestr, 'w+')) {
 							echo "<span style=\"font-size:190%;font-family: 'Courier New', Courier, monospace;\"><span style=\"color:#fff;\">Model for table </span><strong><span style=\"color:#e7c118;\">$tblname</span></strong><span style=\"color:#fff;\"> generated. File - </span><strong><span style=\"color:#729fbe;\">$classname</span></strong><span style=\"color:#fff;\">.php</span></span><br/><br/>";
 							$clsExtendedNum++;
