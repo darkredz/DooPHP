@@ -49,7 +49,7 @@ class DooSqlMagic {
      * @var bool
      */
     public $connected = false;
-    
+
     /**
      * Path to the folder where the model class files are located. Ends with a slash. eg. /var/www/modelfiles/
      * @var string
@@ -71,21 +71,21 @@ class DooSqlMagic {
     const JOIN_RIGHT_OUTER = 'RIGHT OUTER';
     const JOIN_INNER = 'INNER';
     const JOIN = '';
-    
+
     public function loadModel($className, $createObj=false){
         if( class_exists($className, false)===true ){
-            if($createObj===true){           
+            if($createObj===true){
                 return new $className;
             }
             return;
         }
-        
+
         if(empty($this->modelPath)===true) {
             return Doo::loadModel($className, $createObj);
         }
         else {
             require_once $this->modelPath . $className . '.php';
-            
+
             if($createObj===true){
                 return new $className;
             }
@@ -197,7 +197,7 @@ class DooSqlMagic {
         $this->pdo = null;
         $this->connected = false;
     }
-    
+
     /**
      * Initiates a transaction. Transactions can be nestable.
      */
@@ -363,7 +363,7 @@ class DooSqlMagic {
     public function get_query_count(){
         return $this->getQueryCount();
     }
-    
+
     /**
      * Get the number of queries executed
      * @return int
@@ -607,7 +607,7 @@ class DooSqlMagic {
 		} else {
 			$sqladd['having'] = '';
 		}
-        
+
         //if asc is defined first then ORDER BY xxx ASC, xxx DESC
         //else Order by xxx DESC, xxx ASC
         if(isset($opt['asc']) && isset($opt['desc']) && $opt['asc']!='' && $opt['desc']!=''){
@@ -1023,7 +1023,7 @@ class DooSqlMagic {
         #print_r($model_vars);
         #print_r($rmodel_vars);
         #print_r($repeated_vars);
-        
+
         //include model, reduce a lot of queries, merge 3 related models together, eg. Post, PostCategory, PostComment
         if(isset($opt['include'])){
             $tmodel = null;
@@ -1465,7 +1465,7 @@ class DooSqlMagic {
                                 $inAsSelect = preg_match('/[\s]+(as|AS|aS|As)[\s]+'. $k2 .',/', $oriSel.',');
 
 								if($inAsSelect || in_array($k2, $model_vars)){
-										if( !$inAsSelect && $oriSel[0]!=='*' && 
+										if( !$inAsSelect && $oriSel[0]!=='*' &&
                                             !preg_match("/,(\s+)?({$model->_table}\.)?$k2(\s+)?,/", ','.$oriSel.',') &&
 											!preg_match('/,(\s+)?'.$model->_table .'\.\*/', ','. str_replace($model->_table .'.'. str_replace('_'.$model->_table.'__', '', $k2), $model->_table.'.*', $oriSel)) ){
 
@@ -1492,8 +1492,8 @@ class DooSqlMagic {
 
                                     if( isset($ralias_vars[$k2]) ){
                                         $k2 = $ralias_vars[$k2];
-                                    }	
-	
+                                    }
+
                                     if($oriSel[0]!=='*'){
                                         if(	in_array($k2, $rmodel_vars)===false &&
                                             !preg_match('/,(\s+)?'.$relatedmodel->_table .'\.\*/', ','. str_replace($relatedmodel->_table .'.'. $k2, $relatedmodel->_table .'.*', $oriSel)) ){
@@ -1505,7 +1505,7 @@ class DooSqlMagic {
                                             continue;
                                         }
                                     }
-	
+
 
                                     if($rfk!=NULL){
                                         if($k2===$rretrieved_pk_key){
@@ -1591,12 +1591,12 @@ class DooSqlMagic {
 										}
 
 										$gotoRelateSect = true;
-                                        
+
                                         $inAsSelect = preg_match('/[\s]+(as|AS|aS|As)[\s]+'. $k2 .',/', $oriSel.',');
-                                        
-                                        if($inAsSelect || in_array($k2, $model_vars)){  
-                                            
-											if( !$inAsSelect && $oriSel[0]!=='*' && 
+
+                                        if($inAsSelect || in_array($k2, $model_vars)){
+
+											if( !$inAsSelect && $oriSel[0]!=='*' &&
                                                 !preg_match("/,(\s+)?({$model->_table}\.)?$k2(\s+)?,/", ','.$oriSel.',') &&
                                                 !preg_match('/,(\s+)?'.$model->_table .'\.\*/', ','. str_replace($model->_table .'.'. str_replace('_'.$model->_table.'__', '', $k2), $model->_table .'.*', $oriSel)) ){
 
@@ -1907,7 +1907,7 @@ class DooSqlMagic {
      * @param object $model The model object to be insert.
      * @return int The inserted record's Id
      */
-    public function insert($model){
+    public function insert(&$model){
         $class_name = get_class($model);
 
         //add values to fields where the model propertie(s) are/is set
@@ -1938,7 +1938,10 @@ class DooSqlMagic {
 
         $sql ="INSERT INTO {$obj['_table']} ($fieldstr) VALUES ($valuestr)";
         $this->query($sql, $values);
-        return $this->pdo->lastInsertId();
+        $modelID = $this->pdo->lastInsertId();
+        if (!isset($model->{$model->_primarykey}) || $model->{$model->_primarykey} == null)
+            $model->{$model->_primarykey} = $modelID;
+        return $modelID;
     }
 
     /**
@@ -1951,7 +1954,7 @@ class DooSqlMagic {
     public function insert_attributes($model, $data){
         return $this->insertAttributes($model, $data);
     }
-    
+
     /**
      * Adds a new record with a list of keys & values (assoc array) (Prepares and execute the INSERT statements)
      * @param string|object $model The model object to be insert.
@@ -2007,48 +2010,58 @@ class DooSqlMagic {
      * @param array $rmodels A list of associated model objects to be insert along with the main model.
      * @return int The inserted record's Id
      */
-    public function relatedInsert($model, $rmodels){
+    public function relatedInsert(&$model, &$rmodels, $updateRelated = true){
 
         //insert the main model first and save its id
         $main_id = $this->insert($model);
         $model->{$model->_primarykey} = $main_id;       //for later use in many-to-many relationship, need the primary key
+        $mId = $model->{$model->_primarykey};
 
         //loop and get their relationship, set the foreign key to $main_id
-        foreach($rmodels as $rmodel){
+        foreach($rmodels as $i => $rmodel){
             $class_name = get_class($model);
             $rclass_name = get_class($rmodel);
+
+//            if (!isset($model->{$rclass_name}))
+//                $model->{$rclass_name} = array();
+
             //get how the related model relates to the main model object
             list($rtype,$rparams) = self::relationType($this->map, $rclass_name, $class_name);
             if($rtype==NULL)
                 throw new SqlMagicException("Model $class_name does not relate to $rclass_name", SqlMagicException::RelationNotFound);
             #print_r(array($rtype,$rparams));
 
+            $chk_rmodel = $this->find($rclass_name, array('select'=>$rmodel->_primarykey, 'limit'=>1, 'where'=> $rmodel->_primarykey . " = ?", 'param'=>array($rmodel->{$rmodel->_primarykey})));
+
             if($rtype=='has_many' && isset($rparams['foreign_key']) && isset($rparams['through'])){
                 //echo '<h2>Insert MAny to many</h2>';
                 //select only the primary key (id) and the set properties
-                $obj = get_object_vars($rmodel);
-                $fieldstr ='';
-                foreach($obj as $o=>$v){
-                    if(isset($v) && in_array($o, $model->_fields)){
-                        $fieldstr .= ','.$o;
-                    }
-                }
-                $fieldstr = "{$rmodel->_primarykey}$fieldstr";
+//                $obj = get_object_vars($rmodel);
+//                $fieldstr ='';
+//                foreach($obj as $o=>$v){
+//                    if(isset($v) && in_array($o, $model->_fields)){
+//                        $fieldstr .= ','.$o;
+//                    }
+//                }
+//                $fieldstr = "{$rmodel->_primarykey}$fieldstr";
 
                 //get the linked key(Model's foreign key) for the $model from the relationship defined. It's not always primary key of the Model
                 $reversed_relation = self::relationType($this->map, $class_name, $rclass_name);
                 $model_linked_key = $reversed_relation[1]['foreign_key'];
                 //$mId = $model->{$rparams['foreign_key']};
-                $mId = $model->{$model->_primarykey};
 
                 //check if the related model already exist it true than insert to the 'through' table with the 2 ids.
-                $chk_rmodel = $this->find($rmodel, array('select'=>$fieldstr, 'limit'=>1));
+                //$chk_rmodel = $this->find($rmodel, array('select'=>$fieldstr, 'limit'=>1));
                 if($chk_rmodel!=NULL){
                     //echo '<h1>'.$chk_rmodel->{$rparams['foreign_key']}.'</h1>';
+                    if ($updateRelated)
+                        $this->update($rmodel);
                     $rId = $chk_rmodel->{$chk_rmodel->_primarykey};
                 }else{
                     //echo '<h2>Not found this related model in many-to-many. Insert it!</h2>';
                     $rId = $this->insert($rmodel);
+				$rmodel->{$rmodel->_primarykey} = $rId;
+                    $rmodels[$i] = $rmodel;
                 }
 
                 //insert into the 'through' Table, faster with parameterized prepared statements
@@ -2057,8 +2070,17 @@ class DooSqlMagic {
             else if(isset($rparams['foreign_key'])){
 				list($rtype,$rparams) = self::relationType($this->map, $class_name, $rclass_name);
                 $rmodel->{$rparams['foreign_key']} = $main_id;
-                $this->insert($rmodel);
+                if($chk_rmodel!=NULL){
+                    if ($updateRelated)
+                        $this->update($rmodel);
+                } else {
+                    $rId = $this->insert($rmodel);
+                    $rmodel->{$rmodel->_primarykey} = $rId;
+                    $rmodels[$i] = $rmodel;
+                }
             }
+            $rmodels[$i] = $rmodel;
+            //$model->{$rclass_name}[] = $rmodel;
         }
 
         return $main_id;
@@ -2202,12 +2224,17 @@ class DooSqlMagic {
      * @param array $rmodels A list of associated model objects to be updated or insert along with the main model.
      * @param array $opt Assoc array of options to update the main model. Supported: <i>where, limit, field, param</i>
      */
-    public function relatedUpdate($model, $rmodels, $opt=NULL){
+    public function relatedUpdate(&$model, &$rmodels, $opt=NULL, $updateRelated = true){
+	   $rIdsToNotDelete = array();
         $this->update($model, $opt);
-        foreach($rmodels as $rmodel){
+        $mId = $model->{$model->_primarykey};
+        foreach($rmodels as $i => $rmodel){
             #echo $rmodel->{$rmodel->_primarykey} . '<br>';
 		  $class_name = get_class($model);
 		  $rclass_name = get_class($rmodel);
+
+//            if (isset($model->{$rclass_name}))
+//                $model->{$rclass_name} = array();
 
 		  //get how the related model relates to the main model object
 		  list($rtype,$rparams) = self::relationType($this->map, $rclass_name, $class_name);
@@ -2215,35 +2242,39 @@ class DooSqlMagic {
 			 throw new SqlMagicException("Model $class_name does not relate to $rclass_name", SqlMagicException::RelationNotFound);
 		  #print_r(array($rtype,$rparams));
 
+            $chk_rmodel = $this->find($rclass_name, array('select'=>$rmodel->_primarykey, 'limit'=>1, 'where'=> $rmodel->_primarykey . " = ?", 'param'=>array($rmodel->{$rmodel->_primarykey})));
+
 		  if($rtype=='has_many' && isset($rparams['foreign_key']) && isset($rparams['through'])){
 			 //echo '<h2>Insert MAny to many</h2>';
 			 //select only the primary key (id) and the set properties
-			 $obj = get_object_vars($rmodel);
-			 $fieldstr ='';
-			 foreach($obj as $o=>$v){
-				if(isset($v) && in_array($o, $model->_fields)){
-				    $fieldstr .= ','.$o;
-				}
-			 }
-			 $fieldstr = "{$rmodel->_primarykey}$fieldstr";
+//			 $obj = get_object_vars($rmodel);
+//			 $fieldstr ='';
+//			 foreach($obj as $o=>$v){
+//				if(isset($v) && in_array($o, $model->_fields)){
+//				    $fieldstr .= ','.$o;
+//				}
+//			 }
+//			 $fieldstr = "{$rmodel->_primarykey}$fieldstr";
 
 			 //get the linked key(Model's foreign key) for the $model from the relationship defined. It's not always primary key of the Model
 			 $reversed_relation = self::relationType($this->map, $class_name, $rclass_name);
 			 $model_linked_key = $reversed_relation[1]['foreign_key'];
 			 //$mId = $model->{$rparams['foreign_key']};
-			 $mId = $model->{$model->_primarykey};
 
 			 //check if the related model already exist it true than insert to the 'through' table with the 2 ids.
-			 $chk_rmodel = $this->find($rmodel, array('select'=>$fieldstr, 'limit'=>1));
+			 //$chk_rmodel = $this->find($rmodel, array('select'=>$fieldstr, 'limit'=>1));
 			 if($chk_rmodel!=NULL){
 				//echo '<h1>'.$chk_rmodel->{$rparams['foreign_key']}.'</h1>';
-				$this->update($rmodel); // if model exists, we update it
+				if ($updateRelated) //if (isset($opt["updateRelated"]) && $opt["updateRelated"] == true)
+				    $this->update($rmodel); // if model exists, we update it
 				$rId = $chk_rmodel->{$chk_rmodel->_primarykey};
 			 }else{
 				//echo '<h2>Not found this related model in many-to-many. Insert it!</h2>';
 				$rId = $this->insert($rmodel); // if doesn't exist, we insert it
+				$rmodel->{$rmodel->_primarykey} = $rId; // assign the new id to the inserted model
+                    $rmodels[$i] = $rmodel;
 			 }
-
+			 $rIdsToNotDelete[] = $rmodel->{$rmodel->_primarykey};
 			 //insert into the 'through' Table, if exists dun create duplicates
 			 if($this->query("SELECT {$rparams['foreign_key']},{$model_linked_key} FROM {$rparams['through']} WHERE {$rparams['foreign_key']}=? AND {$model_linked_key}=?", array($rId,$mId))->fetch()==NULL){
 				$this->query( "INSERT INTO {$rparams['through']} ({$model_linked_key},{$rparams['foreign_key']}) VALUES (?,?)", array($mId,$rId));
@@ -2253,9 +2284,25 @@ class DooSqlMagic {
 			 //echo '<h2>Insert 1to1 or 1tomany</h2>';
 				 list($rtype,$rparams) = self::relationType($this->map, $class_name, $rclass_name);
 			 $rmodel->{$rparams['foreign_key']} = $model->{$model->_primarykey};
-			 $this->insert($rmodel);
+			 if ($chk_rmodel!=NULL) {
+				if($updateRelated)
+				    $this->update($rmodel);
+			 } else {
+				$rId = $this->insert($rmodel);
+				$rmodel->{$rmodel->_primarykey} = $rId; // assign the new id to the inserted model
+			 }
+			 $rIdsToNotDelete[] = $rmodel->{$rmodel->_primarykey};
 		  }
+            $rmodels[$i] = $rmodel;
+            //$model->{$rclass_name}[] = $rmodel;
         }
+        if ($updateRelated && count($rIdsToNotDelete) > 0) { // if (isset($opt["deleteNotRelated"]) && $opt["deleteNotRelated"] == true && count($rIdsToNotDelete) > 0) {
+		  if($rtype=='has_many' && isset($rparams['foreign_key']) && isset($rparams['through'])) { // delete into the 'through' Table if needed
+			 $this->query("DELETE FROM {$rparams['through']} WHERE {$rparams['foreign_key']} NOT IN (" . implode(',', $rIdsToNotDelete) . ") AND {$model_linked_key}=?", array($mId));
+		  } else if(isset($rparams['foreign_key']) && count($rIdsToNotDelete) > 0) {
+			  $this->query("DELETE FROM {$rmodel->_table} WHERE {$rmodel->_primarykey} NOT IN (" . implode(',', $rIdsToNotDelete) . ") AND {$rparams['foreign_key']}=?", array($mId));
+		  }
+	   }
     }
 
 	/**
@@ -2387,6 +2434,15 @@ class DooSqlMagic {
           $array = get_object_vars($object);
        }
        return $array;
+    }
+
+
+    public function insertOrUpdate($model, $opt=NULL) {
+        $chk_model = $this->find(get_class($model), array('select'=>$model->_primarykey, 'limit'=>1, 'where'=> $model->_primarykey . " = ?", 'param'=>array($model->{$model->_primarykey})));
+        if ($chk_model)
+            return $this->update($model, $opt);
+        else
+            return $this->insert($model);
     }
 
 }
