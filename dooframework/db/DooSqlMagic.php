@@ -1907,7 +1907,7 @@ class DooSqlMagic {
      * @param object $model The model object to be insert.
      * @return int The inserted record's Id
      */
-    public function insert(&$model){
+    public function insert($model){
         $class_name = get_class($model);
 
         //add values to fields where the model propertie(s) are/is set
@@ -1938,10 +1938,7 @@ class DooSqlMagic {
 
         $sql ="INSERT INTO {$obj['_table']} ($fieldstr) VALUES ($valuestr)";
         $this->query($sql, $values);
-        $modelID = $this->pdo->lastInsertId();
-        if (!isset($model->{$model->_primarykey}) || $model->{$model->_primarykey} == null)
-            $model->{$model->_primarykey} = $modelID;
-        return $modelID;
+        return $this->pdo->lastInsertId();
     }
 
     /**
@@ -2010,149 +2007,145 @@ class DooSqlMagic {
      * @param array $rmodels A list of associated model objects to be insert along with the main model.
      * @return int The inserted record's Id
      */
-    public function relatedInsert(&$model, &$rmodels, $updateRelated = true){
+	public function relatedInsert(&$model, &$rmodels, $updateRelated = true) {
 
-        //insert the main model first and save its id
-        $main_id = $this->insert($model);
-        $model->{$model->_primarykey} = $main_id;       //for later use in many-to-many relationship, need the primary key
-        $mId = $model->{$model->_primarykey};
+		//insert the main model first and save its id
+		$main_id = $this->insert($model);
+		$model->{$model->_primarykey} = $main_id;	   //for later use in many-to-many relationship, need the primary key
+		$mId = $model->{$model->_primarykey};
 
-        //loop and get their relationship, set the foreign key to $main_id
-        foreach($rmodels as $i => $rmodel){
-            $class_name = get_class($model);
-            $rclass_name = get_class($rmodel);
+		//loop and get their relationship, set the foreign key to $main_id
+		foreach ($rmodels as $i => $rmodel) {
+			$class_name = get_class($model);
+			$rclass_name = get_class($rmodel);
 
 //            if (!isset($model->{$rclass_name}))
 //                $model->{$rclass_name} = array();
+			//get how the related model relates to the main model object
+			list($rtype, $rparams) = self::relationType($this->map, $rclass_name, $class_name);
+			if ($rtype == NULL)
+				throw new SqlMagicException("Model $class_name does not relate to $rclass_name", SqlMagicException::RelationNotFound);
+			#print_r(array($rtype,$rparams));
 
-            //get how the related model relates to the main model object
-            list($rtype,$rparams) = self::relationType($this->map, $rclass_name, $class_name);
-            if($rtype==NULL)
-                throw new SqlMagicException("Model $class_name does not relate to $rclass_name", SqlMagicException::RelationNotFound);
-            #print_r(array($rtype,$rparams));
+			$chk_rmodel = $this->find($rclass_name, array('select' => $rmodel->_primarykey, 'limit' => 1, 'where' => $rmodel->_primarykey . " = ?", 'param' => array($rmodel->{$rmodel->_primarykey})));
 
-            $chk_rmodel = $this->find($rclass_name, array('select'=>$rmodel->_primarykey, 'limit'=>1, 'where'=> $rmodel->_primarykey . " = ?", 'param'=>array($rmodel->{$rmodel->_primarykey})));
+			if ($rtype == 'has_many' && isset($rparams['foreign_key']) && isset($rparams['through'])) {
+				//echo '<h2>Insert MAny to many</h2>';
+				//select only the primary key (id) and the set properties
+//				$obj = get_object_vars($rmodel);
+//				$fieldstr ='';
+//				foreach($obj as $o=>$v){
+//					if(isset($v) && in_array($o, $model->_fields)){
+//						$fieldstr .= ','.$o;
+//					}
+//				}
+//				$fieldstr = "{$rmodel->_primarykey}$fieldstr";
+				//get the linked key(Model's foreign key) for the $model from the relationship defined. It's not always primary key of the Model
+				$reversed_relation = self::relationType($this->map, $class_name, $rclass_name);
+				$model_linked_key = $reversed_relation[1]['foreign_key'];
+				//$mId = $model->{$rparams['foreign_key']};
+				//check if the related model already exist it true than insert to the 'through' table with the 2 ids.
+				//$chk_rmodel = $this->find($rmodel, array('select'=>$fieldstr, 'limit'=>1));
+				if ($chk_rmodel != NULL) {
+					//echo '<h1>'.$chk_rmodel->{$rparams['foreign_key']}.'</h1>';
+					if ($updateRelated)
+						$this->update($rmodel);
+					$rId = $chk_rmodel->{$chk_rmodel->_primarykey};
+				}else {
+					//echo '<h2>Not found this related model in many-to-many. Insert it!</h2>';
+					$rId = $this->insert($rmodel);
+					$rmodel->{$rmodel->_primarykey} = $rId;
+					$rmodels[$i] = $rmodel;
+				}
 
-            if($rtype=='has_many' && isset($rparams['foreign_key']) && isset($rparams['through'])){
-                //echo '<h2>Insert MAny to many</h2>';
-                //select only the primary key (id) and the set properties
-//                $obj = get_object_vars($rmodel);
-//                $fieldstr ='';
-//                foreach($obj as $o=>$v){
-//                    if(isset($v) && in_array($o, $model->_fields)){
-//                        $fieldstr .= ','.$o;
-//                    }
-//                }
-//                $fieldstr = "{$rmodel->_primarykey}$fieldstr";
+				//insert into the 'through' Table, faster with parameterized prepared statements
+				$this->query("INSERT INTO {$rparams['through']} ({$model_linked_key},{$rparams['foreign_key']})  VALUES (?,?)", array($mId, $rId));
+			} else if (isset($rparams['foreign_key'])) {
+				list($rtype, $rparams) = self::relationType($this->map, $class_name, $rclass_name);
+				$rmodel->{$rparams['foreign_key']} = $main_id;
+				if ($chk_rmodel != NULL) {
+					if ($updateRelated)
+						$this->update($rmodel);
+				} else {
+					$rId = $this->insert($rmodel);
+					$rmodel->{$rmodel->_primarykey} = $rId;
+					$rmodels[$i] = $rmodel;
+				}
+			}
+			$rmodels[$i] = $rmodel;
+			//$model->{$rclass_name}[] = $rmodel;
+		}
 
-                //get the linked key(Model's foreign key) for the $model from the relationship defined. It's not always primary key of the Model
-                $reversed_relation = self::relationType($this->map, $class_name, $rclass_name);
-                $model_linked_key = $reversed_relation[1]['foreign_key'];
-                //$mId = $model->{$rparams['foreign_key']};
+		return $main_id;
+	}
 
-                //check if the related model already exist it true than insert to the 'through' table with the 2 ids.
-                //$chk_rmodel = $this->find($rmodel, array('select'=>$fieldstr, 'limit'=>1));
-                if($chk_rmodel!=NULL){
-                    //echo '<h1>'.$chk_rmodel->{$rparams['foreign_key']}.'</h1>';
-                    if ($updateRelated)
-                        $this->update($rmodel);
-                    $rId = $chk_rmodel->{$chk_rmodel->_primarykey};
-                }else{
-                    //echo '<h2>Not found this related model in many-to-many. Insert it!</h2>';
-                    $rId = $this->insert($rmodel);
-				$rmodel->{$rmodel->_primarykey} = $rId;
-                    $rmodels[$i] = $rmodel;
-                }
-
-                //insert into the 'through' Table, faster with parameterized prepared statements
-                $this->query( "INSERT INTO {$rparams['through']} ({$model_linked_key},{$rparams['foreign_key']})  VALUES (?,?)", array($mId,$rId));
-            }
-            else if(isset($rparams['foreign_key'])){
-				list($rtype,$rparams) = self::relationType($this->map, $class_name, $rclass_name);
-                $rmodel->{$rparams['foreign_key']} = $main_id;
-                if($chk_rmodel!=NULL){
-                    if ($updateRelated)
-                        $this->update($rmodel);
-                } else {
-                    $rId = $this->insert($rmodel);
-                    $rmodel->{$rmodel->_primarykey} = $rId;
-                    $rmodels[$i] = $rmodel;
-                }
-            }
-            $rmodels[$i] = $rmodel;
-            //$model->{$rclass_name}[] = $rmodel;
-        }
-
-        return $main_id;
-    }
-
-    /**
-     * Update an existing record. (Prepares and execute the UPDATE statements)
+	/**
+	 * Update an existing record. (Prepares and execute the UPDATE statements)
 	 * If you want to set null values during the update use the setnulls option
-     * @param mixed $model The model object to be updated.
-     * @param array $opt Associative array of options to generate the UPDATE statement. Supported: <i>where, limit, field, param, setnulls</i
-     * @return int Number of rows affected
-     */
-    public function update($model, $opt=NULL){
-        //add values to fields where the model propertie(s) are/is set
-        $obj = get_object_vars($model);
+	 * @param mixed $model The model object to be updated.
+	 * @param array $opt Associative array of options to generate the UPDATE statement. Supported: <i>where, limit, field, param, setnulls</i
+	 * @return int Number of rows affected
+	 */
+	public function update($model, $opt=NULL) {
+		//add values to fields where the model propertie(s) are/is set
+		$obj = get_object_vars($model);
 
-        $values = array();
-        $field_and_value = '';
+		$values = array();
+		$field_and_value = '';
 
 		$opt['setnulls'] = isset($opt['setnulls']) ? $opt['setnulls'] : false;
 
-        if(isset($opt['field'])){
-            $opt['field'] = explode(',', str_replace(' ', '', $opt['field']));
-            foreach($obj as $o=>$v) {
-                if(in_array($o, $opt['field'])) {
-                    if (($opt['setnulls'] === true || isset($v)) && in_array($o, $model->_fields)) {
-                        if (is_object($v)){
-                            $field_and_value .= "$o=$v,";
-                        } elseif ($v === null) {
+		if (isset($opt['field'])) {
+			$opt['field'] = explode(',', str_replace(' ', '', $opt['field']));
+			foreach ($obj as $o => $v) {
+				if (in_array($o, $opt['field'])) {
+					if (($opt['setnulls'] === true || isset($v)) && in_array($o, $model->_fields)) {
+						if (is_object($v)) {
+							$field_and_value .= "$o=$v,";
+						} elseif ($v === null) {
 							$field_and_value .= "$o=null,";
 						} else {
-                            $values[] = $v;
-                            $field_and_value .= $o .'=?,';
-                        }
-                    }
-                }
-            }
-        }else{
-            foreach($obj as $o=>$v){
-                if(($opt['setnulls'] === true || isset($v)) && in_array($o, $model->_fields)){
-                    if (is_object($v)) {
-                        $field_and_value .= "$o=$v,";
+							$values[] = $v;
+							$field_and_value .= $o . '=?,';
+						}
+					}
+				}
+			}
+		} else {
+			foreach ($obj as $o => $v) {
+				if (($opt['setnulls'] === true || isset($v)) && in_array($o, $model->_fields)) {
+					if (is_object($v)) {
+						$field_and_value .= "$o=$v,";
 					} elseif ($v === null) {
 						$field_and_value .= "$o=null,";
-                    } else {
-                        $values[] = $v;
-                        $field_and_value .= $o .'=?,';
-                    }
-                }
-            }
-        }
+					} else {
+						$values[] = $v;
+						$field_and_value .= $o . '=?,';
+					}
+				}
+			}
+		}
 
-        $field_and_value = substr($field_and_value, 0, strlen($field_and_value)-1);
+		$field_and_value = substr($field_and_value, 0, strlen($field_and_value) - 1);
 
-        if(isset($model->{$obj['_primarykey']})){
-            $where = $obj['_primarykey'] .'=?';
-            $values[] = $model->{$obj['_primarykey']};
-            $sql ="UPDATE {$obj['_table']} SET {$field_and_value} WHERE {$where}";
-        }else{
-            $where = $opt['where'];
-            if(isset($opt['param']))
-                $values = array_merge($values, $opt['param']);
+		if (isset($model->{$obj['_primarykey']})) {
+			$where = $obj['_primarykey'] . '=?';
+			$values[] = $model->{$obj['_primarykey']};
+			$sql = "UPDATE {$obj['_table']} SET {$field_and_value} WHERE {$where}";
+		} else {
+			$where = $opt['where'];
+			if (isset($opt['param']))
+				$values = array_merge($values, $opt['param']);
 
-            if(isset($opt['limit'])){
-                $sql ="UPDATE {$obj['_table']} SET {$field_and_value} WHERE {$where} LIMIT {$opt['limit']}";
-            }else{
-                $sql ="UPDATE {$obj['_table']} SET {$field_and_value} WHERE {$where}";
-            }
-        }
+			if (isset($opt['limit'])) {
+				$sql = "UPDATE {$obj['_table']} SET {$field_and_value} WHERE {$where} LIMIT {$opt['limit']}";
+			} else {
+				$sql = "UPDATE {$obj['_table']} SET {$field_and_value} WHERE {$where}";
+			}
+		}
 
-        return $this->query($sql, $values)->rowCount();
-    }
+		return $this->query($sql, $values)->rowCount();
+	}
 
     /**
      * Update an existing record with a list of keys & values (assoc array). (Prepares and execute the UPDATE statements)
@@ -2224,86 +2217,83 @@ class DooSqlMagic {
      * @param array $rmodels A list of associated model objects to be updated or insert along with the main model.
      * @param array $opt Assoc array of options to update the main model. Supported: <i>where, limit, field, param</i>
      */
-    public function relatedUpdate(&$model, &$rmodels, $opt=NULL, $updateRelated = true){
-	   $rIdsToNotDelete = array();
-        $this->update($model, $opt);
-        $mId = $model->{$model->_primarykey};
-        foreach($rmodels as $i => $rmodel){
-            #echo $rmodel->{$rmodel->_primarykey} . '<br>';
-		  $class_name = get_class($model);
-		  $rclass_name = get_class($rmodel);
+    public function relatedUpdate(&$model, &$rmodels, $opt=NULL, $updateRelated = true) {
+		$rIdsToNotDelete = array();
+		$this->update($model, $opt);
+		$mId = $model->{$model->_primarykey};
+		foreach ($rmodels as $i => $rmodel) {
+			#echo $rmodel->{$rmodel->_primarykey} . '<br>';
+			$class_name = get_class($model);
+			$rclass_name = get_class($rmodel);
 
-//            if (isset($model->{$rclass_name}))
-//                $model->{$rclass_name} = array();
+//			if (isset($model->{$rclass_name}))
+//				$model->{$rclass_name} = array();
 
-		  //get how the related model relates to the main model object
-		  list($rtype,$rparams) = self::relationType($this->map, $rclass_name, $class_name);
-		  if($rtype==NULL)
-			 throw new SqlMagicException("Model $class_name does not relate to $rclass_name", SqlMagicException::RelationNotFound);
-		  #print_r(array($rtype,$rparams));
+			//get how the related model relates to the main model object
+			list($rtype, $rparams) = self::relationType($this->map, $rclass_name, $class_name);
+			if ($rtype == NULL)
+				throw new SqlMagicException("Model $class_name does not relate to $rclass_name", SqlMagicException::RelationNotFound);
+			//print_r(array($rtype,$rparams));
 
-            $chk_rmodel = $this->find($rclass_name, array('select'=>$rmodel->_primarykey, 'limit'=>1, 'where'=> $rmodel->_primarykey . " = ?", 'param'=>array($rmodel->{$rmodel->_primarykey})));
+			$chk_rmodel = $this->find($rclass_name, array('select' => $rmodel->_primarykey, 'limit' => 1, 'where' => $rmodel->_primarykey . " = ?", 'param' => array($rmodel->{$rmodel->_primarykey})));
 
-		  if($rtype=='has_many' && isset($rparams['foreign_key']) && isset($rparams['through'])){
-			 //echo '<h2>Insert MAny to many</h2>';
-			 //select only the primary key (id) and the set properties
-//			 $obj = get_object_vars($rmodel);
-//			 $fieldstr ='';
-//			 foreach($obj as $o=>$v){
-//				if(isset($v) && in_array($o, $model->_fields)){
-//				    $fieldstr .= ','.$o;
+			if ($rtype == 'has_many' && isset($rparams['foreign_key']) && isset($rparams['through'])) {
+				//echo '<h2>Insert MAny to many</h2>';
+				//select only the primary key (id) and the set properties
+//				$obj = get_object_vars($rmodel);
+//				$fieldstr ='';
+//				foreach($obj as $o=>$v){
+//					if(isset($v) && in_array($o, $model->_fields)){
+//						$fieldstr .= ','.$o;
+//					}
 //				}
-//			 }
-//			 $fieldstr = "{$rmodel->_primarykey}$fieldstr";
-
-			 //get the linked key(Model's foreign key) for the $model from the relationship defined. It's not always primary key of the Model
-			 $reversed_relation = self::relationType($this->map, $class_name, $rclass_name);
-			 $model_linked_key = $reversed_relation[1]['foreign_key'];
-			 //$mId = $model->{$rparams['foreign_key']};
-
-			 //check if the related model already exist it true than insert to the 'through' table with the 2 ids.
-			 //$chk_rmodel = $this->find($rmodel, array('select'=>$fieldstr, 'limit'=>1));
-			 if($chk_rmodel!=NULL){
-				//echo '<h1>'.$chk_rmodel->{$rparams['foreign_key']}.'</h1>';
-				if ($updateRelated) //if (isset($opt["updateRelated"]) && $opt["updateRelated"] == true)
-				    $this->update($rmodel); // if model exists, we update it
-				$rId = $chk_rmodel->{$chk_rmodel->_primarykey};
-			 }else{
-				//echo '<h2>Not found this related model in many-to-many. Insert it!</h2>';
-				$rId = $this->insert($rmodel); // if doesn't exist, we insert it
-				$rmodel->{$rmodel->_primarykey} = $rId; // assign the new id to the inserted model
-                    $rmodels[$i] = $rmodel;
-			 }
-			 $rIdsToNotDelete[] = $rmodel->{$rmodel->_primarykey};
-			 //insert into the 'through' Table, if exists dun create duplicates
-			 if($this->query("SELECT {$rparams['foreign_key']},{$model_linked_key} FROM {$rparams['through']} WHERE {$rparams['foreign_key']}=? AND {$model_linked_key}=?", array($rId,$mId))->fetch()==NULL){
-				$this->query( "INSERT INTO {$rparams['through']} ({$model_linked_key},{$rparams['foreign_key']}) VALUES (?,?)", array($mId,$rId));
-			 }
-		  }
-		  else if(isset($rparams['foreign_key'])){
-			 //echo '<h2>Insert 1to1 or 1tomany</h2>';
-				 list($rtype,$rparams) = self::relationType($this->map, $class_name, $rclass_name);
-			 $rmodel->{$rparams['foreign_key']} = $model->{$model->_primarykey};
-			 if ($chk_rmodel!=NULL) {
-				if($updateRelated)
-				    $this->update($rmodel);
-			 } else {
-				$rId = $this->insert($rmodel);
-				$rmodel->{$rmodel->_primarykey} = $rId; // assign the new id to the inserted model
-			 }
-			 $rIdsToNotDelete[] = $rmodel->{$rmodel->_primarykey};
-		  }
-            $rmodels[$i] = $rmodel;
-            //$model->{$rclass_name}[] = $rmodel;
-        }
-        if ($updateRelated && count($rIdsToNotDelete) > 0) { // if (isset($opt["deleteNotRelated"]) && $opt["deleteNotRelated"] == true && count($rIdsToNotDelete) > 0) {
-		  if($rtype=='has_many' && isset($rparams['foreign_key']) && isset($rparams['through'])) { // delete into the 'through' Table if needed
-			 $this->query("DELETE FROM {$rparams['through']} WHERE {$rparams['foreign_key']} NOT IN (" . implode(',', $rIdsToNotDelete) . ") AND {$model_linked_key}=?", array($mId));
-		  } else if(isset($rparams['foreign_key']) && count($rIdsToNotDelete) > 0) {
-			  $this->query("DELETE FROM {$rmodel->_table} WHERE {$rmodel->_primarykey} NOT IN (" . implode(',', $rIdsToNotDelete) . ") AND {$rparams['foreign_key']}=?", array($mId));
-		  }
-	   }
-    }
+//				$fieldstr = "{$rmodel->_primarykey}$fieldstr";
+				//get the linked key(Model's foreign key) for the $model from the relationship defined. It's not always primary key of the Model
+				$reversed_relation = self::relationType($this->map, $class_name, $rclass_name);
+				$model_linked_key = $reversed_relation[1]['foreign_key'];
+				//$mId = $model->{$rparams['foreign_key']};
+				//check if the related model already exist it true than insert to the 'through' table with the 2 ids.
+				//$chk_rmodel = $this->find($rmodel, array('select'=>$fieldstr, 'limit'=>1));
+				if ($chk_rmodel != NULL) {
+					//echo '<h1>'.$chk_rmodel->{$rparams['foreign_key']}.'</h1>';
+					if ($updateRelated) //if (isset($opt["updateRelated"]) && $opt["updateRelated"] == true)
+						$this->update($rmodel); // if model exists, we update it
+					$rId = $chk_rmodel->{$chk_rmodel->_primarykey};
+				}else {
+					//echo '<h2>Not found this related model in many-to-many. Insert it!</h2>';
+					$rId = $this->insert($rmodel); // if doesn't exist, we insert it
+					$rmodel->{$rmodel->_primarykey} = $rId; // assign the new id to the inserted model
+					$rmodels[$i] = $rmodel;
+				}
+				$rIdsToNotDelete[] = $rmodel->{$rmodel->_primarykey};
+				//insert into the 'through' Table, if exists dun create duplicates
+				if ($this->query("SELECT {$rparams['foreign_key']},{$model_linked_key} FROM {$rparams['through']} WHERE {$rparams['foreign_key']}=? AND {$model_linked_key}=?", array($rId, $mId))->fetch() == NULL) {
+					$this->query("INSERT INTO {$rparams['through']} ({$model_linked_key},{$rparams['foreign_key']}) VALUES (?,?)", array($mId, $rId));
+				}
+			} else if (isset($rparams['foreign_key'])) {
+				//echo '<h2>Insert 1to1 or 1tomany</h2>';
+				list($rtype, $rparams) = self::relationType($this->map, $class_name, $rclass_name);
+				$rmodel->{$rparams['foreign_key']} = $model->{$model->_primarykey};
+				if ($chk_rmodel != NULL) {
+					if ($updateRelated)
+						$this->update($rmodel);
+				} else {
+					$rId = $this->insert($rmodel);
+					$rmodel->{$rmodel->_primarykey} = $rId; // assign the new id to the inserted model
+				}
+				$rIdsToNotDelete[] = $rmodel->{$rmodel->_primarykey};
+			}
+			$rmodels[$i] = $rmodel;
+			//$model->{$rclass_name}[] = $rmodel;
+		}
+		if ($updateRelated && count($rIdsToNotDelete) > 0) { // if (isset($opt["deleteNotRelated"]) && $opt["deleteNotRelated"] == true && count($rIdsToNotDelete) > 0) {
+			if ($rtype == 'has_many' && isset($rparams['foreign_key']) && isset($rparams['through'])) { // delete into the 'through' Table if needed
+				$this->query("DELETE FROM {$rparams['through']} WHERE {$rparams['foreign_key']} NOT IN (" . implode(',', $rIdsToNotDelete) . ") AND {$model_linked_key}=?", array($mId));
+			} else if (isset($rparams['foreign_key']) && count($rIdsToNotDelete) > 0) {
+				$this->query("DELETE FROM {$rmodel->_table} WHERE {$rmodel->_primarykey} NOT IN (" . implode(',', $rIdsToNotDelete) . ") AND {$rparams['foreign_key']}=?", array($mId));
+			}
+		}
+	}
 
 	/**
 	 * Delete all records from table (Prepares and executes the DELETE statement)
