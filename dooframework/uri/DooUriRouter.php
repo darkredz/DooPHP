@@ -181,7 +181,7 @@ class DooUriRouter{
         }
 
 		if (isset($route['params'])===true) {
-			$params = array_merge($params, $route['params']);
+			$params = array_merge((array)$params, $route['params']);
 		}
 
         if(isset($route['className'])===true)
