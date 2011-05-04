@@ -408,9 +408,21 @@ class DooUriRouter{
 				if (isset($routeData['match'])===true) {
 					//$this->log('Checking Parameter Matches');
 					foreach($routeData['match'] as $paramName=>$pattern) {
-						if (preg_match($pattern, $params[$paramName]) == 0) {
-							continue 2;
-						}
+                        if(is_string($pattern)){
+                            if (preg_match($pattern, $params[$paramName], $paramMatches) == 0) {
+                                continue 2;
+                            }
+                            else if(isset($paramMatches[1])){
+                                $params[$paramName] = $paramMatches[1];
+                            }
+                        }else{
+                            if (preg_match($pattern[0], $params[$paramName], $paramMatches) == 0) {
+                                continue 2;
+                            }
+                            else if(isset($paramMatches[$pattern[1]])){
+                                $params[$paramName] = $paramMatches[$pattern[1]];
+                            }                            
+                        }
 					}
 				}
 				if ($uriExtension !== false) {
@@ -487,9 +499,21 @@ class DooUriRouter{
 					if (isset($routeData['match'])===true) {
 						//$this->log('Checking Parameter Matches');
 						foreach($routeData['match'] as $paramName=>$pattern) {
-							if (preg_match($pattern, $params[$paramName]) == 0) {
-								continue 2;
-							}
+                            if(is_string($pattern)){
+                                if (preg_match($pattern, $params[$paramName], $paramMatches) == 0) {
+                                    continue 2;
+                                }
+                                else if(isset($paramMatches[1])){
+                                    $params[$paramName] = $paramMatches[1];
+                                }
+                            }else{
+                                if (preg_match($pattern[0], $params[$paramName], $paramMatches) == 0) {
+                                    continue 2;
+                                }
+                                else if(isset($paramMatches[$pattern[1]])){
+                                    $params[$paramName] = $paramMatches[$pattern[1]];
+                                }                            
+                            }
 						}
 					}
 					if ($uriExtension !== false) {
@@ -563,9 +587,21 @@ class DooUriRouter{
 
 				if (isset($routeData['match'])===true) {
 					foreach($routeData['match'] as $paramName=>$pattern) {
-						if (preg_match($pattern, $params[$paramName]) == 0) {
-							continue 2;
-						}
+                        if(is_string($pattern)){
+                            if (preg_match($pattern, $params[$paramName], $paramMatches) == 0) {
+                                continue 2;
+                            }
+                            else if(isset($paramMatches[1])){
+                                $params[$paramName] = $paramMatches[1];
+                            }
+                        }else{
+                            if (preg_match($pattern[0], $params[$paramName], $paramMatches) == 0) {
+                                continue 2;
+                            }
+                            else if(isset($paramMatches[$pattern[1]])){
+                                $params[$paramName] = $paramMatches[$pattern[1]];
+                            }                            
+                        }
 					}
 				}
 
