@@ -471,7 +471,7 @@ class DooModel{
 		if (isset($options['distinct']) && $options['distinct'] == true) {
 			$options['select'] .= 'COUNT(DISTINCT '. $this->_table . '.' . $this->_fields[0] .') as _doototal';
 		} else {
-			$options['select'] .= 'COUNT('. $this->_table . '.' . $this->_fields[0] .') as _doototal';
+			$options['select'] .= 'COUNT(*) as _doototal';
 		}
         $options['asArray'] = true;
         $options['limit'] = 1;

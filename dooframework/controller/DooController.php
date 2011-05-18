@@ -240,14 +240,14 @@ class DooController {
      * @param bool $countryCode to return the language code along with country code
      * @return string The language code. eg. <b>en</b> or <b>en-US</b>
      */
-    public function language($countryCode=FALSE){
-        $langcode = (!empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : '';
-        $langcode = (!empty($langcode)) ? explode(';', $langcode) : $langcode;
-        $langcode = (!empty($langcode[0])) ? explode(',', $langcode[0]) : $langcode;
-        if(!$countryCode)
-            $langcode = (!empty($langcode[0])) ? explode('-', $langcode[0]) : $langcode;
-        return $langcode[0];
-    }
+	public function language($countryCode=FALSE){
+		$langcode = (!empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : '';
+		$langcode = (!empty($langcode)) ? explode(';', $langcode) : $langcode;
+		$langcode = (!empty($langcode[0])) ? explode(',', $langcode[0]) : $langcode;
+		if(!$countryCode)
+			$langcode = (!empty($langcode[0])) ? explode('-', $langcode[0]) : $langcode;
+		return is_array($langcode) ? $langcode[0] : $langcode;
+	}
 
     /**
      * Use acceptType() instead
