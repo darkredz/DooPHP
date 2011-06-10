@@ -38,6 +38,7 @@ class DooManageMySqlDb extends DooManageDb {
 	 */
 	protected $colTypeMapping = array (
 		DooManageDb::COL_TYPE_BOOL		=> 'BOOLEAN',
+		DooManageDb::COL_TYPE_TINYINT	=> 'TINYINT',
     	DooManageDb::COL_TYPE_SMALLINT	=> 'SMALLINT',
     	DooManageDb::COL_TYPE_INT		=> 'INTEGER',
     	DooManageDb::COL_TYPE_BIGINT	=> 'BIGINT',

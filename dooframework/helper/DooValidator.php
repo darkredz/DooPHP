@@ -945,7 +945,7 @@ class DooValidator {
     public function testMaxLength($value, $length=0, $msg=null){
         if(mb_strlen($value) > $length){
             if($msg!==null) return $msg;
-            return "Input cannot be longer than the $length characters.";
+            return "Input cannot be longer than $length characters.";
         }
     }
 
@@ -960,7 +960,7 @@ class DooValidator {
     public function testMinLength($value, $length=0, $msg=null){
         if(strlen($value) < $length){
             if($msg!==null) return $msg;
-            return "Input cannot be shorter than the $length characters.";
+            return "Input cannot be shorter than $length characters.";
         }
     }
 

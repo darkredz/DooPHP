@@ -34,6 +34,7 @@ abstract class DooManageDb {
 	 *  Usable Column Types
 	 */
 	const COL_TYPE_BOOL		 = 'bool';
+	const COL_TYPE_TINYINT	 = 'tinyint';
 	const COL_TYPE_SMALLINT  = 'smallint';
 	const COL_TYPE_INT		 = 'int';
 	const COL_TYPE_BIGINT	 = 'bigint';
@@ -476,6 +477,22 @@ abstract class DooManageDb {
 		$name = $this->modifyIndexName($table, $name);
 		return Doo::db()->query($this->_dropIndex($table, $name));
 	}
+
+	public function getIndexes($table) {
+
+		$this->checkIdentifier('table', $table);
+
+		$indexes = array();
+		$results = Doo::db()->fetchAll("SHOW INDEXES IN {$table}");
+		foreach($results as $result) {
+			if (!isset($indexes[$result['Key_name']])) {
+				$indexes[$result['Key_name']] = array('columns' => array(), 'unique' => ($result['Non_unique'] == 0));
+			}
+			$indexes[$result['Key_name']]['columns'][] = $result['Column_name'];
+		}
+		return $indexes;
+	}
+
 
 	/**
 	 * Drops an index from a table and specifically implemented for each db engine
