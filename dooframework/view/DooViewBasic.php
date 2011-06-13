@@ -1356,7 +1356,7 @@ class DooViewBasic {
 		return '$doo_view_basic_' . self::$uniqueId++;
 	}
 
-	public static function is_set_or($var) {
+	public static function is_set_or(&$var) {
 		return (isset($var)) ? $var : DooViewBasic::$safeVariableResult;
 	}
 
