@@ -11,7 +11,6 @@ class DooViewBasic {
     public $data;
 
 	protected static $forceCompile = false;
-	protected static $safeVariableResult = null;
 	protected static $uniqueId = 0;
 
 	protected $tags;
@@ -33,6 +32,7 @@ class DooViewBasic {
 	protected $usingRecursiveRender = false;
 	protected $filterFunctionPrefix = 'filter_';
 	protected $useSafeVariableAccess = false;
+	protected $safeVariableResult = 'null';
 
 	protected $fileManager = null;
 
@@ -103,7 +103,19 @@ class DooViewBasic {
 	 */
 	public function enableSafeVariableAccess($enable = true, $defaultValue = null) {
 		$this->useSafeVariableAccess = $enable;
-		DooViewBasic::$safeVariableResult = $defaultValue;
+
+		// We output the safe variable value inline so need a text equivelent
+		if ($defaultValue === null) {
+			$this->safeVariableResult = 'null';
+		} elseif (is_bool($defaultValue)) {
+			$this->safeVariableResult = ($defaultValue === true) ? 'true' : 'false';
+		} elseif (is_numeric($defaultValue)) {
+			$this->safeVariableResult = $defaultValue;
+		} elseif (is_string($defaultValue)) {
+			$this->safeVariableResult = "'{$defaultValue}'";
+		} else {
+			$this->safeVariableResult = $defaultValue;
+		}
 	}
 
 	/**
@@ -1299,7 +1311,7 @@ class DooViewBasic {
 		$this->debug("extractDataPath:: $result");
 
 		if (!$ignoreSafe && $this->useSafeVariableAccess) {
-			return 'DooViewBasic::is_set_or(' . $result . ')';
+			return " ( isset({$result}) ? {$result} : " . $this->safeVariableResult . " ) ";
 		} else {
 			return $result;
 		}
@@ -1354,10 +1366,6 @@ class DooViewBasic {
 
 	public function getUniqueVarId() {
 		return '$doo_view_basic_' . self::$uniqueId++;
-	}
-
-	public static function is_set_or(&$var) {
-		return (isset($var)) ? $var : DooViewBasic::$safeVariableResult;
 	}
 
 	private function debug($str) {
