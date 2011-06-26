@@ -618,6 +618,13 @@ class DooUriRouter{
 		//$this->log('Failed to find a matching route');
 	}
 
+	private function log($msg, $var=null) {
+		if (false) {
+			echo "{$msg}<br />\n";
+			if ($var !== null)
+				echo "<pre>" . print_r($var,true) . "</pre>";
+		}
+	}
 
     /**
      * Handles auto routing.

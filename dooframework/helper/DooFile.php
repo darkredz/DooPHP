@@ -565,12 +565,12 @@ class DooFile {
         if(!empty($_FILES[$filename])){
             $name = $_FILES[$filename]['name'];
             if(is_array($name)===false){
-                $ext = $this->getFileExtensionFromPath($name);
+                $ext = strtolower($this->getFileExtensionFromPath($name));
                 return in_array($ext, $allowExt);
             }
             else{
                 foreach($name as $nm){
-					$ext = $this->getFileExtensionFromPath($nm);
+					$ext = strtolower($this->getFileExtensionFromPath($nm));
                     if(!in_array($ext, $allowExt)){
                         return false;
                     }
