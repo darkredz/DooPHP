@@ -1206,8 +1206,9 @@ class DooViewBasic {
 		$result = '$data';
 		$currentToken = '';
 		$numChars = strlen($str);
-		$isNumericIndex = false;
 		$processingArrayIndex = true;		// True if an array index. False for object index
+		$disableSafeVariableAccess = false;
+		
 		for($i = 0; $i < $numChars; $i++) {
 			$char = $str[$i];
 
@@ -1293,6 +1294,10 @@ class DooViewBasic {
 					$processingArrayIndex = true;
 					break;
 				default:
+					if ($char == '@' && $i == 0) {
+						$disableSafeVariableAccess = true;
+						continue;
+					}
 					$currentToken .= $char;
 
 			}
@@ -1310,7 +1315,7 @@ class DooViewBasic {
 
 		$this->debug("extractDataPath:: $result");
 
-		if (!$ignoreSafe && $this->useSafeVariableAccess) {
+		if (!$ignoreSafe && $this->useSafeVariableAccess && !$disableSafeVariableAccess) {
 			return " ( isset({$result}) ? {$result} : " . $this->safeVariableResult . " ) ";
 		} else {
 			return $result;
