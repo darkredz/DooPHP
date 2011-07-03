@@ -225,6 +225,12 @@ class DooConfig{
         
     }
 
+    public function get($key){
+        if( isset($this->{$key})===true ){
+            return $this->{$key};
+        }
+    }
+
     /**
      * Add data to be retrieved later on. Served as a dummy storage.
      *
