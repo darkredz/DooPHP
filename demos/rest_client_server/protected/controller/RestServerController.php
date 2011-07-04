@@ -63,7 +63,7 @@ class RestServerController extends DooController{
 
     public function listFood_xml(){
         $this->setContentType('xml');
-        $result =  $this->toXml($this->database);
+        $result =  $this->genXml($this->database);
         echo $result;
     }
 
@@ -73,7 +73,7 @@ class RestServerController extends DooController{
         echo $result;
     }
 
-    private function toXml($arr) {
+    private function genXml($arr) {
         $str = '<result>';
         foreach($arr as $k=>$v){
             $str .='<record>';
@@ -101,7 +101,7 @@ class RestServerController extends DooController{
                 break;
             case '.xml':
                 $this->setContentType('xml');
-                $result =  $this->toXml(array($this->database[$id]));
+                $result =  $this->genXml(array($this->database[$id]));
                 break;
             default:
                 return 404;
@@ -130,7 +130,7 @@ class RestServerController extends DooController{
                     break;
                 case 'xml':
                     $this->setContentType('xml');
-                    $result =  $this->toXml(array($newFood));
+                    $result =  $this->genXml(array($newFood));
                     break;
             }
             echo $result;
@@ -167,7 +167,7 @@ class RestServerController extends DooController{
                     break;
                 case 'xml':
                     $this->setContentType('xml');
-                    $result =  $this->toXml(array($editFood));
+                    $result =  $this->genXml(array($editFood));
                     break;
             }
             echo $result;
