@@ -294,6 +294,8 @@ class DooSqlMagic {
 				// TODO: This test wants improving to cover other SQL DBs
 				if (strpos($pdoEx->getMessage(), 'MySQL server has gone away') !== false) {
 					$this->reconnect();
+					$stmt = $this->pdo->prepare($query);
+					$stmt->setFetchMode(PDO::FETCH_ASSOC);
 				} else {
 					throw $pdoEx;
 				}
