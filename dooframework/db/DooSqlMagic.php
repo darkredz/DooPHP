@@ -285,9 +285,10 @@ class DooSqlMagic {
 		if ($this->attemptAutoReconnect) {
 			try {
 				if($param==null)
-					return $stmt->execute();
+					$stmt->execute();
 				else
-					return $stmt->execute($param);
+					$stmt->execute($param);
+				return $stmt;
 			} catch (PDOException $pdoEx) {
 
 				// TODO: This test wants improving to cover other SQL DBs
@@ -300,9 +301,11 @@ class DooSqlMagic {
 		}
 
 		if($param==null)
-			return $stmt->execute();
+			$stmt->execute();
 		else
-			return $stmt->execute($param);
+			$stmt->execute($param);
+		
+		return $stmt;
     }
 
     /*
