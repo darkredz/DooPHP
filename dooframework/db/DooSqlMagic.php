@@ -60,6 +60,7 @@ class DooSqlMagic {
     protected $dbconfig;
     protected $dbconfig_list;
     protected $pdo;
+	protected $attemptAutoReconnect = false;
 
     protected $transactionLevel = 0;
 
@@ -190,6 +191,10 @@ class DooSqlMagic {
         }
     }
 
+	public function attemptAutoReconnect($status = true) {
+		$this->attemptAutoReconnect = $status;
+	}
+
     /**
      * Close a database connection
      */
@@ -274,11 +279,30 @@ class DooSqlMagic {
         $stmt = $this->pdo->prepare($query);
         $stmt->setFetchMode(PDO::FETCH_ASSOC);
 
-        if($param==null)
-            $stmt->execute();
-        else
-            $stmt->execute($param);
-        return $stmt;
+		// If using auto reconnect then we attempt one connection in a try catch block and see if it works
+		// if it does work just return the result. Otherwise try a reconnect if possible and try re-executing using the non
+		// reconnecting code
+		if ($this->attemptAutoReconnect) {
+			try {
+				if($param==null)
+					return $stmt->execute();
+				else
+					return $stmt->execute($param);
+			} catch (PDOException $pdoEx) {
+
+				// TODO: This test wants improving to cover other SQL DBs
+				if (strpos($pdoEx->getMessage(), 'MySQL server has gone away') !== false) {
+					$this->reconnect();
+				} else {
+					throw $pdoEx;
+				}
+			}
+		}
+
+		if($param==null)
+			return $stmt->execute();
+		else
+			return $stmt->execute($param);
     }
 
     /*
