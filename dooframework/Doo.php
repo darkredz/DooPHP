@@ -33,6 +33,7 @@ class Doo{
 	protected static $_session;
 	protected static $_translator;
     protected static $_globalApps;
+    protected static $_autoloadClassMap;
 
     /**
      * @return DooConfig configuration settings defined in <i>common.conf.php</i>, auto create if the singleton has not been created yet.
@@ -510,9 +511,12 @@ class Doo{
                     }                                
                 }
                 else{
-                    $rs = include_once($path . 'config/autoload/autoload.php');
+					if(isset(self::$_autoloadClassMap)===false)
+						$rs = self::$_autoloadClassMap = include_once($path . 'config/autoload/autoload.php');
+					else
+						$rs = self::$_autoloadClassMap;
                 }
-
+				
                 if( isset($rs[$classname . '.php'])===true ){
                     require_once $rs[$classname . '.php'];
                     return;

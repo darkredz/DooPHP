@@ -225,6 +225,10 @@ class DooConfig{
         
     }
 
+    public function get($key, $defaultValue=null) {
+		return (isset($this->{$key}) === true ) ? $this->{$key} : $defaultValue;
+	}
+
     /**
      * Add data to be retrieved later on. Served as a dummy storage.
      *

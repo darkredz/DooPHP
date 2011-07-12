@@ -72,7 +72,7 @@ class DooManageSqliteDb extends DooManageDb {
 	protected function _dropIndex($table, $name) {
 		// SQLite indexes relate to the whole db so we ensure the $name refrences the table
 		$name = $this->quote($name);
-		return $this->query("DROP INDEX $name");
+		return "DROP INDEX $name";
 	}
 
 

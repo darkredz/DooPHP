@@ -432,7 +432,7 @@ class DooTimezone {
 	 * @param bool $enableDST Enable/disable Daylight Saving Time in the time conversion. Default is DST enabled.
 	 * @return string The formatted date time after conversion
 	 */
-	public static function convertToUTCTime( $time, $fromTimezone, $dateFormat = 'Y-m-d H:i:s' ){
+	public static function convertToUTCTime( $time, $fromTimezone, $dateFormat = 'Y-m-d H:i:s', $enableDST = true ){
 		return self::convertTime($time, $fromTimezone, 'UTC', $dateFormat, $enableDST);
 	}
 

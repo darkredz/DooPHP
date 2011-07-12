@@ -286,6 +286,33 @@ class DooFile {
         closedir($handle);
         return $rs;
     }    
+
+    /**
+     * Get a list of files(indexed array) with its path in a directory (recursively)
+     * @param string $path
+     * @return array 
+     */
+    public static function getFilePathIndexList($path){
+        $path = str_replace('\\', '/', $path);
+        if($path[strlen($path)-1] != '/'){
+            $path .= '/';
+        }
+        
+        $handle = opendir($path);
+        $rs = array();
+
+        while (false !== ($file = readdir($handle))){
+            if ($file != '.' && $file != '..' && $file!='.svn'){
+                if (is_dir($path.$file)===true){
+                        $rs = array_merge($rs, self::getFilePathIndexList($path.$file.'/'));
+                }else{
+                    $rs[] = $path.$file;
+                }
+            }
+        }
+        closedir($handle);
+        return $rs;
+    }    
     
     /**
      * Get a list of folders or files or both in a given path.
@@ -538,12 +565,12 @@ class DooFile {
         if(!empty($_FILES[$filename])){
             $name = $_FILES[$filename]['name'];
             if(is_array($name)===false){
-                $ext = $this->getFileExtensionFromPath($name);
+                $ext = strtolower($this->getFileExtensionFromPath($name));
                 return in_array($ext, $allowExt);
             }
             else{
                 foreach($name as $nm){
-					$ext = $this->getFileExtensionFromPath($nm);
+					$ext = strtolower($this->getFileExtensionFromPath($nm));
                     if(!in_array($ext, $allowExt)){
                         return false;
                     }

@@ -114,13 +114,13 @@ class DooController {
     public function init_put_vars(){
         parse_str(file_get_contents('php://input'), $this->puts);
     }
-    
+
     /**
      * Set PUT request variables in a controller. This method is to be used by the main web app class.
      */
     public function initPutVars(){
         parse_str(file_get_contents('php://input'), $this->puts);
-    }    
+    }
 
     /**
      * The loader singleton, auto create if the singleton has not been created yet.
@@ -240,14 +240,14 @@ class DooController {
      * @param bool $countryCode to return the language code along with country code
      * @return string The language code. eg. <b>en</b> or <b>en-US</b>
      */
-    public function language($countryCode=FALSE){
-        $langcode = (!empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : '';
-        $langcode = (!empty($langcode)) ? explode(';', $langcode) : $langcode;
-        $langcode = (!empty($langcode[0])) ? explode(',', $langcode[0]) : $langcode;
-        if(!$countryCode)
-            $langcode = (!empty($langcode[0])) ? explode('-', $langcode[0]) : $langcode;
-        return $langcode[0];
-    }
+	public function language($countryCode=FALSE){
+		$langcode = (!empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : '';
+		$langcode = (!empty($langcode)) ? explode(';', $langcode) : $langcode;
+		$langcode = (!empty($langcode[0])) ? explode(',', $langcode[0]) : $langcode;
+		if(!$countryCode)
+			$langcode = (!empty($langcode[0])) ? explode('-', $langcode[0]) : $langcode;
+		return is_array($langcode) ? $langcode[0] : $langcode;
+	}
 
     /**
      * Use acceptType() instead
@@ -283,7 +283,8 @@ class DooController {
             'gif'=>'image/gif',
             'form'=>'multipart/form-data',
             'url-form'=>'application/x-www-form-urlencoded',
-            'csv'=>'text/csv'
+            'csv'=>'text/csv',
+			'tsv'=>'text/tsv'
         );
 
         $matches = array();
@@ -350,7 +351,8 @@ class DooController {
                             'png'=>'image/png',
                             'jpg'=>'image/jpeg',
                             'gif'=>'image/gif',
-                            'csv'=>'text/csv'
+                            'csv'=>'text/csv',
+							'tsv'=>'text/tsv'
 						);
         if(isset($extensions[$type]))
             header("Content-Type: {$extensions[$type]}; charset=$charset");
@@ -375,21 +377,21 @@ class DooController {
     /**
      * This will be called if the action method returns null or success status(200 to 299 not including 204) after the actual action is executed
      * @param mixed $routeResult The result returned by an action
-     */    
+     */
 	public function afterRun($routeResult) {
-		if($this->autorender===true && ($routeResult===null || ($routeResult>=200 && $routeResult<300 && $routeResult!=204))){	
+		if($this->autorender===true && ($routeResult===null || ($routeResult>=200 && $routeResult<300 && $routeResult!=204))){
             $this->viewRenderAutomation();
 		}
 	}
-    
+
     /**
      * Retrieve value of a key from URI accessed from an auto route.
-     * Example with a controller named UserController and a method named listAll(): 
+     * Example with a controller named UserController and a method named listAll():
      * <code>
      * //URI is http://localhost/user/list-all/id/11
      * $this->getKeyParam('id');   //returns 11
      * </code>
-     * 
+     *
      * @param string $key
      * @return mixed
      */
@@ -400,7 +402,7 @@ class DooController {
                 return $this->params[$valueIndex];
         }
     }
-    
+
     /**
      * Controls the automated view rendering process.
      */
@@ -413,7 +415,7 @@ class DooController {
             if(isset(Doo::conf()->AUTO_VIEW_RENDER_PATH))
                 $this->{$this->renderMethod}(strtolower(Doo::conf()->AUTO_VIEW_RENDER_PATH[0]) .'/'. strtolower(Doo::conf()->AUTO_VIEW_RENDER_PATH[1]), $this->vdata);
             else
-                $this->{$this->renderMethod}('index', $this->vdata);                
+                $this->{$this->renderMethod}('index', $this->vdata);
 		}
 	}
 
@@ -447,7 +449,7 @@ class DooController {
         }
         return FALSE;
     }
-    
+
     /**
      * Use isSSL() instead
      * @deprecated deprecated since version 1.3
@@ -472,10 +474,11 @@ class DooController {
      * @return string XML string
      */
     public function toXML($result, $output=false, $setXMLContentType=false, $encoding='utf-8'){
-        $str = '<?xml version="1.0" encoding="utf-8"?><result>';
+        $str = '<?xml version="1.0" encoding="'.$encoding.'"?><result>';
+		if (is_array($result))
         foreach($result as $kk=>$vv){
             $cls = get_class($vv);
-            $str .= '<' . $cls . '>';
+            $str .=  (!empty($cls))? '<' . $cls . '>' : '<item>';
             foreach($vv as $k=>$v){
                 if($k!='_table' && $k!='_fields' && $k!='_primarykey'){
                     if(is_array($v)){
@@ -512,7 +515,7 @@ class DooController {
                     }
                 }
             }
-            $str .= '</' . $cls . '>';
+            $str .=  (!empty($cls))? '</' . $cls . '>' : '</item>';
         }
         $str .= '</result>';
         if($setXMLContentType===true)
@@ -576,32 +579,32 @@ class DooController {
                             return "{";
                         }
                         return $matches[0];');
-            
+
             $rs = preg_replace_callback(array('/\,\"([^\"]+)\"\:\".*\"/U', '/\,\"([^\"]+)\"\:\{.*\}/U', '/\,\"([^\"]+)\"\:\[.*\]/U', '/\,\"([^\"]+)\"\:([false|true|0-9|\.\-|null]+)/'), $funcb1, $rs);
 
             $rs = preg_replace_callback(array('/\{\"([^\"]+)\"\:\".*\"\,/U','/\{\"([^\"]+)\"\:\{.*\}\,/U'), $funcb2, $rs);
 
             preg_match('/(.*)(\[\{.*)\"('. implode('|',$mustRemoveFieldList) .')\"\:\[(.*)/', $rs, $m);
-            
+
             if($m){
                 if( $pos = strpos($m[4], '"}],"') ){
                     if($pos2 = strpos($m[4], '"}]},{')){
                         $d = substr($m[4], $pos2+5);
                         if(substr($m[2],-1)==','){
                             $m[2] = substr_replace($m[2], '},', -1);
-                        }                
+                        }
                     }
                     else if(strpos($m[4], ']},{')!==false){
-                        $d = substr($m[4], strpos($m[4], ']},{')+3);  
+                        $d = substr($m[4], strpos($m[4], ']},{')+3);
                         if(substr($m[2],-1)==','){
                             $m[2] = substr_replace($m[2], '},', -1);
                         }
                     }
                     else if(strpos($m[4], '],"')===0){
-                        $d = substr($m[4], strpos($m[4], '],"')+2);  
-                    }                    
+                        $d = substr($m[4], strpos($m[4], '],"')+2);
+                    }
                     else if(strpos($m[4], '}],"')!==false){
-                        $d = substr($m[4], strpos($m[4], '],"')+2);  
+                        $d = substr($m[4], strpos($m[4], '],"')+2);
                     }
                     else{
                         $d = substr($m[4], $pos+4);
@@ -617,7 +620,7 @@ class DooController {
                 }
             }
         }
-        
+
         if($output===true){
 			if($setJSONContentType===true)
 				$this->setContentType('json', $encoding);
