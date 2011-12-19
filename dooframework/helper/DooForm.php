@@ -149,7 +149,7 @@ class DooForm {
         foreach ($this->_attr as $attribute => $c) {
             $attributes .= $attribute . '="' . htmlspecialchars($c) . '" ';
         }
-        $formOpenHtml = '<form action="' . $this->_action . '" method="' . $this->_method . '" ' . $enctype . ' ' . $attributes . '>';
+        $formOpenHtml = '<form ' . ($this->_action ? 'action="' . $this->_action . '" ' : '') . 'method="' . $this->_method . '" ' . $enctype . ' ' . $attributes . '>';
         $formCloseHtml = '</form>';
         if ($this->_renderFormat == 'array') {
             $formOutput = array(
@@ -558,14 +558,18 @@ class DooForm {
      *
      * @return boolean True or false if form is not valid
      */
-    public function isValid($values) {
+    public function isValid($values, $validator) {
         $valid = true;
         $errors = array();
-        try {
-            Doo::loadHelper('DooValidator');
-            $v = new DooValidator();
-        } catch (DooFormException $e) {
-            echo 'Validator class coulndt be loaded ' . $e->getMessage() . '\n';
+        if(!isset($validator)) {
+          try {
+              Doo::loadHelper('DooValidator');
+              $v = new DooValidator();
+          } catch (DooFormException $e) {
+              echo 'Validator class coulndt be loaded ' . $e->getMessage() . '\n';
+          }
+        } else {
+          $v = $validator;
         }
         $formElements = $this->_formElements;
         $elementValues = array();
