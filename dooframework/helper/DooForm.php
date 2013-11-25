@@ -149,7 +149,7 @@ class DooForm {
         foreach ($this->_attr as $attribute => $c) {
             $attributes .= $attribute . '="' . htmlspecialchars($c) . '" ';
         }
-        $formOpenHtml = '<form action="' . $this->_action . '" method="' . $this->_method . '" ' . $enctype . ' ' . $attributes . '>';
+        $formOpenHtml = '<form ' . ($this->_action ? 'action="' . $this->_action . '" ' : '') . 'method="' . $this->_method . '" ' . $enctype . ' ' . $attributes . '>';
         $formCloseHtml = '</form>';
         if ($this->_renderFormat == 'array') {
             $formOutput = array(
@@ -298,7 +298,7 @@ class DooForm {
             $fieldWrapper = "div";
             if (isset($k[1]['field-wrapper'])) {
                 $fieldWrapper = ($k[1]['field-wrapper'] != "") ? $k[1]['field-wrapper'] : 'div';
-                $fieldWrappOpen = '<' . $fieldWrapper . ' id="' . $element . '-field-wrapper">';
+                $fieldWrappOpen = '<' . $fieldWrapper . ' id="' . $element . '-field-wrapper" class="form-field-wrapper'. (isset($k[1]['field-wrapper-class'])? ' '. $k[1]['field-wrapper-class'] : '').'">';
                 $fieldWrappClose = '</' . $fieldWrapper . '>';
                 $formElements[$element] .= $fieldWrappOpen;
             }
@@ -308,7 +308,7 @@ class DooForm {
             $elementWrapper = "dd";
             if (isset($k[1]['element-wrapper'])) {
                 $elementWrapper = ($k[1]['element-wrapper'] != "") ? $k[1]['element-wrapper'] : 'dd';
-                $elementWrappOpen = '<' . $elementWrapper . ' id="' . $element . '-element-wrapper">';
+                $elementWrappOpen = '<' . $elementWrapper . ' id="' . $element . '-element-wrapper" class="form-element-wrapper'. (isset($k[1]['element-wrapper-class'])? ' '. $k[1]['element-wrapper-class'] : '').'">';
                 $elementWrappClose = '</' . $elementWrapper . '>';
             }
             // make label wrapper
@@ -317,7 +317,7 @@ class DooForm {
             $labelWrapper = "dt";
             if (isset($k[1]['label-wrapper'])) {
                 $labelWrapper = ($k[1]['label-wrapper'] != "") ? $k[1]['label-wrapper'] : 'dt';
-                $labelWrappOpen = '<' . $labelWrapper . ' id="' . $element . '-label-wrapper">';
+                $labelWrappOpen = '<' . $labelWrapper . ' id="' . $element . '-label-wrapper" class="form-label-wrapper'. (isset($k[1]['label-wrapper-class'])? ' '. $k[1]['label-wrapper-class'] : '').'">';
                 $labelWrappClose = '</' . $labelWrapper . '>';
             }
             // add label if there is one
@@ -558,14 +558,18 @@ class DooForm {
      *
      * @return boolean True or false if form is not valid
      */
-    public function isValid($values) {
+    public function isValid($values, $validator) {
         $valid = true;
         $errors = array();
-        try {
-            Doo::loadHelper('DooValidator');
-            $v = new DooValidator();
-        } catch (DooFormException $e) {
-            echo 'Validator class coulndt be loaded ' . $e->getMessage() . '\n';
+        if(!isset($validator)) {
+          try {
+              Doo::loadHelper('DooValidator');
+              $v = new DooValidator();
+          } catch (DooFormException $e) {
+              echo 'Validator class coulndt be loaded ' . $e->getMessage() . '\n';
+          }
+        } else {
+          $v = $validator;
         }
         $formElements = $this->_formElements;
         $elementValues = array();
