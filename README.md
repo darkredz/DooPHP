@@ -1,6 +1,6 @@
-#DooPHP
+# DooPHP
 
-##Introduction
+## Introduction
 * [Website](http://doophp.com/)
 * [Documentation](http://doophp.com/doc)
 * [Benchmark](http://doophp.com/benchmark)
@@ -13,7 +13,7 @@ DooPHP framework is one of the fastest, if not the fastest PHP framework availab
 The framework is around 3-12 times faster than other frameworks, DooPHP is higly capable of delivering incomparably fast page loads. Besides being fast, Doophp is also quite feature rich. DooPHP supports some common stuffs found in a web framework, such as MVC structured, RESTful API, REST client, URI routing, database ORM tools, model generator, HTTP Digest Authentication, a flexible template engine, logging & profiling tools, etc.
 
 
-##DooPHP's belief
+## DooPHP's belief
 
 DooPHP believes in doing things as simple as possible. It is a framework for KISS lovers.
 
