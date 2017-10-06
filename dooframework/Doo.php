@@ -568,4 +568,57 @@ class Doo{
     public static function version(){
         return '1.4.1';
     }
+    
+    /**
+     * Debug com var_dump
+     * @param mixed $str
+     */
+    public static function dbgv($str){
+        echo '<pre>';
+        var_dump($str);
+        echo '</pre>';
+    }
+    
+    /**
+     * Debug com print_r
+     * @param midex $str
+     */
+    public static function dbg($str){
+        echo '<pre>';
+        print_r($str);
+        echo '</pre>';
+    }
+    
+    public static function loadConstants(){
+        defined('DS')||define('DS', DIRECTORY_SEPARATOR);
+        
+        //Carrega o diretório do app
+        $arr = debug_backtrace();
+        $dir = dirname($arr[0]['file']);
+        $dirThis = dirname(__FILE__);
+        
+        define('SITE_PATH', $dir.DS);
+        define('SITR_URL', Doo::conf()->APP_URL);
+        define('DOO_PATH', $dirThis.DS);
+    }
+    
+    /**
+     * Loader para registro de auto loader
+     * @param string $class
+     */
+    public static function loader($class){
+        $arrDir = array(
+            SITE_PATH.'/',
+            SITE_PATH.'class/',
+            DOO_PATH.'libs/',
+        );
+        if($class[0]=='\\'){
+            $class= substr($class, 1);
+        }
+        foreach($arrDir as $dir){
+            if(file_exists($dir.$class.'.php')){
+                include_once $dir.$class.'.php';
+            }
+        }
+    }
 }
