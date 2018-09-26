@@ -107,6 +107,13 @@ class DooController {
     protected $_load;
     protected $_view;
 
+    protected function isMobile(){
+        $mobileObj = new Mobile_Detect();
+        return $mobileObj->isMobile();
+    }
+
+
+
     /**
      * Use initPutVars() instead
      * @deprecated deprecated since version 1.3
